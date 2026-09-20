@@ -119,6 +119,15 @@ Siirtymän 2 → 3 saa tehdä **mikä tahansa** kirjoittaja kunhan ehto täyttyy
 rajoiteta — sen sijaan ehto lasketaan [jaetusta kirjastosta](#6-jaettu-kirjasto), jolloin kaikki
 kirjoittajat päätyvät samaan lopputulokseen eikä ajojärjestyksellä ole merkitystä.
 
+> [!IMPORTANT]
+> **Jonkun on silti tehtävä se.** Tämä muotoilu on oikea periaatteena ja harhaanjohtava
+> käytännössä: molemmat statuksen kirjoittajat laukeavat *tapahtumasta* (CR:n käsittely, maksun
+> saapuminen), mutta tunnistuspäivä on **kalenteripäivä** joka koittaa ilman tapahtumaa. Mitattuna
+> 20.09.2026: 1 599/1 668 (**96 %**) Type 2 -CR:istä on käsittelyhetkellään tunnistuspäivä tulevassa
+> kuukaudessa, eli ilman erillistä kalenterihakua ne jäisivät pysyvästi Activeksi.
+> [ADR 0005](adr/0005-tilasiirtyman-2-3-tekee-kalenterisweep.md) antaa tehtävän
+> `gbb_ss_bike_redemption_status_sync.js`:n kalenterisweepille.
+
 ---
 
 ## 5. Kenttäkohtaiset säännöt

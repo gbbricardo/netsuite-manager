@@ -15,6 +15,7 @@ Järjestys on riippuvuusjärjestys, ei kiireysjärjestys.
 | Muutos | Peruste | Tila |
 |---|---|---|
 | Uusi päivämääräkenttä **päätöspäivä** tietueelle `customrecord_sta_bike_register`, ei pakollinen | [ADR 0001](adr/0001-uusi-paatospaiva-kentta.md) | **valmis 19.09.2026** |
+| Script-tietue ja deployment `ue_gbb_redemption_decided_at.js`:lle, CREATE/EDIT/XEDIT | [ADR 0004](adr/0004-paatospaivan-kirjoittaa-ue.md) | **Released 20.09.2026** (script 2125) |
 
 `custrecord_gbb_redemption_decided_at` · otsikko LUNASTUS SOVITTU · tyyppi Date · suodatettavissa ·
 tyhjä 46 737/46 737. Todennettu NetSuitesta 19.09.2026.
@@ -60,9 +61,15 @@ sisarrepo jolla testit jo ovat, ja nämä predikaatit ovat puhtaita funktioita.
 
 | Rivi | Nyt | Pitäisi |
 |---|---|---|
-| `:107` | kohdestatus päätellään CR:n nimestä (`crName.indexOf('2D')`) | `kohdestatus(method)` — nimi ei enää ohjaa |
-| `:108` | status kirjoitetaan ajohetkellä | vain jos `saakoMerkitaPaattyneeksi`; muuten status jää 1:een |
-| `:199` | `liab_settled_at = new Date()` | todellinen velvoitteiden hoitopäivä; ajopäivä kuuluu **päätöspäivä**-kenttään |
+| `:106` | kohdestatus päätellään CR:n nimestä (`crName.indexOf('2D')`) | `kohdestatus(method)` — nimi ei enää ohjaa. **Huom:** `bikeStatus` on kahdessa roolissa, se on myös syöte `resolveLiabilitySettlement`ille. Kehä on purettava säilyttäen nykyinen presedenssi |
+| `:108` | status kirjoitetaan ajohetkellä | vain jos `saakoMerkitaPaattyneeksi`. **Esiehto: kalenterisweep tuotannossa** ([ADR 0005](adr/0005-tilasiirtyman-2-3-tekee-kalenterisweep.md)) |
+| `:209` | `liab_settled_at = new Date()` | **`custrecord_cr_created_date`** — päivä jona asiakaspalvelija vahvisti kaiken tehdyksi. Handler **ei** hae maksutodistetta: CR luodaan vasta kun kaikki keskenkauden lunastuksen toimenpiteet maksu mukaan lukien on tehty (tuoteomistaja 20.09.2026), joten CR:n olemassaolo **on** todiste. Kenttä on myös pakko jatkaa kirjoittamista, koska kuukausiraportointi lukee sitä päättymissignaalina kunnes vaihe 3 on tehty |
+
+> **Miksi ei `new Date()` eikä tyhjä.** Ajopäivä on mitattavasti väärä: `custrecord_cr_created_date`
+> eroaa sulkemispäivästä **2 327/2 495** Done-CR:llä (93 %), eli CR odottaa jonossa. Kenttä on
+> täytetty kaikilla 2 495:llä. Tyhjäksi jättäminen taas katkaisisi statusportin, koska selvitystapa
+> 1 ei ole todiste ilman maksua — todennettu: selvitystapa 1 ilman `paid_at`:ia **ja** ilman
+> `settled_at`:ia = **0** tietuetta, eli ketju toimii tänään vain koska handler itse leimaa kentän.
 
 Kaikki muu mitä handler tekee — sopimusrivit, laskut, selvitystapa, `ic_redemption_dt` — tapahtuu
 edelleen heti. **Vain status ja `date_to_non_active` lykkääntyvät.** Tämä on tarkoitus: laskutus ja
@@ -94,6 +101,17 @@ Tämä on kahdesta kirjoittajasta se joka tuottaa ne kolme vakavaa aukkopyörä�
 | `:256`, `:330` | `subscenddate` populoituu vain `so_type = 4` | myös `so_type = 3` (keskenkauden lunastus) |
 | `:433` | ei kirjoita selvitystapaa | kirjoittaa `liab_settle_method = 1` ja päätöspäivän |
 | `:434` | `if (row.statusDue)` | `saakoMerkitaPaattyneeksi` |
+
+> [!IMPORTANT]
+> **Nämä neljä riviä eivät ole erillisiä korjauksia vaan saman muutoksen osia**, ja niihin kuuluu
+> viides jota tämä suunnitelma ei tuntenut: **kalenterisweep**
+> ([ADR 0005](adr/0005-tilasiirtyman-2-3-tekee-kalenterisweep.md)). Kun statuspäätös siirtyy
+> kirjastolle, se ei enää tarvitse maksudataa, jolloin `MATCH_WHERE_SQL`, `statusDue` ja
+> aikataulupäivän laskenta — **maksupäivä-fallback mukaan lukien** — käyvät kuolleiksi ja
+> poistuvat. Statuksen kirjoitus siirtyy kokonaan pyörärekisteriin kohdistuvaan sweepiin.
+>
+> **Sweep on `handler_lunastus.js`:n statusportin esiehto.** Ilman sitä 96 % lunastuksista jäisi
+> pysyvästi Activeksi.
 
 Fallbackin poisto tarkoittaa että pyörä jolta päättymisajankohta puuttuu **ei lunastu lainkaan**.
 Se on oikea lopputulos, mutta se on hiljainen — polulle tarvitaan jokin näkyvä jälki, ettei pyörä
