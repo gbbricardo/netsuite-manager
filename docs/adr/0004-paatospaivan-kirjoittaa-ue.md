@@ -66,9 +66,26 @@ Kentän ainoaksi korvaamattomaksi tehtäväksi jää **pysyväistää se todiste
 pyörärekisterissä** — maksettu lunastuslasku ja valmis Paylink-pyyntö. Map/Reduce joka käy läpi
 46 737 pyörää ei voi hakea niitä per pyörä governance-rajan takia. Tätä ei tee tänään kukaan.
 
-**4. Omistaja on `netsuite-subscrption-cr-scripts`** ([ADR 0003](0003-jaetun-kirjaston-sijainti.md):n
-perustelu): ainoa sisarrepo jolla on deployment-polku (SDF). UE lataa `gbb_lunastus_lib`:n
-`tanaanHelsinki()`:n vuoksi — SuiteScriptin ajonaikainen kello on ~10 h Suomen ajasta.
+**4. Omistaja on `netsuite-subscrption-cr-scripts`.** Kolme perustelua, todennettu 20.09.2026:
+
+- **Kirjaston kanssa samassa repossa.** UE lataa `gbb_lunastus_lib`:n `tanaanHelsinki()`:n vuoksi —
+  SuiteScriptin ajonaikainen kello on ~10 h Suomen ajasta. Samassa repossa kirjasto ja sen
+  kuluttaja versioituvat yhdessä; erillään kirjaston päivitys voi rikkoa UE:n eikä mikään
+  deployment-työkalu kerro siitä.
+- **UE ei ole minkään yksittäisen polun skripti.** Se laukeaa jokaisesta
+  `custrecord_gbb_liab_settle_method`-kirjoituksesta: `handler_lunastus`, status-sync,
+  cf-gbb-tools, CSV-import ja käsin tehdyt muutokset. Koko tietuetta koskeva trigger ei kuulu
+  yhdelle viidestä laukaisijasta.
+- **Repo omistaa lunastuksen päättymissäännöt** ([ADR 0003](0003-jaetun-kirjaston-sijainti.md)).
+  Päätöspäivä on sääntö, ei maksutapahtuma.
+
+> *Tämän ADR:n alkuperäinen perustelu oli "ainoa sisarrepo jolla on deployment-polku (SDF)". Se ei
+> pidä paikkaansa — yhdelläkään repolla ei ole SDF-projektia, ks. ADR 0003. Valinta ei muutu.*
+>
+> Harkittiin myös `netsuite-bike-redemption-status-sync`ia (teemallisesti lähin, ja sillä on jo oma
+> Helsinki-päivätoteutus — mutta sen käyttäminen loisi kolmannen rinnakkaisen toteutuksen) ja
+> `netsuite-monthly-reporting`ia (ainoa repo jolla on UE-konventio ja jo pyörärekisterille
+> deployattu UE — mutta se on lukija, ja kirjoittajan sijoittaminen sinne kääntäisi sen roolin).
 
 ## Toteutusreunaehdot
 

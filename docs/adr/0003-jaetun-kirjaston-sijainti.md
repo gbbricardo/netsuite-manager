@@ -22,14 +22,20 @@ Kirjaston tarvitsevat ainakin:
 | `netsuite-ic-calculators` | `ic_redemption_dt`:n johtaminen päättymisajankohdasta |
 | `netsuite-paylink-order-tracking` | ei toistaiseksi, mutta lukee samoja faktoja |
 
-Rakenteellinen este: **vain `netsuite-subscrption-cr-scripts`illa on oikea deployment-työkalu**
-(SuiteCloud SDF). Viisi muuta ladataan File Cabinettiin käsin. Kirjasto on kuitenkin File
+Rakenteellinen este: **millään sisarrepolla ei ole toimivaa deployment-työkalua.**
+`netsuite-subscrption-cr-scripts` noudattaa SDF:n kansiorakennetta (`src/FileCabinet/…`), mutta
+siinä ei ole `manifest.xml`:ää, `deploy.xml`:ää eikä `Objects/`-kansiota — sen oma README kirjaa
+tämän aukoksi (`:217`). Kaikki kuusi repoa ladataan File Cabinettiin käsin.
+
+> *Tämän ADR:n alkuperäinen muotoilu oli "vain CR-repolla on oikea deployment-työkalu (SDF)".
+> Todennettu 20.09.2026: väite ei pidä paikkaansa. Valinta ei kuitenkaan muutu — perustelu on
+> omistajuus ja kansiorakenne, ei työkalu.* Kirjasto on kuitenkin File
 Cabinetissa yksi tiedosto, jonka jokainen skripti hakee poluttain `define`-riippuvuutena — NetSuite
 ei tunne repo-rajoja, joten lataaja ja käyttäjä voivat olla eri repoja.
 
 ## Vaihtoehdot
 
-**A. Kirjasto asuu CR-repossa, deployataan SDF:llä omaan File Cabinet -kansioonsa.** Valittu.
+**A. Kirjasto asuu CR-repossa, omassa File Cabinet -kansiossaan.** Valittu.
 
 **B. Uusi kahdeksas repo pelkälle kirjastolle.** Puhtain omistajuus, mutta lisää kahdeksannen
 deployment-polun projektiin jossa viidellä repolla ei ole yhtäkään. Hylätty toistaiseksi —
@@ -69,8 +75,8 @@ yhdenmukaisuus todetaan vain testeillä ja tällä dokumentilla.
 samoista lähtöfaktoista sen sijaan että lukisivat toistensa tuotosta. Sääntömuutos on yhden
 tiedoston muutos kuudessa repossa.
 
-**Huonot.** Viisi repoa saa riippuvuuden johon niillä ei ole deployment-oikeutta. Jos CR-repon
-SDF-ajo poistaa tai nimeää tiedoston uudelleen, viisi muuta repoa hajoaa kerralla, eikä
+**Huonot.** Viisi repoa saa riippuvuuden johon niillä ei ole kirjoitusoikeutta. Jos CR-repon
+lataus poistaa tai nimeää tiedoston uudelleen, viisi muuta repoa hajoaa kerralla, eikä
 mikään niistä huomaa sitä ennen ajoa. Kirjastolla on siksi oltava versionumero jonka kutsuja voi
 lokittaa.
 
