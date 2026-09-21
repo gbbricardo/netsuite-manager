@@ -203,8 +203,9 @@ sopimuksen alainen, jätä teksti ennalleen ja lisää selitys kommenttiin.
 
 ## 3. `netsuite-monthly-reporting` · `mr_backfill_missing_ended_rows.js`
 
-Kertaluontoinen backfill, mutta **sen deployment `customscript1458` on yhä elävällä ajastuksella**
-(`schemas/script-inventory.md`) — eli se ei ole kertaluontoinen siinä mielessä että se ei enää ajaisi.
+Kertaluontoinen backfill. Deployment on **`customscript1463`** / `customdeploy_gbb_ri_ended_backfill`,
+tila **Not Scheduled** *(todennettu NetSuitesta 21.09.)* — se ei aja itsestään, mutta se voidaan
+ajaa käsin, joten ehdon pitää pysyä yhtenäisenä `ri_creation`in kanssa.
 
 Kaksi kohtaa:
 
@@ -214,9 +215,18 @@ Kaksi kohtaa:
   kohta 1.1 on tehty, tämä lupaus rikkoutuu. Päivitä sanamuoto vastaamaan kirjaston predikaattia.
 - **`:91` (`BIKE`-kartta ja ehto)** — sama muutos kuin 1.1: kirjasto tilalle, viisi kenttää hakuun.
 
-Jos backfillin populaatio on jo ajettu loppuun, **harkitse deploymentin kääntämistä Not Scheduled
--tilaan** sen sijaan että ehtoa ylläpidetään kahdessa paikassa. Se on oma päätöksensä ja se kuuluu
-tuoteomistajalle — nosta esiin, älä tee itse.
+> [!NOTE]
+> **Korjattu 21.09.2026.** Tämän kohdan ensimmäinen versio väitti että skriptin deployment on
+> `customscript1458` ja että se on elävällä ajastuksella. Kumpikin oli väärin: `customscript1458`
+> on *"[GBB] Bike status date backfill"* eli
+> `netsuite-bike-redemption-status-sync/gbb-bike-status-history/gbb_ss_bike_status_history_backfill.js`
+> — **eri repo, eri skripti, eikä osa vaihetta 3**. Se on se joka on `Scheduled`-tilassa
+> (`customdeploy_gbb_ss_bike_status_backfill`), ja se havainto kuuluu
+> `schemas/script-inventory.md` § *netsuite-bike-redemption-status-sync* -osioon, jossa se jo on.
+> Tämän vaiheen tiedosto on `customscript1463` ja se on Not Scheduled.
+>
+> Virhe syntyi siitä että molempia kutsutaan "backfilliksi" ja inventaariossa ne ovat eri osioissa.
+> Jos joudut viittaamaan skripti-id:hen, varmista **mistä inventaarion osiosta** rivi on.
 
 ---
 
