@@ -447,6 +447,68 @@ perustelee raukeamisen `NOTSCHEDULED`-tilalla eikä poistolla. Oikea perustelu o
 myös jos joku myöhemmin luo skriptin uudelleen, koska silloin perustelu lakkaa pätemästä ja se
 näkyy.
 
+## 7c. Tulokset — todennettu tuotannossa 21.09.2026
+
+`ri_creation` ja `ri_update` vietiin File Cabinettiin ja ajettiin yhdeksan kertaa. **Kaikissa
+ajoissa `gbb_lunastus_lib=1.1.0`, `mapErrors=0`, `reduceErrors=0`, eikä kumpikaan skripti
+kirjoittanut yhtään `ERROR`-tyyppistä lokiriviä.** Lokit luettiin SuiteQL:llä taulusta `scriptnote`
+(`scripttype = 1452` / `1453`).
+
+### Läpäisseet tapaukset
+
+| Mitä todistettiin | Todiste |
+|---|---|
+| Kirjasto ratkaisee päättymisajankohdan | **pyörä 38677**: `oomi_end 30.09.2026`, `subsc_end 04.10.2026`, todiste olemassa → RI **116459 Ended** 01.10. Jos kirjasto ei olisi kytketty, `subsc_end`illä ehto `01.10. > 04.10.` olisi ollut epätosi → Active. Statushaara on poistettu eikä A3 voinut laueta (`04.10. < 01.10.` epätosi), joten **ainoa polku kulkee kirjaston COALESCE-järjestyksen läpi** |
+| Todistehaara pitää | **pyörä 38943**: päättymispäivä mennyt, ei tapaa eikä maksua → `hoidettu = false` → RI **116460 Active** |
+| ADR 0002 säilyy | **pyörä 37874**: kausi 15.10.2026 → **Active 01.10.** (`finalPartialMonth=true`) ja **Ended 01.11.** Viimeinen palkanpidätysrivi säilyi |
+| Duplikaattisuoja | **pyörä 4234**: `active_already_exists_continuing=1`, ei uutta riviä |
+| `ri_update` alentaa kun kuuluu | **rivi 116169** (pyörä 2849, status 2, kausi ohi 30.09.): Active → **Warning**, ja kirjoitettu teksti oli **uusi** (*"Pyörän vuokrakausi on päättynyt ja velvoitteet hoidettu…"*) eikä vanha (*"Pyörä merkitty lunastetuksi tai palautetuksi…"*) |
+| `ri_update` **ei** alenna kun kausi on kesken | **rivi 104321** (pyörä 4234, kausi 31.03.2027): `scanned=1 resolved=1 errors=0`, status pysyi **Active**, `automation_logs` tyhjeni, ei tekstiä |
+
+> [!NOTE]
+> Pyörällä 2849 **alennus itsessään ei erota vanhaa uudesta**: status on 2 *ja* kausi on ohi, joten
+> kumpikin ehto olisi lauennut. Vain **varoitusteksti** erottaa ne, ja se vaihtui. Tämä kannattaa
+> muistaa jos ehtoa testataan uudelleen.
+
+### Miksi statusta ei tarvinnut testata erikseen
+
+Täysin erotteleva negatiivinen tapaus olisi pyörä statuksella 2 tai 3 jonka kausi on yhä kesken —
+siinä vanha koodi alentaisi ja uusi ei. **Sellaisia pyöriä on nolla**, koska juuri sitä tilaa
+kalenterisweep alkaa tuottaa. Sen rakentaminen olisi vaatinut statuksen kääntämistä käsin, mikä
+koskee pyörärekisteriä (jolla `ue_reporting_item_maintenance_prolongation` on deployattuna) ja
+pilaisi §8:n ennenaikaisuusmittarin.
+
+Sitä ei tarvittu, koska **koodi ei enää voi lukea statusta tässä haarassa**: vakiot
+`BIKE_STATUS_REDEEMED` ja `_RETURNED` poistettiin 21.09. (`mr_monthly_reporting_ri_update.js:115`
+sanoo sen suoraan), ja `bikeStatus` on jäljellä vain kenttätunnuksena ja ladattuna arvona — yhtään
+vertailua ei ole koko tiedostossa. Päätökseen voivat vaikuttaa vain kaksi päivämäärää ja todiste,
+ja päivämäärävertailu testattiin molempiin suuntiin.
+
+### Kaksi testausmenetelmän löydöstä — lue nämä ennen kuin testaat `ri_update`:a uudelleen
+
+**1. Merkkaus menee kenttään `custrecord_gbb_ri_automation_logs`, ei `..._additional_info`.**
+`resolvePendingMarkers`in haku on `[F.automationLogs, 'contains', '[To-add:']`
+(`mr_monthly_reporting_ri_update.js:655-656`). Väärään kenttään pantu merkkaus ei tuota virhettä —
+haku ei vain löydä mitään.
+
+**2. Rivin lopputila ei ole todiste. Vain `scanned` on.**
+Ensimmäinen yritys pyörällä 4234 näytti läpäisyltä — rivi pysyi Activena eikä varoitustekstiä
+ilmestynyt — mutta loki sanoi `resolvePendingMarkers → scanned=0`: merkkaus ei ollut rivillä, joten
+haaraan ei menty lainkaan. **"Pysyi Activena" näyttää täsmälleen samalta kahdessa tapauksessa:**
+kun ehto oikein kieltäytyi alentamasta, ja kun ehtoa ei koskaan arvioitu.
+
+Tämä on talon hiljainen epäonnistuminen, ja se puri tässä testiä itseään. Läpäisyn ainoa merkki on
+`scanned=1 resolved=1 errors=0`. Molemmat ajot ovat tilin lokissa peräkkäin (`23792276`
+epäonnistunut, `23792290` onnistunut), joten ero on todennettavissa jälkikäteen.
+
+### Mitä on yhä tekemättä
+
+| # | Mitä | Miksi se estää |
+|---|---|---|
+| 1 | **Täysi regressioajo** | Kaikki 9 ajoa kantavat lokissa `⚠ TEST SCOPE — NOT a full run`. Koko populaation regressiota ei ole ajettu, eikä perustasoa otettu ennen muutosta, joten vertailu on tehtävä järkevyystasolla. **Tämä on ainoa este sweepin ajastukselle** |
+| 2 | Kohta 5, `mr_subscription_extension.js` | Eri repo; myös aikavyöhykevika `:262` |
+| 3 | Kohta 4, `tools/warning_triage.js` | Ei kirjoita NetSuiteen |
+
 ## 8. Mitä tämä speksi korjaa aiempaan suunnitelmaan
 
 Kolme kohtaa joissa `lunastus-tilanne.md` § *Seuraavat taskit* oli epätarkka. Ne on korjattu tähän,

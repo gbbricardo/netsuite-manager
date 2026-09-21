@@ -95,7 +95,9 @@ todiste.** Se oli vaiheen 3 ainoa este.
 | 2 | status-sync: selvitystapa maksun mukana (PR #2) | **tuotannossa** 20.09. |
 | 2 | status-sync: kalenterisweep (PR #3) | **koodi tuotannossa** 21.09. — ensimmäinen ajo 658 kääntöä, 0 virhettä, **mutta deployment on `Testing` eikä aja yöllä** |
 | 2 | `handler_lunastus.js` (PR #7) | **tuotannossa** 21.09. — statusportti, kohdestatus kirjastosta, CR:n luontipäivä |
-| 3 | Lukijat: kuukausiraportointi, laajennus | **seuraava** — esteet poistettu 21.09. |
+| 3 | Lukijat: `ri_creation` + `ri_update` | **tuotannossa ja todennettu** 21.09. — säännöt A1, A2, B1, D3 |
+| 3 | Lukijat: täysi regressioajo | **tekemättä** — kaikki 9 ajoa olivat `TEST SCOPE` |
+| 3 | Lukijat: `subscription-extension`, `warning_triage` | **tekemättä** — speksin kohdat 5 ja 4 |
 | 4 | `cf-gbb-tools` | tekemättä — tarvitsee myös arvon 8 |
 | 5 | Datakorjaukset | **valmis** — 306 + 691 + 204 + 1 211 = 2 412 pyörää |
 
@@ -115,6 +117,12 @@ todiste.** Se oli vaiheen 3 ainoa este.
 | Handlerin statusportti **pysyy kiinni** | 21.09. | pyörä 30672 — tunnistuspäivä 01.11., `DEFERRED` |
 | Kohdestatus tulee tavasta eikä nimestä | 21.09. | CR `- 2B` → tapa 6 → status 2 |
 | `liab_settled_at` = CR:n luontipäivä | 21.09. | kolme CR:ää, kaikilla luontipäivä eikä ajopäivä |
+| **Vaihe 3:** kirjasto latautuu RI-skripteihin | 21.09. | `gbb_lunastus_lib=1.1.0`, `mapErrors=0`, molemmat skriptit, 9 ajoa |
+| **Vaihe 3:** kirjasto ratkaisee päättymisajankohdan | 21.09. | pyörä 38677 — OOMI-poikkeuspäivä 30.09. → **Ended** 01.10.; `subsc_end` 04.10. olisi antanut Activen, ja A3 ei voinut laueta |
+| **Vaihe 3:** todistehaara pitää | 21.09. | pyörä 38943 — päättymispäivä mennyt mutta ei todistetta → **Active** |
+| **Vaihe 3:** ADR 0002:n sopimusankkuri säilyy | 21.09. | pyörä 37874, kausi päättyy 15.10. → **Active 01.10. + Ended 01.11.**, loki `finalPartialMonth=true` |
+| **Vaihe 3:** `ri_update` alentaa kun kuuluu | 21.09. | rivi 116169 (pyörä 2849, kausi ohi 30.09.) Active → **Warning** ja **uusi** varoitusteksti — teksti todistaa että uusi haara ajoi |
+| **Vaihe 3:** `ri_update` **ei** alenna kun kausi on kesken | 21.09. | rivi 104321 (pyörä 4234, kausi 31.03.2027) — loki `scanned=1 resolved=1 errors=0`, status pysyi **Active**, ei tekstiä |
 
 ## Seuraavat taskit
 
