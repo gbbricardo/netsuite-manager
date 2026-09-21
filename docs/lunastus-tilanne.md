@@ -1,6 +1,6 @@
 # Lunastusprojektin tilanne
 
-**Päivitetty:** 2026-09-21 (**vaiheet 0–2 valmiit, vaihe 3 avoinna ilman esteitä**) · **Suunnitelma:** [`lunastus-toteutussuunnitelma.md`](lunastus-toteutussuunnitelma.md)
+**Päivitetty:** 2026-09-21, ilta (**vaiheet 0–2 valmiit, vaihe 3 avoinna ilman esteitä — mutta sweepin ajastus ei ole päällä**) · **Suunnitelma:** [`lunastus-toteutussuunnitelma.md`](lunastus-toteutussuunnitelma.md)
 · **Säännöt:** [`lunastuksen-kenttasaannot.md`](lunastuksen-kenttasaannot.md)
 
 Tämä dokumentti kertoo **missä mennään**. Suunnitelma kertoo mitä tehdään ja säännöt miksi.
@@ -55,7 +55,7 @@ Todennettu NetSuitesta 21.09.2026.
 | Mittari | 18.09. lähtötilanne | 21.09. nyt | Tavoite |
 |---|---|---|---|
 | **Päättyneitä ilman todistetta** *(vaiheen 3 este)* | 1 415 | **0** | pysyy 0 |
-| **Lunastettu ennen tunnistuspäivää** *(§8)* | ei mitattu | **1** | ei kasva |
+| **Lunastettu ennen tunnistuspäivää** *(§8)* | ei mitattu | **0** | ei kasva |
 | Selvitystapa puuttuu, status 2/3 | 1 517 | **0** | pysyy 0 |
 | Selvitystapa puuttuu, status 1, maksettu | 691 | **0** | pysyy 0 |
 | `historical_unknown` (8) käytössä | arvoa ei ollut | **1 211** | ei kasva |
@@ -63,14 +63,23 @@ Todennettu NetSuitesta 21.09.2026.
 | §5-rikkomukset selvitystavalla 1 | 53 | **53** | ei kasva |
 | Tila 2 *lunastus sovittu* | ei käsitteenä | **117** | vaihtelee kuukausirytmissä |
 | Päättyneitä (status 2/3) | 12 512 | **13 199** | — |
-| `date_to_non_active` tyhjä | 6 | **0** | ratkennut |
+| `date_to_non_active` tyhjä | 6 | **2** | ks. huomautus alla |
 | Päätöspäivä kirjattu | kenttää ei ollut | **7** | kasvaa automaattisesti |
-| Pyöriä ilman statusta | 148 | **141** | oma selvitys |
+| Pyöriä ilman statusta | 148 | **140** | oma selvitys |
 
 **Ensimmäistä kertaa jokaisella päättyneellä pyörällä on selvitystapa ja kirjaston hyväksymä
 todiste.** Se oli vaiheen 3 ainoa este.
 
-> **Vanha §8-mittari** (`status = 2 AND subsc_end_date > CURRENT_DATE`) näyttää ~847 eikä 1. Se on
+> **`date_to_non_active` tyhjä kahdella pyörällä (21.09. ilta)** — ne ovat täsmälleen 6496 ja
+> 10146, samat jotka handlerin statusportti käänsi tänään. Tunnettu viiveellä täyttävä prosessi ei
+> ole vielä ehtinyt niihin, eli tämä on odotettu tila eikä regressio. **Tarkista 22.09.: jos kenttä
+> on yhä tyhjä, asia ei ollutkaan ratkennut** ja täyttävä prosessi on löydettävä.
+
+> **Jonossa 28 Pending Type 2 -CR:ää, ei 31** — kolme kului 21.09. todennusajoon (CR-6617, CR-6619,
+> CR-6621). Kaikilla 28:lla päättymispäivä on ≥ 01.10.2026, joten oikea lopputulos on edelleen
+> **28 lykkäystä ja nolla statuksen kirjoitusta**.
+
+> **Vanha §8-mittari** (`status = 2 AND subsc_end_date > CURRENT_DATE`) näyttää ~847 eikä 0. Se on
 > vanhentunut ja korjattiin 21.09.2026 — se oli ristiriidassa §3:n kuukausiankkurin kanssa ja olisi
 > lukenut oikein toimineen sweep-ajon nelinkertaisena regressiona. Ks.
 > [`../findings/2026-09-21-kalenterisweepin-ensimmainen-tuotantoajo.md`](../findings/2026-09-21-kalenterisweepin-ensimmainen-tuotantoajo.md).
@@ -83,7 +92,7 @@ todiste.** Se oli vaiheen 3 ainoa este.
 | 0 | Päätöspäivä-UE `ue_gbb_redemption_decided_at` | **Released** 20.09. (script 2125) |
 | 1 | Jaettu kirjasto `gbb_lunastus_lib.js` **1.1.0** | **valmis** 21.09., 50/50 testiä |
 | 2 | status-sync: selvitystapa maksun mukana (PR #2) | **tuotannossa** 20.09. |
-| 2 | status-sync: kalenterisweep (PR #3) | **tuotannossa** 21.09. — ensimmäinen ajo 658 kääntöä, 0 virhettä |
+| 2 | status-sync: kalenterisweep (PR #3) | **koodi tuotannossa** 21.09. — ensimmäinen ajo 658 kääntöä, 0 virhettä, **mutta deployment on `Testing` eikä aja yöllä** |
 | 2 | `handler_lunastus.js` (PR #7) | **tuotannossa** 21.09. — statusportti, kohdestatus kirjastosta, CR:n luontipäivä |
 | 3 | Lukijat: kuukausiraportointi, laajennus | **seuraava** — esteet poistettu 21.09. |
 | 4 | `cf-gbb-tools` | tekemättä — tarvitsee myös arvon 8 |
@@ -110,14 +119,14 @@ todiste.** Se oli vaiheen 3 ainoa este.
 
 > [!WARNING]
 > **CR-ajastus on pois päältä 21.09.2026 alkaen** (tuoteomistaja, CSV-importteja varten). Jonossa
-> on **31+ Pending Type 2 -CR:ää** joita ei käsitellä ennen kuin ajastus palautetaan. Tämä on
+> on **28 Pending Type 2 -CR:ää** joita ei käsitellä ennen kuin ajastus palautetaan. Tämä on
 > tilapäinen tila eikä sitä saa unohtaa — laskutus ja sopimusrivit eivät päivity sillä välin.
 
 ### 1. Palauta CR-ajastus ja todenna statusportti — **seuraava**
 
-Kun ajastus on päällä, ne 31 Pending Type 2 -CR:ää käsitellään. **Kaikilla 31:llä tunnistuspäivä on
-tulevassa kuukaudessa**, joten oikea lopputulos on **31 lykkäystä ja nolla statuksen kirjoitusta**.
-Ohje ja kyselyt: `CLAUDE.md` *Read First*.
+Kun ajastus on päällä, ne 28 Pending Type 2 -CR:ää käsitellään. **Kaikilla 28:lla päättymispäivä on
+≥ 01.10.2026** (todennettu 21.09.), joten oikea lopputulos on **28 lykkäystä ja nolla statuksen
+kirjoitusta**. Ohje ja kyselyt: `CLAUDE.md` *Read First*.
 
 Portti on jo todennettu kolmella CR:llä TEST MODE -ajossa 21.09., mutta ei massana.
 
@@ -166,10 +175,39 @@ kirjaston käsityksestä 1 211 pyörän osalta. Lisäksi `plan.ts:381-388`:n var
 `BIKE_ALREADY_REDEEMED` ei enää riitä: käyttöliittymän on erotettava *lunastus on sovittu* ja
 *pyörä on lunastettu*.
 
-### 4. Sweepin päivittäinen ajastus
+### 4. Sweepin päivittäinen ajastus — **ei ole päällä, todennettu 21.09.**
 
-Ensimmäinen ajo tehtiin käsin 21.09. Varmista että ajastus on päällä ja seuraava yöajo menee läpi
-ilman käsiohjausta.
+> [!WARNING]
+> `customscript_gbb_bike_redemption_status` / `customdeploy_gbb_redemption_sync` on statuksella
+> **`Testing`**, ei `Scheduled`. Testing-tilassa vain skriptin omistaja voi käynnistää sen käsin
+> **eikä toistuvuus laukea lainkaan**, joten kalenterisweep ei aja yöllä. Siirtymä *lunastus
+> sovittu* (tila 2) → *lunastettu* ei siis tapahdu automaattisesti, vaan vain silloin kun joku
+> ajaa sweepin käsin.
+
+Tämä on se sama puuttuva pala jonka koko vaihe 2 rakensi: tunnistuspäivä on kalenteritapahtuma, ja
+kalenterisweep on ainoa asia joka sen havaitsee. Testing-tilassa se ei havaitse.
+
+**Tehtävä:** vaihda deployment `Scheduled`-tilaan, varmista toistuvuus (päivittäin) ja todenna että
+seuraava yöajo menee läpi ilman käsiohjausta. Sen jälkeen sweep-kandidaattien määrän (nyt **117**)
+pitää laskea kuukausirytmissä ilman että kukaan koskee skriptiin.
+
+Todennus:
+
+```sql
+SELECT s.scriptid, sd.scriptid AS depid, sd.status
+FROM script s JOIN scriptdeployment sd ON sd.script = s.id
+WHERE s.scriptid = 'customscript_gbb_bike_redemption_status'
+-- pitää lukea SCHEDULED, ei TESTING
+```
+
+`schemas/script-inventory.md` väitti tätä Scheduled-tilaiseksi 21.09. asti; rivi on korjattu.
+
+> [!NOTE]
+> **CR-käsittelijän ajastusta ei voi todentaa SuiteQL:llä.** `customscript1199` /
+> `customdeploy_gbb_change_request_hdl_2` näyttää statuksen `SCHEDULED`, mutta
+> `scriptdeployment.recurrence` ei ole hakukanavan käytettävissä (`NOT_EXPOSED`). Se että 28 CR:ää
+> on jonossa 17.09. asti viittaa siihen että **toistuvuus on nollattu statuksen sijaan** — eli
+> deployment-status ei kerro onko ajastus päällä. Tämä on katsottava käyttöliittymästä.
 
 ## Avoimet päätökset
 

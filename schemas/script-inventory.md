@@ -82,8 +82,16 @@ and intended (decision 2026-09-07).
 
 | Script ID | Name | Type | Deployment |
 |---|---|---|---|
-| `customscript_gbb_bike_redemption_status` | Bike redemption status sync | SCHEDULED | `customdeploy_gbb_redemption_sync` **Scheduled** |
+| `customscript_gbb_bike_redemption_status` | Bike redemption status sync | SCHEDULED | `customdeploy_gbb_redemption_sync` **Testing** |
 | `customscript1458` | Bike status date backfill | SCHEDULED | `customdeploy_gbb_ss_bike_status_backfill` **Scheduled** |
+
+> [!WARNING]
+> **Korjattu 21.09.2026: selvitystapa- ja kalenterisweep-skriptin deployment on `Testing`, ei
+> `Scheduled`.** Tämä tiedosto väitti sitä Scheduled-tilaiseksi. Testing-tilassa vain skriptin
+> omistaja voi ajaa sen käsin eikä toistuvuus laukea, joten **kalenterisweep ei aja yöllä** ja
+> siirtymä *lunastus sovittu* → *lunastettu* ei tapahdu automaattisesti. Todennettu SuiteQL:llä
+> (`script` ⋈ `scriptdeployment`, `sd.status = 'TESTING'`). Ks.
+> [`../docs/lunastus-tilanne.md`](../docs/lunastus-tilanne.md) § *Seuraavat taskit*.
 
 The backfill still being on a live schedule is worth a look — the repo scopes backfill as a
 one-off, and `Bike-Status-History-Backfill-Design.md` treats it as a finite job.

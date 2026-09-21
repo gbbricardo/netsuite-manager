@@ -14,8 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | # | What | Why it matters |
 |---|---|---|
-| 1 | **CR scheduling is OFF** since 21.09.2026 (turned off by the product owner for the CSV imports). **31+ Pending Type 2 CRs are queued and will not be processed until it is switched back on.** Ask whether it can be re-enabled. | Agreement rows, invoices and the bike register do not update while it is off. This is a temporary state that is easy to forget — nothing in NetSuite will complain. |
-| 2 | **When scheduling returns, verify the status gate on the bulk.** All 31 queued Type 2 CRs have their tunnistuspäivä in a future month, so the correct outcome is **31 deferrals and zero status writes**. | The gate was verified on 21.09. with three CRs in TEST MODE, never as a batch. |
+| 1 | **CR scheduling is OFF** since 21.09.2026 (turned off by the product owner for the CSV imports). **28 Pending Type 2 CRs are queued and will not be processed until it is switched back on.** Ask whether it can be re-enabled. | Agreement rows, invoices and the bike register do not update while it is off. This is a temporary state that is easy to forget — nothing in NetSuite will complain. |
+| 2 | **When scheduling returns, verify the status gate on the bulk.** All 28 queued Type 2 CRs have their end date ≥ 01.10.2026 (verified 21.09.), so the correct outcome is **28 deferrals and zero status writes**. | The gate was verified on 21.09. with three CRs in TEST MODE, never as a batch. |
 
 Verification queries for item 2:
 
@@ -32,12 +32,23 @@ WHERE cr.custrecord_cr_type = 2 AND cr.custrecord_cr_status = 2
   AND br.custrecord_gbb_liab_settled_at <> cr.custrecord_cr_created_date
 ```
 
-Every one of the 31 should log `status DEFERRED (would be 2; tunnistuspäivä … is still in the
+Every one of the 28 should log `status DEFERRED (would be 2; tunnistuspäivä … is still in the
 future)`. **Any bike flipped to status 2 on processing means the gate is not holding — say so and
 stop before more CRs run.**
 
-Baseline 21.09.2026 after the imports: sweep candidates **117**, premature redemptions **1**,
-ended bikes with no evidence **0**, §5 violations **53**, `historical_unknown` on Active bikes **0**.
+Baseline 21.09.2026 evening: sweep candidates **117**, premature redemptions **0** (§3 month
+anchor), ended bikes with no evidence **0**, §5 violations **53**, `historical_unknown` on Active
+bikes **0**, bikes with no status **140**.
+
+> [!WARNING]
+> **Item 3 — the calendar sweep is not on a schedule.**
+> `customscript_gbb_bike_redemption_status` / `customdeploy_gbb_redemption_sync` is on status
+> **`Testing`**, not `Scheduled`, so its recurrence never fires and the transition *lunastus
+> sovittu* → *lunastettu* only happens when someone runs it by hand. That transition is the whole
+> point of phase 2. `schemas/script-inventory.md` claimed Scheduled until 21.09.; corrected.
+> Note also that a deployment's `status` does **not** tell you whether scheduling is on —
+> `scriptdeployment.recurrence` is `NOT_EXPOSED` to SuiteQL, which is why the CR handler still reads
+> `SCHEDULED` while its recurrence is off. Check recurrence in the UI.
 
 **Resolved 21.09.2026 — do not re-open.** `custrecord_gbb_date_to_non_active` was empty on 664
 ended bikes right after the calendar sweep; by the same evening all 664 carried 21.09.2026, which
