@@ -13,9 +13,10 @@ hyödytön — eikä se näkyisi mitenkään.
 | Osa | kpl | Työkalu | Mitä kirjoitetaan |
 |---|---|---|---|
 | **A** | **204** | CSV-import, `01-cr-luontipaiva.csv` | `custrecord_gbb_liab_settled_at` = CR:n luontipäivä |
-| **B** | **1 211** | **Mass Update**, ei CSV | `custrecord_gbb_liab_settle_method` = `historical_unknown` (8) |
+| **B** | **1 211** | CSV-import, `02-historical-unknown.csv` | `custrecord_gbb_liab_settle_method` = `historical_unknown` (8) |
 
-Työkalut eroavat tarkoituksella, ks. perustelu osan B kohdalla.
+> **Osa A ajettu 21.09.2026 ja todennettu.** Ryhmä A tyhjeni (0 jäljellä), §5-rikkomukset pysyivät
+> 53:ssa, eikä päätöspäivää leimautunut importista. Älä aja uudelleen.
 
 ---
 
@@ -52,32 +53,50 @@ Aineisto on todennettu NetSuitea vasten tarkistussummalla 21.09.2026:
 
 ---
 
-## Osa B — Mass Update, ei CSV
+## Osa B — CSV-import, 1 211 riviä
 
-| | |
+Päättyneet pyörät joilla ei ole selvitystapaa lainkaan. Yhdelläkään ei ole Done Type 2/7 -CR:ää,
+eikä muutakaan todistetta — statuskenttä on ainoa jäljellä oleva tieto päättymisestä.
+
+**Data Handling:** `UPDATE`. Muoto sama kuin osassa A.
+
+| Sarake | Mappaus |
 |---|---|
-| **Tietue** | `customrecord_sta_bike_register` |
-| **Ehto 1** | `custrecord_sta_bike_status` is any of **2, 3** |
-| **Ehto 2** | `custrecord_gbb_liab_settle_method` **is empty** |
-| **Aseta** | `custrecord_gbb_liab_settle_method` = `historical_unknown` |
-| **Odotus** | **1 211** tietuetta |
+| `internal_id` | **Internal ID** |
+| `pyora_id` | jätä mappaamatta |
+| `selvitystapa_nimi` | `custrecord_gbb_liab_settle_method` — **mappaa tämä** |
+| `selvitystapa_id` | jätä mappaamatta — varalla jos nimihaku ei osu |
+| `peruste` | jätä mappaamatta |
 
-### Miksi Mass Update eikä CSV
+Aineisto todennettu NetSuitea vasten 21.09.2026:
 
-**CSV on tilannekuva, Mass Update arvioi ehdot ajohetkellä.** Jos 1 211 rivin tiedosto rakennetaan
-nyt ja ajetaan myöhemmin, väliin mahtuva CR-käsittely voi antaa jollekin pyörälle **oikean**
-selvitystavan — ja import ylikirjoittaisi sen arvolla `historical_unknown`. Kenttä on write-once,
-joten oikea tieto katoaisi pysyvästi. 21.09.2026 käsiteltiin kolme Type 2 -CR:ää, joten riski ei
-ole teoreettinen.
+| | CSV | NetSuite |
+|---|---|---|
+| Rivejä | 1 211 | 1 211 |
+| `SUM(id)` | 30 301 454 | 30 301 454 |
+| `MIN` / `MAX` | 2 / 46 675 | 2 / 46 675 |
 
-Mass Update ei voi tehdä tuota virhettä: ehto *"selvitystapa on tyhjä"* suojaa jokaista pyörää joka
-on saanut arvon sillä välin.
+> [!IMPORTANT]
+> **Aja tämä vain niin kauan kuin CR-ajastus on pois päältä.**
+>
+> CSV on tilannekuva. Jos CR-ajastus kytketään päälle ennen importtia, CR-käsittely voi antaa
+> jollekin näistä pyöristä **oikean** selvitystavan — ja import ylikirjoittaisi sen arvolla
+> `historical_unknown`. Kenttä on write-once, joten oikea tieto katoaisi pysyvästi.
+>
+> Ajastus on pois päältä 21.09.2026 (tuoteomistaja), ja siksi CSV on turvallinen. Jos import
+> viivästyy ajastuksen palautukseen asti, **älä aja tiedostoa** vaan tee sama Mass Updatena, jonka
+> ehdot arvioidaan ajohetkellä:
+>
+> | | |
+> |---|---|
+> | Tietue | `customrecord_sta_bike_register` |
+> | Ehto 1 | `custrecord_sta_bike_status` is any of **2, 3** |
+> | Ehto 2 | `custrecord_gbb_liab_settle_method` **is empty** |
+> | Aseta | `custrecord_gbb_liab_settle_method` = `historical_unknown` |
 
-Toinen syy: ryhmän B ehto ei riipu pyöräkohtaisesta datasta lainkaan. Yksi arvo, kaksi ehtoa — juuri
-se mitä Mass Update on. Ryhmä A ei ole, koska jokaisella rivillä on oma päivämäärä.
-
-**Mass Update ei laukaise User Event -skriptejä**, joten päätöspäivä jää tyhjäksi. Se on ADR 0001:n
-mukaista: ei backfillia, ja tyhjä luetaan *ei tiedossa*.
+Päätöspäivä-UE ei laukea CSV-importista ellei *Run Server SuiteScript and Trigger Workflows* ole
+merkitty — **älä merkitse sitä.** Näiden päätöspäivä ei ole tiedossa, ja ADR 0001:n tyhjä-sääntö
+lukee sen oikein.
 
 ---
 
