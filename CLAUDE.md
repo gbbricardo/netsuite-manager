@@ -10,18 +10,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > listed in it. It carries the current metrics, what is verified in production, and the next tasks.
 > Update it when you change any of those.
 
-### Pending verification — ask the user for it
+### Open items — raise these with the user
 
-| Due | What | How to read it |
+| # | What | Why it matters |
 |---|---|---|
-| **Next scheduled CR run after 21.09.2026** | `handler_lunastus.js`'s status gate went live 21.09. **31 pending Type 2 CRs** were queued at that moment, and **all 31** have their tunnistuspäivä in a future month — so the correct outcome is **31 deferrals and zero status writes**. Check the execution log and the two queries below, and report to the user. | Every one of the 31 logs `status DEFERRED (would be 2; tunnistuspäivä … is still in the future)` and the bikes stay Active with a settle method recorded → correct, phase 2 verified. Any bike flipped to status 2 on processing → the gate is not holding; say so and stop before more CRs run. |
+| 1 | **CR scheduling is OFF** since 21.09.2026 (turned off by the product owner for the CSV imports). **31+ Pending Type 2 CRs are queued and will not be processed until it is switched back on.** Ask whether it can be re-enabled. | Agreement rows, invoices and the bike register do not update while it is off. This is a temporary state that is easy to forget — nothing in NetSuite will complain. |
+| 2 | **When scheduling returns, verify the status gate on the bulk.** All 31 queued Type 2 CRs have their tunnistuspäivä in a future month, so the correct outcome is **31 deferrals and zero status writes**. | The gate was verified on 21.09. with three CRs in TEST MODE, never as a batch. |
+
+Verification queries for item 2:
 
 ```sql
 -- sweep candidates: should GROW by roughly the number of Type 2 CRs processed
 SELECT COUNT(*) FROM customrecord_sta_bike_register
 WHERE custrecord_sta_bike_status = 1 AND custrecord_gbb_liab_settle_method IS NOT NULL;
 
--- liab_settled_at must now be the CR's created date, never the run date
+-- liab_settled_at must be the CR's created date, never the run date
 SELECT br.id, br.custrecord_gbb_liab_settled_at, cr.custrecord_cr_created_date
 FROM customrecord_sta_bike_register br
 JOIN customrecord_subscrption_change_request cr ON cr.custrecord_cr_bike_registry = br.id
@@ -29,14 +32,18 @@ WHERE cr.custrecord_cr_type = 2 AND cr.custrecord_cr_status = 2
   AND br.custrecord_gbb_liab_settled_at <> cr.custrecord_cr_created_date
 ```
 
-Baseline at go-live (21.09.2026): sweep candidates **115**, premature redemptions **1**,
-`date_to_non_active` empty **0**, §5 violations **53**.
+Every one of the 31 should log `status DEFERRED (would be 2; tunnistuspäivä … is still in the
+future)`. **Any bike flipped to status 2 on processing means the gate is not holding — say so and
+stop before more CRs run.**
+
+Baseline 21.09.2026 after the imports: sweep candidates **117**, premature redemptions **1**,
+ended bikes with no evidence **0**, §5 violations **53**, `historical_unknown` on Active bikes **0**.
 
 **Resolved 21.09.2026 — do not re-open.** `custrecord_gbb_date_to_non_active` was empty on 664
-ended bikes right after the calendar sweep; by the same evening all 664 carried **21.09.2026**,
-which is exactly their tunnistuspäivä. An unidentified process fills the field with a delay of
-hours, and it fills it correctly. It is still not in any sibling repository — if you ever need to
-change that field's behaviour, you will have to find it first.
+ended bikes right after the calendar sweep; by the same evening all 664 carried 21.09.2026, which
+is exactly their tunnistuspäivä. An unidentified process fills the field with a delay of hours, and
+fills it correctly. It is still in no sibling repository — if you ever need to change that field's
+behaviour, you will have to find it first.
 
 ### One trap to know before you measure anything
 
@@ -45,6 +52,14 @@ The redemption project's headline metric in `docs/lunastuksen-kenttasaannot.md` 
 true 4). The operational anchor is the **first day of the end month**, not the end date — a bike
 whose lease ends mid-month is legitimately Redeemed before its own end date. If a redemption metric
 suddenly looks catastrophic, check the query against §3 before believing it.
+
+### Next piece of work: phase 3
+
+The redemption rules are in production for phases 0–2 and **phase 3 has no blockers left** as of
+21.09.2026. It is the change that makes monthly reporting stop reading `custrecord_sta_bike_status`.
+The target file, the exact condition, the anchor trap and the four other scripts that read the
+status are all written up in `docs/lunastus-tilanne.md` § *Seuraavat taskit*. Read that before
+touching `netsuite-monthly-reporting`.
 
 ## What This Repository Is
 

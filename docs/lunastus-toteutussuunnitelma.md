@@ -169,6 +169,12 @@ Yksityiskohdat ja mittaukset:
 Sama `bike_status`-luku on myös `mr_backfill_missing_ended_rows.js`:ssä ja
 `tools/warning_triage.js:47`:ssä.
 
+> [!NOTE]
+> **Este poistettu 21.09.2026.** Jokaisella päättyneellä pyörällä on nyt kirjaston hyväksymä
+> todiste: 204 sai `liab_settled_at` = CR:n luontipäivä ja 1 211 sai `historical_unknown`
+> ([ADR 0006](adr/0006-historical-unknown-selvitystapa.md)). Päättyneitä ilman todistetta: **0**.
+> Alla oleva varaus on historiaa — se kuvaa miksi tämä piti tehdä ensin.
+
 > [!IMPORTANT]
 > **Esiehto: selvitystapa on täydennettävä ensin.** 1 515 pyörää on statuksella 2 ja 2 statuksella
 > 3 ilman selvitystapaa (todennettu 20.09.2026). Kun status-luku poistuu, ne eivät enää ole
@@ -221,7 +227,22 @@ sama status.
 
 ---
 
-## Vaihe 5 — Datakorjaukset
+## Vaihe 5 — Datakorjaukset · **valmis 21.09.2026**
+
+Yhteensä **2 412 pyörää**, kaikki todisteesta johdettuna tai nimenomaisesti tuntemattomaksi
+merkittynä:
+
+| Erä | kpl | Mitä |
+|---|---|---|
+| [20.09. ryhmä 1](../imports/2026-09-20-selvitystapa/) | 102 | selvitystapa todisteesta (maksu, CR:n nimi, status 3) |
+| 20.09. ryhmä 2 | 204 | selvitystapa 1 handlerin oletuksesta |
+| [20.09. Active-puoli](../imports/2026-09-21-selvitystapa-active/) | 691 | selvitystapa 1, maksu on todiste |
+| [21.09. osa A](../imports/2026-09-21-vaihe3-esiehto/) | 204 | `liab_settled_at` = CR:n luontipäivä |
+| 21.09. osa B | 1 211 | `historical_unknown` |
+
+Alkuperäinen suunnitelma alla; se ei tuntenut Active-puolen aukkoa eikä `historical_unknown`-arvoa.
+
+
 
 Erillinen [korjausjärjestys](../findings/2026-09-18-ennenaikainen-lunastusstatus.md#korjausjärjestys).
 Tiivistetysti: ne 10 aukkopyörää käsin ennen koodimuutoksia, 189 niiden jälkeen, 3 278 historiallista

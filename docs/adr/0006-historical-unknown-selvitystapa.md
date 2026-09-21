@@ -1,7 +1,7 @@
 # ADR 0006 — `historical_unknown`-selvitystapa vapauttaa RI-luonnin statuksesta
 
 - **Päivämäärä:** 2026-09-21
-- **Tila:** Hyväksytty
+- **Tila:** Hyväksytty · **toteutettu 21.09.2026**
 - **Koskee:** `customlist_gbb_liab_settle_method`, `gbb_lunastus_lib.js`,
   `mr_monthly_reporting_ri_creation.js`, [kenttäsäännöt §6](../lunastuksen-kenttasaannot.md)
 
@@ -101,7 +101,22 @@ toteuttaa samat säännöt erikseen ja tarvitsee saman arvon.
 **Riski.** Arvo leviää uusiin päätöksiin ja muuttuu "en jaksa selvittää" -oikotieksi. Sen mittari
 on yllä oleva kysely, ja se kuuluu tarkistuskyselyiden joukkoon.
 
-## Toteutusjärjestys
+## Toteutus — valmis 21.09.2026
+
+| # | Vaihe | Tila |
+|---|---|---|
+| 1 | Listan arvo `historical_unknown` = **8** NetSuiteen | ✔ todennettu, lista 1–8 ilman aukkoja |
+| 2 | Kirjasto-PR #8: vakio, `MAKSUTTOMAT_SELVITYSTAVAT`, VERSION 1.1.0 | ✔ 50/50 testiä |
+| 3 | Kirjasto File Cabinettiin | ✔ todennettu lokista `gbb_lunastus_lib=1.1.0` |
+| 4 | CSV: 204 → `liab_settled_at` = CR:n luontipäivä | ✔ ryhmä tyhjeni |
+| 5 | CSV: 1 211 → `historical_unknown` | ✔ arvo 8 käytössä 1 211:llä, Active-pyörillä 0 |
+| 6 | Vaiheen 3 PR | **tekemättä — este poistunut** |
+
+Kohdan 3 ensimmäinen yritys epäonnistui hiljaisesti: File Cabinettiin päätyi 1.0.0-tiedosto, eikä
+mikään kaatunut. Ainoa asia joka paljasti sen oli lokirivin versionumero — juuri se mitä varten
+ADR 0003 vaatii sen lokitusta.
+
+## Alkuperäinen toteutusjärjestys
 
 1. Listan arvo NetSuiteen (käsin)
 2. Kirjasto-PR: `SELVITYSTAPA`, `MAKSUTTOMAT_SELVITYSTAVAT`, VERSION 1.1.0, testit

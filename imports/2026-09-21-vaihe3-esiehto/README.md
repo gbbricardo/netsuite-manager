@@ -15,6 +15,12 @@ hyödytön — eikä se näkyisi mitenkään.
 | **A** | **204** | CSV-import, `01-cr-luontipaiva.csv` | `custrecord_gbb_liab_settled_at` = CR:n luontipäivä |
 | **B** | **1 211** | CSV-import, `02-historical-unknown.csv` | `custrecord_gbb_liab_settle_method` = `historical_unknown` (8) |
 
+> [!NOTE]
+> **Molemmat osat ajettu 21.09.2026 ja todennettu. Älä aja kumpaakaan uudelleen.**
+> Päättyneitä pyöriä ilman todistetta: **0** (oli 1 415). Arvo 8 käytössä **1 211** tietueella,
+> Active-pyörillä **0**. §5-rikkomukset pysyivät 53:ssa. Päätöspäivää ei leimautunut kummastakaan
+> importista. **Vaiheen 3 este on poistunut.**
+
 > **Osa A ajettu 21.09.2026 ja todennettu.** Ryhmä A tyhjeni (0 jäljellä), §5-rikkomukset pysyivät
 > 53:ssa, eikä päätöspäivää leimautunut importista. Älä aja uudelleen.
 
