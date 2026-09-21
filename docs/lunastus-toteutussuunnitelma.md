@@ -8,6 +8,10 @@ tehtävä omistavassa repossa sen omilla konventioilla.
 
 Järjestys on riippuvuusjärjestys, ei kiireysjärjestys.
 
+> **Missä mennään:** [`lunastus-tilanne.md`](lunastus-tilanne.md) — mittarit, vaiheiden tila,
+> tuotannossa todennetut asiat ja seuraavat taskit. Tämä dokumentti kertoo *mitä tehdään*,
+> tilannedokumentti *missä mennään*.
+
 ---
 
 ## Vaihe 0 — NetSuite-konfiguraatio (ei repoa)
