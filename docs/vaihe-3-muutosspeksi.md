@@ -201,34 +201,44 @@ sopimuksen alainen, jätä teksti ennalleen ja lisää selitys kommenttiin.
 
 ---
 
-## 3. `netsuite-monthly-reporting` · `mr_backfill_missing_ended_rows.js`
+## 3. ~~`netsuite-monthly-reporting` · `mr_backfill_missing_ended_rows.js`~~ — **RAUKEAA**
 
-Kertaluontoinen backfill. Deployment on **`customscript1463`** / `customdeploy_gbb_ri_ended_backfill`,
-tila **Not Scheduled** *(todennettu NetSuitesta 21.09.)* — se ei aja itsestään, mutta se voidaan
-ajaa käsin, joten ehdon pitää pysyä yhtenäisenä `ri_creation`in kanssa.
+> [!IMPORTANT]
+> **Tämä kohta on rauennut 21.09.2026: skripti on poistettu NetSuitesta kokonaan.**
+>
+> Todennettu SuiteQL:llä 21.09. illalla: `customscript1463` **ei ole enää `script`-taulussa**.
+> `LEFT JOIN scriptdeployment`illa tehty kysely ei palauta sille riviä lainkaan, eli poistettu ei
+> ole vain deployment vaan skriptitietue itse. Mitään ei siis voi enää ajaa — ei ajastettuna eikä
+> käsin.
+>
+> **Koodimuutosta ei tehdä.** Kohdan alkuperäiset kaksi tehtävää (`:24`:n prosasanamuoto ja `:91`:n
+> ehto) raukeavat molemmat. Tiedosto `mr_backfill_missing_ended_rows.js` jää repoon historiana,
+> mutta sillä ei ole enää vastinetta tilillä.
 
-Kaksi kohtaa:
-
-- **`:24` (dokumentaatio)** — päättymisehto on kirjoitettu auki prosana ja sanoo *"bike status
-  Redeemed OR Returned OR (`liab_settled_at` set AND the leasing period is already over)"*, ja
-  lupaa olevansa *"identical wording to mr_monthly_reporting_ri_creation.js (sääntö A1)"*. Kun
-  kohta 1.1 on tehty, tämä lupaus rikkoutuu. Päivitä sanamuoto vastaamaan kirjaston predikaattia.
-- **`:91` (`BIKE`-kartta ja ehto)** — sama muutos kuin 1.1: kirjasto tilalle, viisi kenttää hakuun.
+**Mitä tämä ratkaisi.** Ennen poistoa tila oli `NOTSCHEDULED` mutta `isdeployed = T`, eli skripti
+ei ajautunut itsestään **mutta se oli ajettavissa käsin**. Se oli aito riski eikä muotoseikka: kun
+`ri_creation` on siirtynyt kirjastolle ja kalenterisweep kääntää pyörän statukselle 2
+päättymiskuukauden ensimmäisenä päivänä, käsin ajettu backfill olisi soveltanut **vanhaa
+statusperustaista ehtoa** ja luonut Ended-rivit kuukautta liian aikaisin massana — täsmälleen se
+ADR 0002:n ansa jonka välttämiseksi koko vaihe on olemassa. Skriptin poisto on tämän riskin
+lopullinen korjaus, ja se on parempi kuin ehdon ylläpitäminen kolmannessa paikassa.
 
 > [!NOTE]
-> **Korjattu 21.09.2026.** Tämän kohdan ensimmäinen versio väitti että skriptin deployment on
-> `customscript1458` ja että se on elävällä ajastuksella. Kumpikin oli väärin: `customscript1458`
-> on *"[GBB] Bike status date backfill"* eli
-> `netsuite-bike-redemption-status-sync/gbb-bike-status-history/gbb_ss_bike_status_history_backfill.js`
-> — **eri repo, eri skripti, eikä osa vaihetta 3**. Se on se joka on `Scheduled`-tilassa
-> (`customdeploy_gbb_ss_bike_status_backfill`), ja se havainto kuuluu
-> `schemas/script-inventory.md` § *netsuite-bike-redemption-status-sync* -osioon, jossa se jo on.
-> Tämän vaiheen tiedosto on `customscript1463` ja se on Not Scheduled.
->
-> Virhe syntyi siitä että molempia kutsutaan "backfilliksi" ja inventaariossa ne ovat eri osioissa.
-> Jos joudut viittaamaan skripti-id:hen, varmista **mistä inventaarion osiosta** rivi on.
+> **Skriptin poisto ei poistanut sen luomia rivejä.** Ne **11 115 Ended-riviä** jotka backfill
+> kirjoitti 04.09.2026 ovat edelleen tuotannossa, eivätkä ne katoa skriptin mukana. Ne ovat oikeaa
+> dataa ja kuuluvat sinne — tämä on muistutus siitä ettei skriptin poisto ole ajon peruutus.
 
----
+> [!WARNING]
+> **Älä sekoita tätä `customscript1458`:aan.** Se on *"[GBB] Bike status date backfill"*, eli
+> `netsuite-bike-redemption-status-sync/gbb-bike-status-history/gbb_ss_bike_status_history_backfill.js`
+> — **eri repo, eri skripti, eikä osa vaihetta 3**. Se on **edelleen olemassa ja `SCHEDULED`-tilassa**
+> (`customdeploy_gbb_ss_bike_status_backfill`, todennettu 21.09.), ja se havainto kuuluu
+> `schemas/script-inventory.md` § *netsuite-bike-redemption-status-sync* -osioon, jossa se jo on.
+>
+> Tämän speksin ensimmäinen versio nimesi tähän kohtaan `customscript1458`:n ja väitti sitä
+> eläväksi ajastukseksi. Kumpikin oli väärin, ja virhe syntyi siitä että molempia kutsutaan
+> "backfilliksi" ja inventaariossa ne ovat eri osioissa. Jos viittaat skripti-id:hen, varmista
+> **mistä inventaarion osiosta** rivi on.
 
 ## 4. `netsuite-monthly-reporting` · `tools/warning_triage.js`
 
@@ -360,13 +370,82 @@ purrut jo kertaalleen tässä projektissa (`lunastus-tilanne.md`, opitut asiat, 
 |---|---|---|
 | 1 | `ri_update.js` (kohta 2) | Poistaa sen demotoinnin joka tekee sweepistä vaarallisen. Pienin diffi, suurin riskin poisto |
 | 2 | `ri_creation.js` (kohta 1) | Päämuutos. Hakukentät ja ehto samassa committina — ehto ei toimi ilman kenttiä |
-| 3 | `mr_backfill_missing_ended_rows.js` (kohta 3) | Pitää ehdon yhtenäisenä kahden skriptin välillä |
-| 4 | `mr_subscription_extension.js` (kohta 5) | Eri repo, eri haara; kaksi committia (kirjasto + aikavyöhyke) |
-| 5 | `tools/warning_triage.js` (kohta 4) | Ei kirjoita NetSuiteen; voi odottaa |
+| 3 | `mr_subscription_extension.js` (kohta 5) | Eri repo, eri haara; kaksi committia (kirjasto + aikavyöhyke) |
+| 4 | `tools/warning_triage.js` (kohta 4) | Ei kirjoita NetSuiteen; voi odottaa |
+| — | ~~`mr_backfill_missing_ended_rows.js`~~ | **Rauennut 21.09.** — skripti poistettu NetSuitesta, ks. kohta 3 |
 
 Vaiheiden 1 ja 2 jälkeen **sweepin ajastus voidaan laittaa päälle** — se on se este joka nyt
-pitää sen pois. CR-ajastus vaatii koko listan, koska UE-skriptien synnyttämät rivit kulkevat
+pitää sen pois. Kohtien 7b.2 ja 7b.3 kirjaukset (hakusuodattimen kommentti ja todentamismittarit)
+tehdään vaiheen 2 yhteydessä, eivät sen jälkeen. CR-ajastus vaatii koko listan, koska UE-skriptien synnyttämät rivit kulkevat
 `ri_update`:n kautta.
+
+## 7b. Tarkistus: sääntökirjausten symmetria speksin kanssa (21.09.2026)
+
+`netsuite-monthly-reporting` kirjasi tämän speksin säännöiksi commitissa `1af780b` (A1, A2, A3, A8,
+B1 ja uusi D3 `docs/rules/RIVISAANNOT.md`:ssä, luku 4.19 `PROJEKTIN_TILA.md`:ssä). Kirjaukset
+käytiin läpi tätä speksiä vasten. **Käyttäytymistä muuttavat kohdat ovat symmetriset.** Alla se
+mikä ei ollut, jotta se kulkee toteutusistuntoon asti.
+
+### 7b.1 Kaksi lisäystä yli speksin — molemmat oikeita, ja toinen on aukko tässä speksissä
+
+**Sääntö A2 puuttui tästä speksistä kokonaan.** Se on sama koodipolku kuin A1 (`processEndedBike`)
+mutta oma sääntönsä status-laukaisimelle. Kun A1 siirtyy kirjastolle, A2:n ensimmäinen kappale
+vanhenee ja sääntö jää pelkäksi **ajoitussäännöksi**: mille raportointikuukaudelle Ended-rivi
+kirjataan. Se osa ei muutu. **Toteutuksessa on huomioitava että A2:n teksti on merkitty
+vanhentuneeksi eikä kirjoitettu uusiksi** — se kirjoitetaan vasta kun muutos on ajettu ja
+vahvistettu.
+
+**Sääntö A3, Oomi-pakotus — päätös jota tämä speksi ei tehnyt.** Kysymys on lukeeko Oomi-pakotus
+kirjaston päättymisajankohtaa. **Ei lue**, päätös 21.09.2026: Oomin politiikka on nimenomaan
+sopimuksen päivämäärä, eikä poikkeuspäättymispäivä ole sopimuksen päivämäärä. Pakotus on hätävara
+ja jatkoehto, joka ajetaan vasta kun A1 ei ole tunnistanut pyörää päättyneeksi. Tämä on
+yhteensopiva kohdan 1.2 kanssa: camelCase `endDate` jää paikoilleen muuta koodia varten, joten
+Oomi-polku jatkaa `subsc_end_date`:n lukemista ilman erillistä muutosta. **Tätä ei saa
+"yhtenäistää" muiden mukaiseksi.**
+
+### 7b.2 Kohdan 1.4 hakusuodatin jäi kirjaamatta — kirjaa se koodikommenttina
+
+Kohta 1.4 pyysi jättämään hakusuodattimen `:828` (`bikeStatus anyof [1,2,3]`) ennalleen **ja
+kirjaamaan sen kommenttina**. Sääntökirjauksissa sitä ei ole missään — ei A1:ssä, ei D3:ssa, ei
+luvussa 4.19.
+
+Ilman kirjausta seuraava lukija näkee statuksen luvun jäljellä siinä skriptissä jonka juuri
+irrotettiin statuksesta, ja päättelee toisen kahdesta väärästä asiasta: että se on unohdus jonka
+voi "viimeistellä" laajentamalla suodatinta — jolloin **140 statuksetonta pyörää** *(mitattu
+21.09.)* tulee raportointiin ensimmäistä kertaa ilman että kenenkään on tarkoitus — tai ettei
+suodattimessa ole statuksen lukua lainkaan.
+
+**Kirjaa suodattimeen kommentti joka sanoo kolme asiaa:** suodatin on tarkoituksella ennallaan;
+päätös irrotettiin statuksesta mutta ehdokkaiden valintaa ei; ja suodattimen laajentaminen on oma
+muutos jolla on oma säde ja joka pitää mitata ensin.
+
+### 7b.3 Todentamismittarit jäivät kirjaamatta — ne *ovat* todentamismenetelmä
+
+Luku 4.19 kantaa kirjastoversion tarkistuksen ja try/catch-vaatimuksen, mutta ei kohdan 6 kolmea
+ennen/jälkeen-kyselyä eikä kuutta erottelevaa testitapausta.
+
+Tässä repossa se ei ole muotoseikka. **Talon tyyli on hiljainen epäonnistuminen** (`CLAUDE.md`
+§ *Silent failure is the house style*): `ri_creation` ei kaadu, vaan jättää rivin luomatta tai
+kirjoittaa Warningin. Ajolokista ei siis näe onnistuiko muutos, ja ne laskurit ovat ainoa tapa
+tietää se. **Vie kohdan 6 kyselyt ja taulukko sääntöjen Testattu-sarakkeisiin sitä mukaa kun ajoja
+tehdään**, äläkä merkitse mitään sääntöä testatuksi ilman niitä lukuja.
+
+Erityisesti: **kuudesta tapauksesta vain OOMI-poikkeuspäivän 30 pyörää todistaa että kirjasto on
+aidosti kytkeytynyt.** Muut viisi voivat antaa saman tuloksen vanhalla ja uudella ehdolla. Jos
+nimenomaan se ryhmä ei muutu, muutos ei ole mennyt läpi vaikka kaikki muu näyttäisi oikealta.
+
+### 7b.4 Ratkennut: A8:n käsiajoriski
+
+Sääntö A8 merkittiin tilaan `Ei käytössä` sillä perusteella että deployment on `NOTSCHEDULED`.
+Tämän speksin kanta oli toinen: `NOTSCHEDULED` estää ajastuksen, ei ajamista, ja `isdeployed` oli
+`T`. **Kysymys ratkesi samana päivänä siihen että skripti poistettiin NetSuitesta kokonaan**
+(ks. kohta 3), mikä on kahdesta mahdollisesta korjauksesta se lopullisempi. Riski on poissa.
+
+**A8:n merkintä kannattaa silti päivittää:** se siteeraa tätä speksiä vanhentuneessa muodossa
+(*"speksi väittää customscript1458"*), vaikka speksi korjattiin ennen kirjausta (`b15f3eb`), ja se
+perustelee raukeamisen `NOTSCHEDULED`-tilalla eikä poistolla. Oikea perustelu on poisto — se pitää
+myös jos joku myöhemmin luo skriptin uudelleen, koska silloin perustelu lakkaa pätemästä ja se
+näkyy.
 
 ## 8. Mitä tämä speksi korjaa aiempaan suunnitelmaan
 
