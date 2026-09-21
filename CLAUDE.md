@@ -12,22 +12,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Pending verification — ask the user for it
 
-| Due | What | Why it cannot wait |
+| Due | What | How to read it |
 |---|---|---|
-| **22.09.2026** | `custrecord_gbb_date_to_non_active` is empty on **664** ended bikes (6 pre-existing + 658 written by the calendar sweep on 21.09.). Run the query below and report the number to the user. | The field is **write-once**. Nothing in the seven repositories writes it, yet 12 535/12 541 records historically carry it, so an unidentified process fills it on a delay. If it has not caught up, 658 records lose their audit trail permanently and that is its own investigation. |
+| **Next scheduled CR run after 21.09.2026** | `handler_lunastus.js`'s status gate went live 21.09. **31 pending Type 2 CRs** were queued at that moment, and **all 31** have their tunnistuspäivä in a future month — so the correct outcome is **31 deferrals and zero status writes**. Check the execution log and the two queries below, and report to the user. | Every one of the 31 logs `status DEFERRED (would be 2; tunnistuspäivä … is still in the future)` and the bikes stay Active with a settle method recorded → correct, phase 2 verified. Any bike flipped to status 2 on processing → the gate is not holding; say so and stop before more CRs run. |
 
 ```sql
+-- sweep candidates: should GROW by roughly the number of Type 2 CRs processed
 SELECT COUNT(*) FROM customrecord_sta_bike_register
-WHERE custrecord_sta_bike_status IN (2,3) AND custrecord_gbb_date_to_non_active IS NULL
+WHERE custrecord_sta_bike_status = 1 AND custrecord_gbb_liab_settle_method IS NOT NULL;
+
+-- liab_settled_at must now be the CR's created date, never the run date
+SELECT br.id, br.custrecord_gbb_liab_settled_at, cr.custrecord_cr_created_date
+FROM customrecord_sta_bike_register br
+JOIN customrecord_subscrption_change_request cr ON cr.custrecord_cr_bike_registry = br.id
+WHERE cr.custrecord_cr_type = 2 AND cr.custrecord_cr_status = 2
+  AND br.custrecord_gbb_liab_settled_at <> cr.custrecord_cr_created_date
 ```
 
-**How to read the result.** Close to 0 → the delayed writer caught up; record it in
-`docs/lunastus-tilanne.md` and close the item. Still near 664 → **tell the user it is unresolved**
-and open a finding: identify the writer (it is not in any sibling repo — check NetSuite workflows
-and the three User Event scripts on `customrecord_sta_bike_register` whose source we do not hold),
-then decide whether the 658 need a one-off correction. Do not assume it resolved itself.
+Baseline at go-live (21.09.2026): sweep candidates **115**, premature redemptions **1**,
+`date_to_non_active` empty **0**, §5 violations **53**.
 
-Background: [`findings/2026-09-21-kalenterisweepin-ensimmainen-tuotantoajo.md`](findings/2026-09-21-kalenterisweepin-ensimmainen-tuotantoajo.md).
+**Resolved 21.09.2026 — do not re-open.** `custrecord_gbb_date_to_non_active` was empty on 664
+ended bikes right after the calendar sweep; by the same evening all 664 carried **21.09.2026**,
+which is exactly their tunnistuspäivä. An unidentified process fills the field with a delay of
+hours, and it fills it correctly. It is still not in any sibling repository — if you ever need to
+change that field's behaviour, you will have to find it first.
 
 ### One trap to know before you measure anything
 

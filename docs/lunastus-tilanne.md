@@ -1,6 +1,6 @@
 # Lunastusprojektin tilanne
 
-**Päivitetty:** 2026-09-21 (kalenterisweep tuotannossa) · **Suunnitelma:** [`lunastus-toteutussuunnitelma.md`](lunastus-toteutussuunnitelma.md)
+**Päivitetty:** 2026-09-21 (**vaihe 2 valmis** — handler, sweep ja UE tuotannossa) · **Suunnitelma:** [`lunastus-toteutussuunnitelma.md`](lunastus-toteutussuunnitelma.md)
 · **Säännöt:** [`lunastuksen-kenttasaannot.md`](lunastuksen-kenttasaannot.md)
 
 Tämä dokumentti kertoo **missä mennään**. Suunnitelma kertoo mitä tehdään ja säännöt miksi.
@@ -28,12 +28,17 @@ ja koodissa, ja että tunnistuspäivä ohjaa statusta oikeasti.
 - **Datakorjaukset** — 997 pyörää (306 + 691) sai puuttuvan selvitystavan, kaikki todisteesta
   johdettuna eikä arvaamalla.
 
+- **`handler_lunastus.js`** — statusportti, kohdestatus kirjastosta nimen sijaan, ja
+  `liab_settled_at` CR:n luontipäivästä ajopäivän sijaan. Tämän myötä **vaihe 2 on kokonaan
+  tuotannossa**: kumpikaan statuksen kirjoittaja ei enää päätä itse, vaan molemmat kysyvät
+  kirjastolta.
+
 **Mitä on jäljellä:**
 
-`handler_lunastus.js` on vaiheen 2 viimeinen osa ja nyt tehtävissä, koska sweep hoitaa ne 96 %
-tapauksista joissa tunnistuspäivä on käsittelyhetkellä tulevaisuudessa. Sen jälkeen vaihe 3 avaa
-lukijat — ja siellä odottaa suunnitelman tärkein yksittäinen muutos sekä muistutus siitä että
-raportointi kuuluu **sopimusankkuriin**, ei operatiiviseen.
+Vaihe 3 — lukijat lakkaavat lukemasta `bike_status`-kenttää. Siellä odottaa suunnitelman tärkein
+yksittäinen muutos ja sen ansa: raportointi kuuluu **sopimusankkuriin**, ei operatiiviseen.
+Samassa yhteydessä korjattava että RI-luonti ei lue kumpaakaan poikkeuspäättymispäivää.
+Sen jälkeen vaihe 4 (`cf-gbb-tools`) ja avoimet datapäätökset.
 
 **Mitä matkalla opittiin — kolme asiaa jotka eivät olleet suunnitelmassa:**
 
@@ -55,15 +60,18 @@ Todennettu NetSuitesta 21.09.2026.
 
 | Mittari | 18.09. lähtötilanne | 21.09. sweepin jälkeen | Tavoite |
 |---|---|---|---|
-| **Lunastettu ennen tunnistuspäivää** *(§8, korjattu mittari)* | ei mitattu | **4** | ei kasva |
+| **Lunastettu ennen tunnistuspäivää** *(§8, korjattu mittari)* | ei mitattu | **1** | ei kasva |
 | Selvitystapa puuttuu, status 2/3 | 1 517 | **1 211** | 0 tai perusteltu |
 | Selvitystapa puuttuu, status 2, maksettu | 60 | **0** | pysyy 0 |
 | Selvitystapa puuttuu, status 1, maksettu | ei mitattu | **0** | pysyy 0 |
-| Tila 2 *lunastus sovittu* | ei käsitteenä | **112** | vaihtelee kuukausirytmissä |
+| Tila 2 *lunastus sovittu* | ei käsitteenä | **115** | kasvaa handlerin portin myötä |
 | Päättyneitä (status 2/3) | 12 512 | **13 199** | — |
-| `date_to_non_active` tyhjä (status 2/3) | 6 | **664** | **tarkista 22.09.** |
-| Päätöspäivä kirjattu | kenttää ei ollut | 2 | kasvaa automaattisesti |
+| `date_to_non_active` tyhjä (status 2/3) | 6 | **0** | ratkennut |
+| Päätöspäivä kirjattu | kenttää ei ollut | 4 | kasvaa automaattisesti |
 | Pyöriä ilman statusta | 148 | **141** | oma selvitys |
+
+Päämittari 4 → 1: kolme neljästä palautettiin **käsin statukselle 1** 21.09. klo 14:10–14:11, mikä
+on §4:n sallima korjaussiirtymä 3 → 1. Jäljellä oleva yksi (B021682) on 09.09. peräisin.
 
 > **Vanha §8-mittari** (`status = 2 AND subsc_end_date > CURRENT_DATE`) näyttää **847**. Se on
 > vanhentunut ja korjattiin 21.09.2026 — se oli ristiriidassa §3:n kuukausiankkurin kanssa ja olisi
@@ -79,8 +87,8 @@ Todennettu NetSuitesta 21.09.2026.
 | 1 | Jaettu kirjasto `gbb_lunastus_lib.js` 1.0.0 | **valmis** 20.09., 45/45 testiä |
 | 2 | status-sync: selvitystapa maksun mukana (PR #2) | **tuotannossa** 20.09. |
 | 2 | status-sync: kalenterisweep (PR #3) | **tuotannossa** 21.09. — ensimmäinen ajo 658 kääntöä, 0 virhettä |
-| 2 | `handler_lunastus.js` (3 muutosta) | **tekemättä** — odottaa sweepin todennusta |
-| 3 | Lukijat: kuukausiraportointi, laajennus | **estetty** kunnes vaihe 2 on valmis |
+| 2 | `handler_lunastus.js` (PR #7) | **tuotannossa** 21.09. — statusportti, kohdestatus kirjastosta, CR:n luontipäivä |
+| 3 | Lukijat: kuukausiraportointi, laajennus | **avautunut** — vaihe 2 on valmis |
 | 4 | `cf-gbb-tools` | tekemättä |
 | 5 | Datakorjaukset | 306 + 691 tehty; **1 211 avoinna** |
 
@@ -98,26 +106,20 @@ Todennettu NetSuitesta 21.09.2026.
 
 ## Seuraavat taskit
 
-### 1. Tarkista `date_to_non_active` 22.09.2026 — **seuraava, pieni**
+### 1. Todenna handlerin statusportti seuraavassa CR-ajossa — **seuraava**
 
-Tyhjiä on 664 (6 + sweepin 658). Kenttää ei kirjoiteta synkronisesti, ja täyttäjää ei ole
-tunnistettu — sitä ei ole yhdessäkään sisarrepossa. Jos luku ei palaudu lähelle nollaa, 658
-tietuetta jää pysyvästi ilman kirjausjälkeä, koska kenttä on write-once.
+Käyttöönoton hetkellä jonossa oli **31 Pending Type 2 -CR:ää, ja kaikilla 31:llä tunnistuspäivä on
+tulevassa kuukaudessa**. Oikea lopputulos on siis **31 lykkäystä ja nolla statuksen kirjoitusta** —
+poikkeuksellisen selkeä ensimmäinen testi. Ohje ja kyselyt ovat `CLAUDE.md`:n *Read First* -osiossa.
 
-```sql
-SELECT COUNT(*) FROM customrecord_sta_bike_register
-WHERE custrecord_sta_bike_status IN (2,3) AND custrecord_gbb_date_to_non_active IS NULL
-```
+Jos yksikin pyörä kääntyy statukselle 2 käsittelyhetkellä, portti ei pidä — se on syy pysäyttää
+ennen kuin lisää CR:iä ajetaan.
 
-### 2. Varmista sweepin ajastus
+### 2. Varmista sweepin päivittäinen ajastus
 
-Ensimmäinen ajo tehtiin käsin. Varmista että päivittäinen ajastus on päällä ja että seuraava
-yöajo menee läpi ilman käsiohjausta — se on ensimmäinen kerta kun sweep ajetaan normaalissa
-rytmissä. Kandidaattijoukko on nyt 112, joten ajo on kevyt.
-
-### 3. `handler_lunastus.js` — vaiheen 2 viimeinen osa
-
-Sweep on nyt tuotannossa ja todennettu, joten statusportin esiehto täyttyy.
+Ensimmäinen ajo tehtiin käsin 21.09. Varmista että ajastus on päällä ja seuraava yöajo menee läpi
+ilman käsiohjausta. Kandidaattijoukko kasvaa nyt handlerin portin myötä, joten sweepin kuorma
+kasvaa vähitellen — seuraa sitä.
 
 | Rivi | Muutos |
 |---|---|
