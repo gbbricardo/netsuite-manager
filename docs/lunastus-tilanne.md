@@ -140,7 +140,7 @@ arvo eroaa).
 
 | Asia | kpl | Kysymys |
 |---|---|---|
-| Selvitystapa puuttuu, ei todistetta | **1 211** | oletus 1, uusi listan arvo `historical_unknown`, vai tyhjäksi? |
+| ~~Selvitystapa puuttuu, ei todistetta~~ | ~~1 211~~ | **ratkaistu 21.09.** → `historical_unknown`, [ADR 0006](adr/0006-historical-unknown-selvitystapa.md) |
 | Pyörät ilman statusta | **141** | eivät Active eivätkä päättyneitä, putoavat jokaisen skriptin suodattimesta |
 | Selvitystapa 5 `bike_returned` | 178 | kirjasto pitää maksuttomana todisteena; vahvistettava tietoisesti |
 | `docs/scripts/ue_...md` cr-scripts-repossa | — | huomautus "ADR should be updated" on vanhentunut, PR #6 korjaa testi 3:n |

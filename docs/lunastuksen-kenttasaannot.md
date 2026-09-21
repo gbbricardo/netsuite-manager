@@ -222,6 +222,13 @@ lunastus syntyy.
 | 5 | `bike_returned` | 3 | 178 *(rajattu ulos)* |
 | 6 | `bike_sold_to_competitor` | 2 | 16 |
 | 7 | `bike_stolen_or_destroyed` | 2 | 122 |
+| 8 | `historical_unknown` | 2 | *uusi, [ADR 0006](adr/0006-historical-unknown-selvitystapa.md)* |
+
+> **`historical_unknown` on varattu historiatietueille.** Se tarkoittaa: pyörä on päättynyt, mutta
+> miten velvoite hoidettiin ei ole tiedossa eikä rekonstruoitavissa. **Sitä ei saa käyttää uusiin
+> päätöksiin** — uudessa lunastuksessa selvitystapa tiedetään aina. Arvo kelpaa maksuttomana
+> todisteena, joten Active-pyörälle asetettuna se saa kalenterisweepin kääntämään statuksen ilman
+> että mitään on selvitetty.
 
 Selvitystapa määrää kohdestatuksen yksikäsitteisesti: **5 → 3, kaikki muut → 2.** Poikkeuksia on
 kolme 11 000:sta. Kohdestatusta ei siis tarvitse päätellä CR:n nimestä.
@@ -456,6 +463,13 @@ WHERE custrecord_gbb_liab_settle_method IS NOT NULL
   AND COALESCE(custrecord_gbb_exceptional_end_date,
                custrecord_gbb_oomi_exceptional_end_date,
                custrecord_sta_subsc_end_date) < CURRENT_DATE
+```
+
+**`historical_unknown` Active-pyörällä** — ADR 0006:n väärinkäytön mittari, odotus **0**:
+
+```sql
+SELECT COUNT(*) FROM customrecord_sta_bike_register
+WHERE custrecord_gbb_liab_settle_method = 8 AND custrecord_sta_bike_status = 1
 ```
 
 **Päätöspäivä ilman selvitystapaa** — ADR 0004:n UE on leimannut väärään aikaan:
