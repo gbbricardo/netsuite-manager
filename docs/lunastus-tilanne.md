@@ -106,7 +106,16 @@ on §4:n sallima korjaussiirtymä 3 → 1. Jäljellä oleva yksi (B021682) on 09
 
 ## Seuraavat taskit
 
-### 1. Todenna handlerin statusportti seuraavassa CR-ajossa — **seuraava**
+### 0. Vaiheen 3 esiehto: todiste kaikille päättyneille pyörille — **seuraava**
+
+Aineisto ja ohjeet: [`../imports/2026-09-21-vaihe3-esiehto/`](../imports/2026-09-21-vaihe3-esiehto/).
+Kaksi osaa: CSV-import 204 riville (`liab_settled_at` = CR:n luontipäivä) ja **Mass Update** 1 211
+tietueelle (`historical_unknown`). Mass Update eikä CSV, koska CSV on tilannekuva ja ylikirjoittaisi
+välissä syntyneen oikean arvon write-once-kenttään.
+
+Kirjasto 1.1.0 on File Cabinetissa (todennettu 21.09. klo 15:13), joten esiehto sille on täytetty.
+
+### 1. Todenna handlerin statusportti seuraavassa CR-ajossa
 
 Käyttöönoton hetkellä jonossa oli **31 Pending Type 2 -CR:ää, ja kaikilla 31:llä tunnistuspäivä on
 tulevassa kuukaudessa**. Oikea lopputulos on siis **31 lykkäystä ja nolla statuksen kirjoitusta** —
