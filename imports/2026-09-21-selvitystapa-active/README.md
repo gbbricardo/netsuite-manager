@@ -62,7 +62,15 @@ WHERE custrecord_sta_bike_status = 1
 
 ## Vaikutus — lue tämä ennen ajoa
 
-**1. Päätöspäivä-UE laukeaa jokaiselle riville.** `ue_gbb_redemption_decided_at` on Released ja
+> [!NOTE]
+> **Ajettu 21.09.2026. Tulos todennettu.** Aukko 691 → **0**, sweepin kandidaatit 78 → **769**,
+> portti auki **659**:lle, `settled_at = paid_at` **769/769**, §5-rikkomukset **53** (ei kasvua).
+> **Päätöspäivää ei leimautunut yhdellekään (0/691)** — CSV-import ei laukaise User Event
+> -skriptejä ellei *Run Server SuiteScript and Trigger Workflows* ole merkitty. Kohdan 1 varaus
+> alla **ei siis toteutunut**, ja lopputulos on parempi: näiden päätöspäivä jää tyhjäksi eli
+> "ei tiedossa", kuten ADR 0001 edellyttää. **Älä aja tiedostoa uudelleen.**
+
+**1. Päätöspäivä-UE laukeaa jokaiselle riville.** *(Ei toteutunut — ks. huomautus yllä.)* `ue_gbb_redemption_decided_at` on Released ja
 laukeaa CSV-importin kirjoituksesta. Kaikki 691 saavat `custrecord_gbb_redemption_decided_at` =
 importin ajopäivä. Se on **hyväksytty**: näiden pyörien todellista päätöspäivää ei ole missään
 tallessa, ja [ADR 0001](../../docs/adr/0001-uusi-paatospaiva-kentta.md):n tyhjä-sääntö antaisi

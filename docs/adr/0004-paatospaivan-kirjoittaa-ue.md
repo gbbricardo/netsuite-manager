@@ -118,6 +118,21 @@ ja write-once-vahti sen ympäriltä (`:185-215`) poistuu.
 **Huonot.** Viides UE tuntemattomassa pinossa. UE:n kaatuminen estää pyörärekisterin tallennuksen,
 joten sen on oltava triviaali ja `try/catch`-suojattu — se on kirjausjälki, ei liiketoimintalogiikka.
 
+**Todennettu rajoitus: CSV-import ei laukaise UE:ta.** Mitattu 21.09.2026: 691 rivin CSV-import
+kirjoitti `custrecord_gbb_liab_settle_method`-arvon, eikä päätöspäivää leimautunut **yhdellekään**
+(0/691). NetSuiten CSV-importin *Run Server SuiteScript and Trigger Workflows* on oletuksena pois
+päältä.
+
+Tässä tapauksessa se oli **oikea lopputulos** — [ADR 0001](0001-uusi-paatospaiva-kentta.md) kieltää
+päätöspäivän backfillin, ja näiden pyörien todellista päätöspäivää ei ole missään tallessa. Mutta
+se on pysyvä rajoitus jonka jokainen tuleva CSV-kirjoittaja kohtaa: **jos CSV:llä kirjattu
+selvitystapa halutaan päätöspäivineen, valintaruutu on merkittävä käsin.** Muuten kenttä jää
+tyhjäksi ja luetaan tyhjä-säännön mukaan.
+
+Tämä tarkoittaa myös, että kenttäsääntöjen §8:n tarkistuskysely *"selvitystapa kirjattu mutta
+päätöspäivä puuttuu"* raportoi näitä 691:tä niin kauan kuin ne ovat Active — niiden
+`date_to_non_active` on tyhjä. Luku laskee itsestään kun kalenterisweep kääntää ne.
+
 **Riski.** Jos jokin tuntematon UE kirjoittaa `liab_settle_method`-kentän, päätöspäivä leimautuu
 sen ajohetkellä. Mittari on kenttäsääntöjen §8:n kysely joka etsii pyöriä joilla on selvitystapa
 mutta ei päätöspäivää — ja sen käänteinen, päätöspäivä ilman selvitystapaa.
