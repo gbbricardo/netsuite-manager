@@ -5,6 +5,50 @@
 
 Tämä dokumentti kertoo **missä mennään**. Suunnitelma kertoo mitä tehdään ja säännöt miksi.
 
+---
+
+## Yhteenveto
+
+**Lunastussäännöt ovat tuotannossa kahdella kolmesta polusta.** Kolmen päivän aikana (19.–21.09.2026)
+projekti eteni suunnittelusta siihen, että tila *lunastus sovittu* on olemassa käsitteenä, kentässä
+ja koodissa, ja että tunnistuspäivä ohjaa statusta oikeasti.
+
+**Mikä on valmista ja tuotannossa:**
+
+- **Jaettu kirjasto** `gbb_lunastus_lib.js` 1.0.0 — viisi predikaattia, 45 yksikkötestiä,
+  File Cabinetissa `/SuiteScripts/gbb-lib/`. Kaikki alla oleva johtaa päätöksensä siitä, ei
+  toistensa tuotoksesta.
+- **Päätöspäivä** `custrecord_gbb_redemption_decided_at` ja sen User Event, Released. Todennettu
+  laukeavan myös automaatiosta ja olevan leimaamatta silloin kun selvitystapa ei muutu.
+- **Maksuvetoinen polku** kirjoittaa selvitystavan, joten maksettu lunastus ei enää katoa
+  tunnistamattomaksi.
+- **Kalenterisweep** — se puuttuva pala jota suunnitelma ei tuntenut. Tunnistuspäivä on
+  kalenteritapahtuma, eikä yksikään tapahtumavetoinen skripti havainnut sitä. Ensimmäinen ajo
+  21.09. käänsi 658 pyörää, 0 virhettä.
+- **Datakorjaukset** — 997 pyörää (306 + 691) sai puuttuvan selvitystavan, kaikki todisteesta
+  johdettuna eikä arvaamalla.
+
+**Mitä on jäljellä:**
+
+`handler_lunastus.js` on vaiheen 2 viimeinen osa ja nyt tehtävissä, koska sweep hoitaa ne 96 %
+tapauksista joissa tunnistuspäivä on käsittelyhetkellä tulevaisuudessa. Sen jälkeen vaihe 3 avaa
+lukijat — ja siellä odottaa suunnitelman tärkein yksittäinen muutos sekä muistutus siitä että
+raportointi kuuluu **sopimusankkuriin**, ei operatiiviseen.
+
+**Mitä matkalla opittiin — kolme asiaa jotka eivät olleet suunnitelmassa:**
+
+| Havainto | Missä se olisi purrut |
+|---|---|
+| Siirtymää 2 → 3 ei tee kukaan, koska tunnistuspäivä on kalenteritapahtuma | 96 % lunastuksista olisi jäänyt pysyvästi Activeksi ja laskutus jatkunut |
+| §8:n päämittari oli ristiriidassa §3:n kanssa | oikein toiminut ajo olisi luettu nelinkertaisena regressiona ja peruttu |
+| Vaihe 3 sovelsi ADR 0002:ta väärin päin | viimeinen palkanpidätysrivi olisi kadonnut 8 427 pyörältä |
+
+Yhteistä näille on, että **jokainen löytyi dokumentista eikä koodista**. Suunnitelma ja
+sääntödokumentti olivat sisäisesti ristiriitaisia, ja ristiriidat paljastuivat vasta kun lukuja
+mitattiin NetSuitesta toteutuksen sijaan.
+
+---
+
 ## Mittarit
 
 Todennettu NetSuitesta 21.09.2026.

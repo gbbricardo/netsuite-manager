@@ -2,6 +2,41 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Read First — Open Work
+
+> [!IMPORTANT]
+> **`docs/lunastus-tilanne.md` is the live status of the redemption project.** Read it at the start
+> of any session that touches redemption, the bike register's end-state fields, or the scripts
+> listed in it. It carries the current metrics, what is verified in production, and the next tasks.
+> Update it when you change any of those.
+
+### Pending verification — ask the user for it
+
+| Due | What | Why it cannot wait |
+|---|---|---|
+| **22.09.2026** | `custrecord_gbb_date_to_non_active` is empty on **664** ended bikes (6 pre-existing + 658 written by the calendar sweep on 21.09.). Run the query below and report the number to the user. | The field is **write-once**. Nothing in the seven repositories writes it, yet 12 535/12 541 records historically carry it, so an unidentified process fills it on a delay. If it has not caught up, 658 records lose their audit trail permanently and that is its own investigation. |
+
+```sql
+SELECT COUNT(*) FROM customrecord_sta_bike_register
+WHERE custrecord_sta_bike_status IN (2,3) AND custrecord_gbb_date_to_non_active IS NULL
+```
+
+**How to read the result.** Close to 0 → the delayed writer caught up; record it in
+`docs/lunastus-tilanne.md` and close the item. Still near 664 → **tell the user it is unresolved**
+and open a finding: identify the writer (it is not in any sibling repo — check NetSuite workflows
+and the three User Event scripts on `customrecord_sta_bike_register` whose source we do not hold),
+then decide whether the 658 need a one-off correction. Do not assume it resolved itself.
+
+Background: [`findings/2026-09-21-kalenterisweepin-ensimmainen-tuotantoajo.md`](findings/2026-09-21-kalenterisweepin-ensimmainen-tuotantoajo.md).
+
+### One trap to know before you measure anything
+
+The redemption project's headline metric in `docs/lunastuksen-kenttasaannot.md` §8 was **wrong until
+21.09.2026** and would have read a correctly working system as a fourfold regression (847 vs the
+true 4). The operational anchor is the **first day of the end month**, not the end date — a bike
+whose lease ends mid-month is legitimately Redeemed before its own end date. If a redemption metric
+suddenly looks catastrophic, check the query against §3 before believing it.
+
 ## What This Repository Is
 
 An **orchestration and audit layer** over seven sibling repositories that all automate the same
