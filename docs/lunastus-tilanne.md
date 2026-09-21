@@ -2,6 +2,7 @@
 
 **Päivitetty:** 2026-09-21, ilta (**vaiheet 0–2 valmiit, vaihe 3 avoinna ilman esteitä — mutta sweepin ajastus ei ole päällä**) · **Suunnitelma:** [`lunastus-toteutussuunnitelma.md`](lunastus-toteutussuunnitelma.md)
 · **Säännöt:** [`lunastuksen-kenttasaannot.md`](lunastuksen-kenttasaannot.md)
+· **Vaihe 3:** [`vaihe-3-muutosspeksi.md`](vaihe-3-muutosspeksi.md)
 
 Tämä dokumentti kertoo **missä mennään**. Suunnitelma kertoo mitä tehdään ja säännöt miksi.
 
@@ -166,6 +167,14 @@ silti synnyttää rivit jotka odottavat `ri_update`:a, joten sekin jää vaiheen
 
 
 ### 1. Vaihe 3 — lukijat lakkaavat lukemasta `bike_status`-kenttää — **seuraava**
+
+> [!IMPORTANT]
+> **Rivitarkka muutosspeksi:** [`vaihe-3-muutosspeksi.md`](vaihe-3-muutosspeksi.md) (21.09.2026).
+> Se on toteutuksen lähde — lue se tämän osion sijaan ennen kuin koskette koodiin. Se korjaa kolme
+> epätarkkuutta tähän osioon: hakuun tarvitaan **viisi** kenttää eikä kahta ja
+> `loadBikesWithLiabSettled()` poistuu; laajennuksen omat maksutarkistukset **syötetään**
+> `onkoVelvoitteetHoidettu`:lle `lisatodisteet`-parametrina eikä korvata sillä; ja `ri_update`:n
+> korjaus tarvitsee sopimusankkurin, ei pelkkää kirjaston predikaattia.
 
 Este poistui 21.09.: jokaisella päättyneellä pyörällä on nyt kirjaston hyväksymä todiste.
 
