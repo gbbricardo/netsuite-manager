@@ -1,6 +1,6 @@
 # Lunastusprojektin tilanne
 
-**Päivitetty:** 2026-09-21 · **Suunnitelma:** [`lunastus-toteutussuunnitelma.md`](lunastus-toteutussuunnitelma.md)
+**Päivitetty:** 2026-09-21 (kalenterisweep tuotannossa) · **Suunnitelma:** [`lunastus-toteutussuunnitelma.md`](lunastus-toteutussuunnitelma.md)
 · **Säännöt:** [`lunastuksen-kenttasaannot.md`](lunastuksen-kenttasaannot.md)
 
 Tämä dokumentti kertoo **missä mennään**. Suunnitelma kertoo mitä tehdään ja säännöt miksi.
@@ -9,15 +9,22 @@ Tämä dokumentti kertoo **missä mennään**. Suunnitelma kertoo mitä tehdää
 
 Todennettu NetSuitesta 21.09.2026.
 
-| Mittari | 18.09. lähtötilanne | 21.09. | Tavoite |
+| Mittari | 18.09. lähtötilanne | 21.09. sweepin jälkeen | Tavoite |
 |---|---|---|---|
-| Lunastettu, vuokrakausi kesken | 189 | **188** | ei kasva |
+| **Lunastettu ennen tunnistuspäivää** *(§8, korjattu mittari)* | ei mitattu | **4** | ei kasva |
 | Selvitystapa puuttuu, status 2/3 | 1 517 | **1 211** | 0 tai perusteltu |
 | Selvitystapa puuttuu, status 2, maksettu | 60 | **0** | pysyy 0 |
-| Selvitystapa puuttuu, status 1, maksettu | ei mitattu | **691** | 0 importin jälkeen |
-| Tila 2 *lunastus sovittu* tunnistettavissa | ei käsitteenä | **78** | kasvaa portin myötä |
+| Selvitystapa puuttuu, status 1, maksettu | ei mitattu | **0** | pysyy 0 |
+| Tila 2 *lunastus sovittu* | ei käsitteenä | **112** | vaihtelee kuukausirytmissä |
+| Päättyneitä (status 2/3) | 12 512 | **13 199** | — |
+| `date_to_non_active` tyhjä (status 2/3) | 6 | **664** | **tarkista 22.09.** |
 | Päätöspäivä kirjattu | kenttää ei ollut | 2 | kasvaa automaattisesti |
 | Pyöriä ilman statusta | 148 | **141** | oma selvitys |
+
+> **Vanha §8-mittari** (`status = 2 AND subsc_end_date > CURRENT_DATE`) näyttää **847**. Se on
+> vanhentunut ja korjattiin 21.09.2026 — se oli ristiriidassa §3:n kuukausiankkurin kanssa ja olisi
+> lukenut oikein toimineen sweep-ajon nelinkertaisena regressiona. Ks.
+> [`../findings/2026-09-21-kalenterisweepin-ensimmainen-tuotantoajo.md`](../findings/2026-09-21-kalenterisweepin-ensimmainen-tuotantoajo.md).
 
 ## Vaiheet
 
@@ -27,11 +34,11 @@ Todennettu NetSuitesta 21.09.2026.
 | 0 | Päätöspäivä-UE `ue_gbb_redemption_decided_at` | **Released** 20.09. (script 2125) |
 | 1 | Jaettu kirjasto `gbb_lunastus_lib.js` 1.0.0 | **valmis** 20.09., 45/45 testiä |
 | 2 | status-sync: selvitystapa maksun mukana (PR #2) | **tuotannossa** 20.09. |
-| 2 | status-sync: kalenterisweep (PR #3) | **File Cabinetissa**, dry run tehty — **oikea ajo tekemättä** |
+| 2 | status-sync: kalenterisweep (PR #3) | **tuotannossa** 21.09. — ensimmäinen ajo 658 kääntöä, 0 virhettä |
 | 2 | `handler_lunastus.js` (3 muutosta) | **tekemättä** — odottaa sweepin todennusta |
 | 3 | Lukijat: kuukausiraportointi, laajennus | **estetty** kunnes vaihe 2 on valmis |
 | 4 | `cf-gbb-tools` | tekemättä |
-| 5 | Datakorjaukset | 306/1 517 tehty; 691 valmisteltu; 1 211 avoinna |
+| 5 | Datakorjaukset | 306 + 691 tehty; **1 211 avoinna** |
 
 ## Todennettu tuotannossa
 
@@ -47,22 +54,26 @@ Todennettu NetSuitesta 21.09.2026.
 
 ## Seuraavat taskit
 
-### 1. CSV-import: 691 maksettua Active-pyörää — **seuraava**
+### 1. Tarkista `date_to_non_active` 22.09.2026 — **seuraava, pieni**
 
-Aineisto valmiina: [`../imports/2026-09-21-selvitystapa-active/`](../imports/2026-09-21-selvitystapa-active/),
-todennettu tarkistussummalla. Esiehto sweepin oikealle ajolle, koska ilman selvitystapaa nämä ovat
-sweepin katvealueessa. Löydös:
-[`../findings/2026-09-21-maksetut-active-pyorat-ilman-selvitystapaa.md`](../findings/2026-09-21-maksetut-active-pyorat-ilman-selvitystapaa.md).
+Tyhjiä on 664 (6 + sweepin 658). Kenttää ei kirjoiteta synkronisesti, ja täyttäjää ei ole
+tunnistettu — sitä ei ole yhdessäkään sisarrepossa. Jos luku ei palaudu lähelle nollaa, 658
+tietuetta jää pysyvästi ilman kirjausjälkeä, koska kenttä on write-once.
 
-### 2. Kalenterisweepin ensimmäinen oikea ajo
+```sql
+SELECT COUNT(*) FROM customrecord_sta_bike_register
+WHERE custrecord_sta_bike_status IN (2,3) AND custrecord_gbb_date_to_non_active IS NULL
+```
 
-Importin jälkeen kandidaatteja on 769 ja kääntyviä ~659. **Aja käsin ja valvottuna**, älä jätä
-yöajastukselle: jokainen kääntö laukaisee `gbb_webhook_ue_status_changed.js`:n. Tarkista dry run
-ensin ja vertaa kandidaattikyselyyn.
+### 2. Varmista sweepin ajastus
+
+Ensimmäinen ajo tehtiin käsin. Varmista että päivittäinen ajastus on päällä ja että seuraava
+yöajo menee läpi ilman käsiohjausta — se on ensimmäinen kerta kun sweep ajetaan normaalissa
+rytmissä. Kandidaattijoukko on nyt 112, joten ajo on kevyt.
 
 ### 3. `handler_lunastus.js` — vaiheen 2 viimeinen osa
 
-Vasta kun sweep on todennettu oikeassa ajossa.
+Sweep on nyt tuotannossa ja todennettu, joten statusportin esiehto täyttyy.
 
 | Rivi | Muutos |
 |---|---|

@@ -380,13 +380,31 @@ Kaikki 79 `custrecord_gbb_exceptional_end_date`-arvoa ovat OOMI-pyörillä.
 
 Säännöistä osaa ei voi teknisesti pakottaa. Nämä kyselyt löytävät poikkeamat.
 
-**Lunastettu ennen päättymisajankohtaa** — tämän dokumentin tärkein mittari:
+**Lunastettu ennen tunnistuspäivää** — tämän dokumentin tärkein mittari:
 
 ```sql
 SELECT COUNT(*) FROM customrecord_sta_bike_register
 WHERE custrecord_sta_bike_status = 2
-  AND custrecord_sta_subsc_end_date > CURRENT_DATE
+  AND TRUNC(COALESCE(custrecord_gbb_exceptional_end_date,
+                     custrecord_gbb_oomi_exceptional_end_date,
+                     custrecord_sta_subsc_end_date), 'MM') > TRUNC(CURRENT_DATE)
 ```
+
+> [!WARNING]
+> **Tämän kyselyn aiempi versio oli ristiriidassa §3:n kanssa** ja korjattiin 21.09.2026. Se kuului:
+>
+> ```sql
+> WHERE custrecord_sta_bike_status = 2 AND custrecord_sta_subsc_end_date > CURRENT_DATE
+> ```
+>
+> Se mittasi "status 2 ennen päättymis**päivää**", mutta [§3](#3-tunnistuspäivä) sanoo että ankkuri
+> on päättymiskuukauden **ensimmäinen päivä**. Kesken kuuta päättyvä pyörä saa siis olla lunastettu
+> ennen päättymispäiväänsä — se on sääntö, ei poikkeama. Vanha kysely ei myöskään lukenut
+> kumpaakaan poikkeuspäättymispäivää, vaikka §2 sanoo niiden ohittavan `subsc_end_date`:n.
+>
+> Ero ei ole teoreettinen. Kalenterisweepin ensimmäisen tuotantoajon jälkeen 21.09.2026 vanha
+> kysely palautti **847** ja korjattu **4** — ja ne neljä olivat kaikki ajoa vanhempia. Vanha
+> mittari olisi lukenut oikein toimivan järjestelmän katastrofaalisena regressiona.
 
 **Velvoitteet hoidettu mutta merkintä puuttuu:**
 
