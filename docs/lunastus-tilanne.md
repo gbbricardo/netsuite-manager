@@ -122,15 +122,50 @@ todiste.** Se oli vaiheen 3 ainoa este.
 > on **28 Pending Type 2 -CR:ää** joita ei käsitellä ennen kuin ajastus palautetaan. Tämä on
 > tilapäinen tila eikä sitä saa unohtaa — laskutus ja sopimusrivit eivät päivity sillä välin.
 
-### 1. Palauta CR-ajastus ja todenna statusportti — **seuraava**
 
-Kun ajastus on päällä, ne 28 Pending Type 2 -CR:ää käsitellään. **Kaikilla 28:lla päättymispäivä on
-≥ 01.10.2026** (todennettu 21.09.), joten oikea lopputulos on **28 lykkäystä ja nolla statuksen
-kirjoitusta**. Ohje ja kyselyt: `CLAUDE.md` *Read First*.
+### Ajojärjestys — päätetty 21.09.2026
 
-Portti on jo todennettu kolmella CR:llä TEST MODE -ajossa 21.09., mutta ei massana.
+**Vaihe 3 ensin, ajastukset vasta sen jälkeen.** Järjestys on 1 → 2 → 3 alla, ja se on
+tietoinen päätös eikä prioriteettijärjestys: kytkimet 2 ja 3 kirjoittavat tai synnyttävät dataa
+jota vaiheen 3 vanha logiikka lukee väärin, ja synnytettyä dataa ei saa poistetuksi CR:ää
+poistamalla.
 
-### 2. Vaihe 3 — lukijat lakkaavat lukemasta `bike_status`-kenttää
+**Ketju joka pakottaa järjestyksen** — todennettu koodista 21.09.:
+
+| # | Mitä tapahtuu | Lukeeko statusta |
+|---|---|---|
+| 1 | CR Pending → Done (dispatcher) | — |
+| 2 | Viisi UE-skriptiä laukeaa, `RELEASED` — monthly-reportingin **ainoa automaattisesti laukeava osa** | **ei** — grep `bike_status\|liab_settle` viiteen tiedostoon antaa 0 osumaa |
+| 3 | UE luo RI-rivin merkkauksella `[To-add: Data from bike register]` | ei |
+| 4 | Joku ajaa `ri_update`:n käsin (deployment on `Testing`) → täydentää pyörärekisterin tiedot | **kyllä**, `:717-720` |
+| 5 | Jos pyörän status on 2 tai 3, rivi **demotoidaan Warningiksi** | — |
+
+Warning-rivi jää sääntö T2:n mukaan pois palkka-CSV:stä, eli **vaihe 5 on menetetty
+palkanpidätys**.
+
+Niillä 28 jonossa olevalla Type 2 -CR:llä statusportti lykkää, joten pyörä jää statukselle 1 ja
+vaihe 5 ei laukea heti. Mutta **kaikilla 28:lla päättymispäivä on ≥ 01.10.2026**, eli niiden
+tunnistuspäivä osuu juuri siihen väliin: jos rivit syntyvät nyt ja sweep kääntää pyörät statukselle
+2 lokakuun alussa, seuraava `ri_update`-ajo demotoi ne. Altistumaa ei ole tällä hetkellä lainkaan —
+yksikään ei-poistettu RI-rivi ei kanna merkkausta (todennettu SuiteQL:llä 21.09.) — vaan se syntyy
+vasta kun CR:t menevät Doneksi.
+
+**Sweep on näistä vaarallisin kytkin**, koska se on statuksen kirjoittaja. CR-ajastus on
+vaarattomin, koska sen automaattinen vaikutus rajoittuu statusblindeihin UE-skripteihin — mutta se
+silti synnyttää rivit jotka odottavat `ri_update`:a, joten sekin jää vaiheen 3 jälkeen.
+
+> [!IMPORTANT]
+> **Vaihe 3 on nyt kriittisellä polulla aikarajan kanssa.** CR-ajastus on ollut pois 17.09. asti,
+> jono kasvaa, eivätkä sopimusrivit ja laskutus päivity sillä välin. Vaiheen 3 pitäisi olla
+> tuotannossa **ennen lokakuun raportointiajoa**, jotta ketju ei jää pidemmäksi aikaa purettuna.
+
+> [!NOTE]
+> Aiempi revisio tästä tiedostosta piti CR-ajastuksen palautusta taskina 1 ja sweepin ajastusta
+> taskina 4. Se oli väärä järjestys: se olisi laittanut statuksen kirjoittajan päälle ennen kuin
+> lukijat lakkasivat päättelemästä statuksesta.
+
+
+### 1. Vaihe 3 — lukijat lakkaavat lukemasta `bike_status`-kenttää — **seuraava**
 
 Este poistui 21.09.: jokaisella päättyneellä pyörällä on nyt kirjaston hyväksymä todiste.
 
@@ -167,15 +202,7 @@ Samassa vaiheessa käsiteltävät, kaikki lukevat statusta:
 **Kirjasto ladataan absoluuttipolulla** `/SuiteScripts/gbb-lib/gbb_lunastus_lib` ja versio (1.1.0)
 lokitetaan — se on ainoa tapa havaita epäonnistunut lataus.
 
-### 3. Vaihe 4 — `cf-gbb-tools`
-
-TypeScript Cloudflare Workersilla, ei voi ladata kirjastoa. Toteuttaa samat säännöt erikseen.
-**Tarvitsee myös arvon 8** `historical_unknown`, muuten sen käsitys päättyneestä pyörästä eroaa
-kirjaston käsityksestä 1 211 pyörän osalta. Lisäksi `plan.ts:381-388`:n varoitus
-`BIKE_ALREADY_REDEEMED` ei enää riitä: käyttöliittymän on erotettava *lunastus on sovittu* ja
-*pyörä on lunastettu*.
-
-### 4. Sweepin päivittäinen ajastus — **ei ole päällä, todennettu 21.09.**
+### 2. Sweepin päivittäinen ajastus — **ei ole päällä, todennettu 21.09.**
 
 > [!WARNING]
 > `customscript_gbb_bike_redemption_status` / `customdeploy_gbb_redemption_sync` on statuksella
@@ -208,6 +235,22 @@ WHERE s.scriptid = 'customscript_gbb_bike_redemption_status'
 > `scriptdeployment.recurrence` ei ole hakukanavan käytettävissä (`NOT_EXPOSED`). Se että 28 CR:ää
 > on jonossa 17.09. asti viittaa siihen että **toistuvuus on nollattu statuksen sijaan** — eli
 > deployment-status ei kerro onko ajastus päällä. Tämä on katsottava käyttöliittymästä.
+
+### 3. Palauta CR-ajastus ja todenna statusportti
+
+Kun ajastus on päällä, ne 28 Pending Type 2 -CR:ää käsitellään. **Kaikilla 28:lla päättymispäivä on
+≥ 01.10.2026** (todennettu 21.09.), joten oikea lopputulos on **28 lykkäystä ja nolla statuksen
+kirjoitusta**. Ohje ja kyselyt: `CLAUDE.md` *Read First*.
+
+Portti on jo todennettu kolmella CR:llä TEST MODE -ajossa 21.09., mutta ei massana.
+
+### 4. Vaihe 4 — `cf-gbb-tools`
+
+TypeScript Cloudflare Workersilla, ei voi ladata kirjastoa. Toteuttaa samat säännöt erikseen.
+**Tarvitsee myös arvon 8** `historical_unknown`, muuten sen käsitys päättyneestä pyörästä eroaa
+kirjaston käsityksestä 1 211 pyörän osalta. Lisäksi `plan.ts:381-388`:n varoitus
+`BIKE_ALREADY_REDEEMED` ei enää riitä: käyttöliittymän on erotettava *lunastus on sovittu* ja
+*pyörä on lunastettu*.
 
 ## Avoimet päätökset
 

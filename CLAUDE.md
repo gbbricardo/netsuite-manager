@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | # | What | Why it matters |
 |---|---|---|
-| 1 | **CR scheduling is OFF** since 21.09.2026 (turned off by the product owner for the CSV imports). **28 Pending Type 2 CRs are queued and will not be processed until it is switched back on.** Ask whether it can be re-enabled. | Agreement rows, invoices and the bike register do not update while it is off. This is a temporary state that is easy to forget — nothing in NetSuite will complain. |
+| 1 | **CR scheduling is OFF** since 21.09.2026 (turned off by the product owner for the CSV imports). **28 Pending Type 2 CRs are queued and will not be processed until it is switched back on.** Decided 21.09.: it stays off until phase 3 ships — see § *Ajojärjestys* in `docs/lunastus-tilanne.md`. Do not re-enable it on your own initiative. | Agreement rows, invoices and the bike register do not update while it is off. This is a temporary state that is easy to forget — nothing in NetSuite will complain. |
 | 2 | **When scheduling returns, verify the status gate on the bulk.** All 28 queued Type 2 CRs have their end date ≥ 01.10.2026 (verified 21.09.), so the correct outcome is **28 deferrals and zero status writes**. | The gate was verified on 21.09. with three CRs in TEST MODE, never as a batch. |
 
 Verification queries for item 2:
@@ -65,6 +65,15 @@ whose lease ends mid-month is legitimately Redeemed before its own end date. If 
 suddenly looks catastrophic, check the query against §3 before believing it.
 
 ### Next piece of work: phase 3
+
+> [!IMPORTANT]
+> **Order decided 21.09.2026: phase 3 first, both schedules only after it.** Neither the calendar
+> sweep nor CR scheduling goes back on before phase 3 is in production and tested. The sweep writes
+> status 2; CR Done fires the five `RELEASED` UE scripts, which create RI rows carrying
+> `[To-add: Data from bike register]`, and `ri_update.js:717-720` later demotes such a row to
+> Warning purely because the bike's status is 2/3 — a Warning row is withheld from the payroll CSV,
+> i.e. a missed deduction. The rows cannot be removed by deleting the CR. The full chain, the
+> evidence and the deadline are in `docs/lunastus-tilanne.md` § *Ajojärjestys*.
 
 The redemption rules are in production for phases 0–2 and **phase 3 has no blockers left** as of
 21.09.2026. It is the change that makes monthly reporting stop reading `custrecord_sta_bike_status`.
