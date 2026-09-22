@@ -82,11 +82,14 @@ and intended (decision 2026-09-07).
 
 | Script ID | Name | Type | Deployment |
 |---|---|---|---|
-| `customscript_gbb_bike_redemption_status` | Bike redemption status sync | SCHEDULED | `customdeploy_gbb_redemption_sync` **Testing** |
+| `customscript_gbb_bike_redemption_status` | Bike redemption status sync | SCHEDULED | `customdeploy_gbb_redemption_sync` **Scheduled** (vaihdettu Testing → Scheduled 22.09.2026) |
 | `customscript1458` | Bike status date backfill | SCHEDULED | `customdeploy_gbb_ss_bike_status_backfill` **Scheduled** |
 
 > [!WARNING]
-> **Korjattu 21.09.2026: selvitystapa- ja kalenterisweep-skriptin deployment on `Testing`, ei
+> **Ratkennut 22.09.2026: deployment on nyt `Scheduled` ja sweep on ajanut** (171 kandidaattia,
+> 20 kirjoitusta, 0 virhettä). Alla oleva kuvaus kertoo miksi tämä oli este 21.09.
+>
+> **Oli 21.09.2026: deployment oli `Testing`, ei
 > `Scheduled`.** Tämä tiedosto väitti sitä Scheduled-tilaiseksi. Testing-tilassa vain skriptin
 > omistaja voi ajaa sen käsin eikä toistuvuus laukea, joten **kalenterisweep ei aja yöllä** ja
 > siirtymä *lunastus sovittu* → *lunastettu* ei tapahdu automaattisesti. Todennettu SuiteQL:llä

@@ -14,8 +14,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | # | What | Why it matters |
 |---|---|---|
-| 1 | **CR scheduling is OFF** since 21.09.2026 (turned off by the product owner for the CSV imports). **28 Pending Type 2 CRs are queued and will not be processed until it is switched back on.** Decided 21.09.: it stays off until phase 3 ships — see § *Ajojärjestys* in `docs/lunastus-tilanne.md`. Do not re-enable it on your own initiative. | Agreement rows, invoices and the bike register do not update while it is off. This is a temporary state that is easy to forget — nothing in NetSuite will complain. |
-| 2 | **When scheduling returns, verify the status gate on the bulk.** All 28 queued Type 2 CRs have their end date ≥ 01.10.2026 (verified 21.09.), so the correct outcome is **28 deferrals and zero status writes**. | The gate was verified on 21.09. with three CRs in TEST MODE, never as a batch. |
+| 1 | **33 CRs are still Pending** after the first scheduled runs (15 type 2, 16 type 11, 1 type 1, 1 type 7). Governance caps each batch, so the backlog drains over several runs. Re-check the gate quadrant below once it is empty. | Both schedules are back ON as of 22.09.2026. The gate has been verified on a batch of 43, but not on the whole backlog. |
+| 2 | **`ri_creation` and `ri_update` have never run over the full population** — all nine verification runs were `⚠ TEST SCOPE`, and these scripts have no dry-run mode. The library throws on unrecognised dates, and a throw loses that bike's row silently. | The first full October run is the regression test. Read `mapErrors` and the bucket distribution from `scriptnote` immediately afterwards — the execution log will not otherwise show it. |
+
+**Resolved 22.09.2026 — both schedules are ON.**
+
+| What | Result |
+|---|---|
+| **CR scheduling re-enabled** | 43 type-2 CRs processed, **0 errors**, 0 Needs Review. Gate verified as a batch (see quadrant below). Types 1, 7 and 11 drained too. |
+| **Calendar sweep switched `Testing` → `Scheduled`** and ran | `171 candidates, 20 status changes written, 151 still waiting, 0 errors` |
+
+**The gate quadrant — this is how to read a CR run.** Not the headcount; the cross-tabulation:
+
+| Bike status after | End date | 22.09. result |
+|---|---|---|
+| 1 Active (deferred) | in the future | **14** |
+| 2 Redeemed | now or past | **28** |
+| 3 Returned | now or past | **1** |
+| **2 or 3** | **in the future** | **0 — this cell must stay empty** |
+
+```sql
+SELECT br.custrecord_sta_bike_status,
+       CASE WHEN COALESCE(br.custrecord_gbb_exceptional_end_date, br.custrecord_gbb_oomi_exceptional_end_date, br.custrecord_sta_subsc_end_date) >= TRUNC(CURRENT_DATE,'MM') + INTERVAL '1' MONTH
+            THEN 'end_future' ELSE 'end_now_or_past' END, COUNT(*)
+FROM customrecord_subscrption_change_request cr
+JOIN customrecord_sta_bike_register br ON cr.custrecord_cr_bike_registry = br.id
+WHERE cr.custrecord_cr_type = 2 AND cr.custrecord_cr_status = 2 AND cr.lastmodified >= TO_DATE('2026-09-21','YYYY-MM-DD')
+GROUP BY 1, 2
+```
 
 Verification queries for item 2:
 
@@ -40,15 +66,26 @@ Baseline 21.09.2026 evening: sweep candidates **117**, premature redemptions **0
 anchor), ended bikes with no evidence **0**, §5 violations **53**, `historical_unknown` on Active
 bikes **0**, bikes with no status **140**.
 
-> [!WARNING]
-> **Item 3 — the calendar sweep is not on a schedule.**
-> `customscript_gbb_bike_redemption_status` / `customdeploy_gbb_redemption_sync` is on status
-> **`Testing`**, not `Scheduled`, so its recurrence never fires and the transition *lunastus
-> sovittu* → *lunastettu* only happens when someone runs it by hand. That transition is the whole
-> point of phase 2. `schemas/script-inventory.md` claimed Scheduled until 21.09.; corrected.
-> Note also that a deployment's `status` does **not** tell you whether scheduling is on —
-> `scriptdeployment.recurrence` is `NOT_EXPOSED` to SuiteQL, which is why the CR handler still reads
-> `SCHEDULED` while its recurrence is off. Check recurrence in the UI.
+> [!NOTE]
+> **The sweep is `Scheduled` since 22.09.2026** (`customscript_gbb_bike_redemption_status` /
+> `customdeploy_gbb_redemption_sync`, script internal id **1440**). It was on `Testing` until then,
+> which meant its recurrence never fired and the transition *lunastus sovittu* → *lunastettu*
+> happened only by hand.
+>
+> A deployment's `status` still does **not** tell you whether scheduling is on —
+> `scriptdeployment.recurrence` is `NOT_EXPOSED` to SuiteQL. Confirm a schedule by the presence of
+> runs in `scriptnote`, not by the status field.
+
+> [!TIP]
+> **Read script execution logs from SuiteQL table `scriptnote`** (`scriptexecutionlog` fails with
+> `Invalid search type`). Its column **`scripttype` holds the script's internal id**, not a type.
+> Internal ids: **1452** ri_creation, **1453** ri_update, **1440** sweep, **1199** CR handler,
+> **1196** CR bike-register updater. The id in a `scriptrecord.nl?id=` URL is a different id.
+> `date` carries a time component, so filter with a range, never `date = TO_DATE(…)`.
+>
+> **The log's own date is the runtime clock, ~10 h behind Helsinki**, so late-evening Finnish runs
+> are logged under the previous day. On 22.09.2026 the sweep logged `tunnistuspäivä=2026-09-22`
+> while its log rows were dated 21.09. — that is `tanaanHelsinki()` doing its job, not a defect.
 
 **Resolved 21.09.2026 — do not re-open.** `custrecord_gbb_date_to_non_active` was empty on 664
 ended bikes right after the calendar sweep; by the same evening all 664 carried 21.09.2026, which

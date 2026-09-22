@@ -62,8 +62,8 @@ Todennettu NetSuitesta 21.09.2026.
 | `historical_unknown` (8) käytössä | arvoa ei ollut | **1 211** | ei kasva |
 | `historical_unknown` **Active-pyörällä** *(väärinkäyttö)* | — | **0** | **pysyy 0** |
 | §5-rikkomukset selvitystavalla 1 | 53 | **53** | ei kasva |
-| Tila 2 *lunastus sovittu* | ei käsitteenä | **117** | vaihtelee kuukausirytmissä |
-| Päättyneitä (status 2/3) | 12 512 | **13 199** | — |
+| Tila 2 *lunastus sovittu* | ei käsitteenä | **151** | vaihtelee kuukausirytmissä |
+| Päättyneitä (status 2/3) | 12 512 | **13 244** | — |
 | `date_to_non_active` tyhjä | 6 | **2** | ks. huomautus alla |
 | Päätöspäivä kirjattu | kenttää ei ollut | **7** | kasvaa automaattisesti |
 | Pyöriä ilman statusta | 148 | **140** | oma selvitys |
@@ -117,6 +117,9 @@ todiste.** Se oli vaiheen 3 ainoa este.
 | Handlerin statusportti **pysyy kiinni** | 21.09. | pyörä 30672 — tunnistuspäivä 01.11., `DEFERRED` |
 | Kohdestatus tulee tavasta eikä nimestä | 21.09. | CR `- 2B` → tapa 6 → status 2 |
 | `liab_settled_at` = CR:n luontipäivä | 21.09. | kolme CR:ää, kaikilla luontipäivä eikä ajopäivä |
+| **Statusportti massana** | 22.09. | 43 CR:ää: 14 lykkäystä (päättyminen tulevaisuudessa), 29 statuksen kirjoitusta (tunnistuspäivä tullut), **0 väärässä neljänneksessä**, 0 virhettä |
+| **Sweep ajastettuna** | 22.09. | `171 candidates, 20 status changes, 151 waiting, 0 errors` |
+| **`tanaanHelsinki()` korjaa kelloeron** | 22.09. | sweep kirjasi `tunnistuspäivä=2026-09-22` lokirivien päiväyksen ollessa 21.09. |
 | **Vaihe 3:** kirjasto latautuu RI-skripteihin | 21.09. | `gbb_lunastus_lib=1.1.0`, `mapErrors=0`, molemmat skriptit, 9 ajoa |
 | **Vaihe 3:** kirjasto ratkaisee päättymisajankohdan | 21.09. | pyörä 38677 — OOMI-poikkeuspäivä 30.09. → **Ended** 01.10.; `subsc_end` 04.10. olisi antanut Activen, ja A3 ei voinut laueta |
 | **Vaihe 3:** todistehaara pitää | 21.09. | pyörä 38943 — päättymispäivä mennyt mutta ei todistetta → **Active** |
@@ -126,10 +129,11 @@ todiste.** Se oli vaiheen 3 ainoa este.
 
 ## Seuraavat taskit
 
-> [!WARNING]
-> **CR-ajastus on pois päältä 21.09.2026 alkaen** (tuoteomistaja, CSV-importteja varten). Jonossa
-> on **28 Pending Type 2 -CR:ää** joita ei käsitellä ennen kuin ajastus palautetaan. Tämä on
-> tilapäinen tila eikä sitä saa unohtaa — laskutus ja sopimusrivit eivät päivity sillä välin.
+> [!NOTE]
+> **Molemmat ajastukset ovat päällä 22.09.2026 alkaen.** CR-käsittely palautettiin ja kalenterisweep
+> vaihdettiin `Testing` → `Scheduled`. Kumpikin on ajanut ilman virheitä; tulokset alla ja
+> *Todennettu tuotannossa* -taulussa. **Jonossa on yhä 33 CR:ää** (15 tyyppi 2, 16 tyyppi 11,
+> 1 tyyppi 1, 1 tyyppi 7) — governance katkaisee erän, joten backlog purkautuu useassa ajossa.
 
 
 ### Ajojärjestys — päätetty 21.09.2026
@@ -219,7 +223,20 @@ Samassa vaiheessa käsiteltävät, kaikki lukevat statusta:
 **Kirjasto ladataan absoluuttipolulla** `/SuiteScripts/gbb-lib/gbb_lunastus_lib` ja versio (1.1.0)
 lokitetaan — se on ainoa tapa havaita epäonnistunut lataus.
 
-### 2. Sweepin päivittäinen ajastus — **ei ole päällä, todennettu 21.09.**
+### 2. ~~Sweepin päivittäinen ajastus~~ — **päällä ja ajanut 22.09.2026**
+
+> [!NOTE]
+> Deployment `customdeploy_gbb_redemption_sync` vaihdettiin `Testing` → **`Scheduled`**, ja ajo meni
+> läpi: **171 kandidaattia, 20 statuksen kirjoitusta, 151 yhä odottamassa, 0 virhettä.**
+>
+> Ajo todensi myös aikavyöhykeansan korjatuksi: se kirjasi `tunnistuspäivä=2026-09-22`, vaikka sen
+> omat lokirivit ovat päiväyksellä 21.09. — ajonaikainen kello on ~10 h Suomen ajasta jäljessä, ja
+> `tanaanHelsinki()` korjaa sen. Kuukausirajalla tuo ero olisi siirtänyt tunnistuspäivää kokonaisen
+> kuukauden.
+>
+> Alla oleva alkuperäinen kuvaus on säilytetty, koska se kertoo miksi tämä oli este.
+
+
 
 > [!WARNING]
 > `customscript_gbb_bike_redemption_status` / `customdeploy_gbb_redemption_sync` on statuksella
@@ -253,13 +270,27 @@ WHERE s.scriptid = 'customscript_gbb_bike_redemption_status'
 > on jonossa 17.09. asti viittaa siihen että **toistuvuus on nollattu statuksen sijaan** — eli
 > deployment-status ei kerro onko ajastus päällä. Tämä on katsottava käyttöliittymästä.
 
-### 3. Palauta CR-ajastus ja todenna statusportti
+### 3. ~~Palauta CR-ajastus ja todenna statusportti~~ — **tehty 22.09.2026**
 
-Kun ajastus on päällä, ne 28 Pending Type 2 -CR:ää käsitellään. **Kaikilla 28:lla päättymispäivä on
-≥ 01.10.2026** (todennettu 21.09.), joten oikea lopputulos on **28 lykkäystä ja nolla statuksen
-kirjoitusta**. Ohje ja kyselyt: `CLAUDE.md` *Read First*.
+Ajastus on päällä ja **portti on todennettu massana**, mikä oli tämän kohdan koko tarkoitus.
+43 tyypin 2 CR:ää käsiteltiin, **0 virhettä**, 0 Needs Review.
 
-Portti on jo todennettu kolmella CR:llä TEST MODE -ajossa 21.09., mutta ei massana.
+| Pyörän status jälkeen | Päättymispäivä | kpl |
+|---|---|---|
+| 1 Active (lykätty) | tulevaisuudessa | **14** |
+| 2 Redeemed | nyt tai menneessä | **28** |
+| 3 Returned | nyt tai menneessä | **1** |
+| **2 tai 3** | **tulevaisuudessa** | **0 — tämän solun on pysyttävä tyhjänä** |
+
+> **Lue tulos neljännestaulukkona, älä kappalemääränä.** Ennuste oli "28 lykkäystä"; toteutuma oli
+> 14. Sääntö piti täydellisesti — luku oli vanhentunut, koska uusia tyypin 2 CR:iä syntyi mittauksen
+> jälkeen. Kappalemäärä ei kerro portista mitään, neljännestaulukko kertoo.
+
+`liab_settled_at` on CR:n luontipäivä eikä ajopäivä, todennettuna sekä lokista
+(`settled … (CR created date)`) että datasta: lykätyillä pyörillä päivät ovat 17.–21.09. vaikka ajo
+oli myöhemmin. Jokaisella uudella lykkäysrivillä `gbb_lunastus_lib=1.1.0`.
+
+**Jäljellä:** 33 CR:ää on yhä Pending. Aja neljännestaulukko uudelleen kun jono on tyhjä.
 
 ### 4. Vaihe 4 — `cf-gbb-tools`
 
