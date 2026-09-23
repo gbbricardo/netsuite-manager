@@ -1,6 +1,6 @@
 # Lunastusprojektin tilanne
 
-**Päivitetty:** 2026-09-21, ilta (**vaiheet 0–2 valmiit, vaihe 3 avoinna ilman esteitä — mutta sweepin ajastus ei ole päällä**) · **Suunnitelma:** [`lunastus-toteutussuunnitelma.md`](lunastus-toteutussuunnitelma.md)
+**Päivitetty:** 2026-09-23 (**vaiheet 0–3 tuotannossa, molemmat ajastukset päällä**) · **Suunnitelma:** [`lunastus-toteutussuunnitelma.md`](lunastus-toteutussuunnitelma.md)
 · **Säännöt:** [`lunastuksen-kenttasaannot.md`](lunastuksen-kenttasaannot.md)
 · **Vaihe 3:** [`vaihe-3-muutosspeksi.md`](vaihe-3-muutosspeksi.md)
 
@@ -51,34 +51,48 @@ kirjoitettu lokiin juuri tätä varten.
 
 ## Mittarit
 
-Todennettu NetSuitesta 21.09.2026.
+Todennettu NetSuitesta **23.09.2026** (sarake *21.09.* on säilytetty vertailukohdaksi).
 
-| Mittari | 18.09. lähtötilanne | 21.09. nyt | Tavoite |
-|---|---|---|---|
-| **Päättyneitä ilman todistetta** *(vaiheen 3 este)* | 1 415 | **0** | pysyy 0 |
-| **Lunastettu ennen tunnistuspäivää** *(§8)* | ei mitattu | **0** | ei kasva |
-| Selvitystapa puuttuu, status 2/3 | 1 517 | **0** | pysyy 0 |
-| Selvitystapa puuttuu, status 1, maksettu | 691 | **0** | pysyy 0 |
-| `historical_unknown` (8) käytössä | arvoa ei ollut | **1 211** | ei kasva |
-| `historical_unknown` **Active-pyörällä** *(väärinkäyttö)* | — | **0** | **pysyy 0** |
-| §5-rikkomukset selvitystavalla 1 | 53 | **53** | ei kasva |
-| Tila 2 *lunastus sovittu* | ei käsitteenä | **151** | vaihtelee kuukausirytmissä |
-| Päättyneitä (status 2/3) | 12 512 | **13 244** | — |
-| `date_to_non_active` tyhjä | 6 | **2** | ks. huomautus alla |
-| Päätöspäivä kirjattu | kenttää ei ollut | **7** | kasvaa automaattisesti |
-| Pyöriä ilman statusta | 148 | **140** | oma selvitys |
+| Mittari | 18.09. lähtötilanne | 21.09. | **23.09. nyt** | Tavoite |
+|---|---|---|---|---|
+| **Päättyneitä ilman todistetta** *(vaiheen 3 este)* | 1 415 | 0 | **0** | pysyy 0 |
+| **Lunastettu ennen tunnistuspäivää** *(§8)* | ei mitattu | 0 | **0** | ei kasva |
+| Selvitystapa puuttuu, status 2/3 | 1 517 | 0 | **0** | pysyy 0 |
+| Selvitystapa puuttuu, status 1, maksettu | 691 | 0 | **0** | pysyy 0 |
+| `historical_unknown` (8) käytössä | arvoa ei ollut | 1 211 | **1 211** | ei kasva |
+| `historical_unknown` **Active-pyörällä** *(väärinkäyttö)* | — | 0 | **0** | **pysyy 0** |
+| §5-rikkomukset selvitystavalla 1 | 53 | 53 | **54** ⚠ | ~~ei kasva~~ — **kasvoi, ks. löydös** |
+| Tila 2 *lunastus sovittu* | ei käsitteenä | 117 | **164** | vaihtelee kuukausirytmissä |
+| Päättyneitä (status 2/3) | 12 512 | 13 199 | **13 263** | — |
+| `date_to_non_active` tyhjä | 6 | 2 | **0** | ratkennut |
+| Päätöspäivä kirjattu | kenttää ei ollut | 7 | **120** | kasvaa automaattisesti |
+| Pyöriä ilman statusta | 148 | 140 | **137** | oma selvitys |
 
 **Ensimmäistä kertaa jokaisella päättyneellä pyörällä on selvitystapa ja kirjaston hyväksymä
 todiste.** Se oli vaiheen 3 ainoa este.
 
-> **`date_to_non_active` tyhjä kahdella pyörällä (21.09. ilta)** — ne ovat täsmälleen 6496 ja
-> 10146, samat jotka handlerin statusportti käänsi tänään. Tunnettu viiveellä täyttävä prosessi ei
-> ole vielä ehtinyt niihin, eli tämä on odotettu tila eikä regressio. **Tarkista 22.09.: jos kenttä
-> on yhä tyhjä, asia ei ollutkaan ratkennut** ja täyttävä prosessi on löydettävä.
+> **`date_to_non_active` ratkesi.** 21.09. illalla kaksi pyörää (6496, 10146) oli ilman arvoa;
+> 23.09. luku on **0**. Viiveellä täyttävä tuntematon prosessi ehti niihin, kuten `CLAUDE.md`
+> ennusti. Se prosessi on yhä tunnistamatta — jos kentän käytöstä pitää joskus muuttaa, se on
+> ensin löydettävä.
 
-> **Jonossa 28 Pending Type 2 -CR:ää, ei 31** — kolme kului 21.09. todennusajoon (CR-6617, CR-6619,
-> CR-6621). Kaikilla 28:lla päättymispäivä on ≥ 01.10.2026, joten oikea lopputulos on edelleen
-> **28 lykkäystä ja nolla statuksen kirjoitusta**.
+> [!WARNING]
+> **§5-rikkomukset kasvoivat 53 → 54, ja se on ainoa mittari joka liikkui väärään suuntaan.**
+> Uusi on pyörä **25325**: maksu kirjattu 17.09., mutta `handler_lunastus` kirjoitti
+> `liab_settled_at`-kenttään CR:n luontipäivän **22.09.** §5 vaatii aikaisimman todisteen. Kirjasto
+> osaa tämän jo (`onkoVelvoitteetHoidettu().todistepaiva`), mutta handler ei käytä sitä tähän
+> kenttään. **Jonossa on 1 CR joka tuottaa seuraavan rikkomuksen.** Korjaus ja ennakoiva kysely:
+> [`../findings/2026-09-23-handler-lunastus-rikkoo-pykala-5-kun-maksu-on-aiempi.md`](../findings/2026-09-23-handler-lunastus-rikkoo-pykala-5-kun-maksu-on-aiempi.md).
+
+> **CR-jono purkautuu.** 22.09. jonossa oli 33, 23.09. enää **16** (1 tyyppi 1, 6 tyyppi 2,
+> 1 tyyppi 3, 1 tyyppi 7, 1 tyyppi 10, 6 tyyppi 11). Governance katkaisee erän, joten loput menevät
+> seuraavissa ajoissa.
+
+> [!NOTE]
+> **39 CR:ää on tilassa Error (5), ja ne ovat kaikki vanhoja** — yhtäkään ei ole muokattu 22.09.
+> jälkeen. 37 on tyyppiä 11 ja vanhin on **26.02.2026**, loput tyyppiä 7 (15.09.) ja 13 (25.07.).
+> Ajastuksen palautus **ei** siis tuottanut niitä. Ne ovat oma, koskematon kasaumansa jota kukaan ei
+> ole purkanut, ja ne kannattaa auditoida erikseen — `muutospyyntoauditoija`-agentti on tähän.
 
 > **Vanha §8-mittari** (`status = 2 AND subsc_end_date > CURRENT_DATE`) näyttää ~847 eikä 0. Se on
 > vanhentunut ja korjattiin 21.09.2026 — se oli ristiriidassa §3:n kuukausiankkurin kanssa ja olisi
