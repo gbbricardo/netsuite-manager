@@ -6,6 +6,19 @@
 
 Tämä dokumentti kertoo **missä mennään**. Suunnitelma kertoo mitä tehdään ja säännöt miksi.
 
+> [!IMPORTANT]
+> **24.09.2026: keskenkauden lunastuksen säännöt vahvistettu** ([ADR 0010](adr/0010-keskenkauden-lunastus.md),
+> kenttäsäännöt § 10). Kaksi syyskuun CSV:tä odottaa käyttäjän ajoa: T7 `decided_at`-historia ja
+> T8 poikkeuspäivät (33 pyörää, **ennen kirjastomuutosta**). Lokakuun tehtävät T9–T13 ovat
+> [`../TASKS.md`](../TASKS.md):ssä. Mitattu 24.09.:
+> - 19 Active-pyörää, joilla keskenkauden maksu ilman CR:ää
+> - Staria-hyvitysskripti yhä ajastettuna, 1 käsittelemätön pyörä (B031217)
+> - tyypin 2 CR:itä Needs Review -tilassa yli kuun: 0
+> - tyypin 10 CR:itä Pending-tilassa yli 30 päivää: 1
+> - `decided_at` ≠ CR:n luontipäivä: 1 735
+>
+> Avoin **D9**: 15 Fleet-päättynyttä Active-pyörää ilman selvitystapaa.
+
 ---
 
 ## Yhteenveto
@@ -61,7 +74,7 @@ Todennettu NetSuitesta **23.09.2026** (sarake *21.09.* on säilytetty vertailuko
 | Selvitystapa puuttuu, status 1, maksettu | 691 | 0 | **0** | pysyy 0 |
 | `historical_unknown` (8) käytössä | arvoa ei ollut | 1 211 | **1 211** | ei kasva |
 | `historical_unknown` **Active-pyörällä** *(väärinkäyttö)* | — | 0 | **0** | **pysyy 0** |
-| §5-rikkomukset selvitystavalla 1 | 53 | 53 | **54** ⚠ | ~~ei kasva~~ — **kasvoi, ks. löydös** |
+| §5-rikkomukset selvitystavalla 1 | 53 | 53 | **54** | **määriteltävä uudelleen** ([ADR 0008](adr/0008-keskenkauden-lunastuksessa-cr-voittaa-maksun.md)): pyörät, joilla on Done-tilainen tyypin 2 CR, eivät ole rikkomuksia |
 | Tila 2 *lunastus sovittu* | ei käsitteenä | 117 | **164** | vaihtelee kuukausirytmissä |
 | Päättyneitä (status 2/3) | 12 512 | 13 199 | **13 263** | — |
 | `date_to_non_active` tyhjä | 6 | 2 | **0** | ratkennut |
@@ -76,6 +89,11 @@ todiste.** Se oli vaiheen 3 ainoa este.
 > ennusti. Se prosessi on yhä tunnistamatta — jos kentän käytöstä pitää joskus muuttaa, se on
 > ensin löydettävä.
 
+> [!NOTE]
+> **Kumottu 23.09. illalla ([ADR 0008](adr/0008-keskenkauden-lunastuksessa-cr-voittaa-maksun.md)):**
+> keskenkauden lunastuksessa CR:n luontipäivä on oikea `liab_settled_at`, vaikka maksu olisi
+> aiempi. B025325 ei ole rikkomus. Alla oleva teksti on säilytetty historiaksi.
+
 > [!WARNING]
 > **§5-rikkomukset kasvoivat 53 → 54, ja se on ainoa mittari joka liikkui väärään suuntaan.**
 > Uusi on pyörä **25325**: maksu kirjattu 17.09., mutta `handler_lunastus` kirjoitti
@@ -83,6 +101,32 @@ todiste.** Se oli vaiheen 3 ainoa este.
 > osaa tämän jo (`onkoVelvoitteetHoidettu().todistepaiva`), mutta handler ei käytä sitä tähän
 > kenttään. **Jonossa on 1 CR joka tuottaa seuraavan rikkomuksen.** Korjaus ja ennakoiva kysely:
 > [`../findings/2026-09-23-handler-lunastus-rikkoo-pykala-5-kun-maksu-on-aiempi.md`](../findings/2026-09-23-handler-lunastus-rikkoo-pykala-5-kun-maksu-on-aiempi.md).
+
+> [!NOTE]
+> **Seuraava iso pala: status-sync 2.0** ([`status-sync-2-tasmaytysajo.md`](status-sync-2-tasmaytysajo.md)).
+> Tavoite on päivittäinen täsmäytys, joka pitää statuksen oikeana koko kannassa **ja** kirjoittaa
+> `ic_redemption_dt`:n. Tätä ei tee yksikään koodi, ja **1 356 lunastettua IC-pyörää puuttuu
+> taloustiimin listalta** (saved search 797), joista noin 350 kesä–elokuulta.
+> **Rakenne hyväksytty 23.09.** ([ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md)). **Syyskuu
+> hoidetaan CSV:illä** (S1 maksut, S2 IC-päivät, S3 täydennys 30.09.). **Käyttöönotto 1.10.
+> kerralla**, ja lokakuu on testikuukausi. Auki: D1 (IC-päivä myös ei-IC-myydyille?) ja D5
+> (raportin vastaanottaja).
+>
+> **S1 ajettu 23.09. klo 17:21: 27/27 oikein**, ja 2C-CR:t olivat yhä Pending. Paylink-jonon purku
+> jatkui importin jälkeen, ja **5 uutta pyörää** putosi samaan aukkoon (S1b tarvitaan, kaksi niistä
+> päättyy 30.09.). **CSV-import ei laukaise päätöspäivä-UE:ta:** päätöspäivä on tyhjä 25/27:llä, ja
+> sama koskee 2 304 aiemmin importattua. ADR 0004:n oletus *"UE kattaa CSV-importit"* ei pidä
+> nykyisillä import-asetuksilla.
+
+> [!CAUTION]
+> **Maksettuja lunastuksia jää kirjaamatta pysyvästi (23.09.).** Status-syncin osa A lukee maksut
+> ±5 vrk ikkunasta maksu- tai laskupäivän mukaan. Maksu, joka näkyy NetSuitessa myöhemmin, ei osu
+> yhteenkään ajoon. **24 maksettua Active-pyörää** on nyt ilman selvitystapaa, eikä sweep päätä
+> niitä koskaan. Mittari *"Selvitystapa puuttuu, status 1, maksettu = 0"* ei näe niitä, koska se
+> tunnistaa maksun `paid_at`-kentästä. Tämän vuoden käsin laskutetuista lunastuksista 54 %
+> maksettiin yli 5 vrk laskupäivän jälkeen. Korjauslista (27 riviä, ajettava **ennen** 4 × 2C
+> -CR:ää), muutosspeksi ja hyvitettyjen laskujen ansa:
+> [`../findings/2026-09-23-status-sync-maksuikkuna-hukkaa-myohaiset-maksut.md`](../findings/2026-09-23-status-sync-maksuikkuna-hukkaa-myohaiset-maksut.md).
 
 > **CR-jono purkautuu.** 22.09. jonossa oli 33, 23.09. enää **16** (1 tyyppi 1, 6 tyyppi 2,
 > 1 tyyppi 3, 1 tyyppi 7, 1 tyyppi 10, 6 tyyppi 11). Governance katkaisee erän, joten loput menevät
@@ -313,6 +357,22 @@ TypeScript Cloudflare Workersilla, ei voi ladata kirjastoa. Toteuttaa samat sä�
 kirjaston käsityksestä 1 211 pyörän osalta. Lisäksi `plan.ts:381-388`:n varoitus
 `BIKE_ALREADY_REDEEMED` ei enää riitä: käyttöliittymän on erotettava *lunastus on sovittu* ja
 *pyörä on lunastettu*.
+
+## Kauden lopun lunastus — säännöt vahvistettu 24.09.2026
+
+Tuoteomistajan kanssa käyty läpi, miten kauden lopun lunastuksen pitää NetSuitessa toimia
+([ADR 0009](adr/0009-kauden-lopun-lunastus.md), [kenttäsäännöt § 9](lunastuksen-kenttasaannot.md#9-kauden-lopun-lunastus)).
+Tunnistus tehdään CR:n perusteella (ei tyypin 2/10 CR:ää Pending/Done). Määräaika on päättymiskuun
+loppu. OOMI-pyörä merkitään lunastetuksi päättymiskuussa ilman maksua, ja jälkiveloitus päättyy
+automaattisesti kattavuusehdolla. Ratkaisee ADR 0008:n D7:n ja D8:n.
+
+| # | Tehtävä | Milloin | Tila |
+|---|---|---|---|
+| S4 | 34 jumissa olevaa OOMI-pyörää: tapa 1 + `liab_settled_at` CSV:llä ([import](../imports/2026-09-24-oomi-kauden-loppu/README.md)). Sweep kääntää, S3 antaa IC-päivän | ennen S3:a (30.09.) | ✔ **ajettu 24.09., 34/34 oikein** (tapa 1, `liab_settled_at` 24.09., `paid_at` tyhjä). Status kääntyy sweepin yöajossa, todennettava 25.09. aamulla |
+| K1 | Status-sync 2.0, maksuvaihe: tapa 1 + `liab_settled_at` vasta päättymiskuussa ja vain ilman tyypin 2/10 CR:ää (ADR 0009 k. 4) | lokakuun käyttöönotto | speksi päivitetty, ei toteutettu |
+| K2 | Status-sync 2.0: jälkiveloituksen kattavuustarkistus → tapa 2 (k. 5) | lokakuun käyttöönotto | uusi, ei toteutettu |
+| K3 | Status-sync 2.0 / kirjasto: OOMI-haara → tapa 1, `liab_settled_at` = tunnistuspäivä ilman maksua (k. 6) | lokakuun käyttöönotto | uusi, ei toteutettu |
+| K4 | S1:n 16 CR:töntä pyörää (kausi 10/2026–2029) saivat tavan 1 ennen päättymiskuuta → tapa ja `liab_settled_at` tyhjennetään CSV:llä ([import](../imports/2026-09-24-s1-ennenaikainen-tapa/README.md)). **B016666:n CR 6718 on Pending — aja ennen seuraavaa CR-ajoa.** Tarkista uudelleen 28.09. (B029495) | heti | ✔ **ajettu 24.09., 16/16 oikein** (tapa ja `liab_settled_at` tyhjiä, `paid_at` ennallaan, CR 6718 yhä Pending). Uusintatarkistus 28.09. |
 
 ## Avoimet päätökset
 

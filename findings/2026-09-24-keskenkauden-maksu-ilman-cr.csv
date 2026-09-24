@@ -1,0 +1,242 @@
+luokka;internal_id;pyora;status;order_type;paattymisajankohta;subsc_org_end_date;redemption_paid_at;liab_settle_method;liab_settled_at;lahteet;s1_so_lasku;s3_paylink;s2_kk_ero;muut_tyypin2_cr;current_redemption_price;end_redemption_price;huomio
+A1;5492;B005492;1;;30.06.2029;30.06.2029;05.09.2026;;;s2+s3;SOGBB0014696 04.09.2026 (SO-tyyppi 4) / INVGBB1014500 suljettu 23.09.2026;16105 05.09.2026 2809 EUR;+33;;;161;S1/K4-pyora
+A1;10162;B010162;1;;31.12.2026;31.12.2026;04.09.2026;;;s2+s3;SOGBB0014691 04.09.2026 (tyyppi 4) / INVGBB1014495 suljettu 23.09.2026;16041 04.09.2026 256 EUR;+3;;;65;S1/K4-pyora
+A1;13550;B013550;1;;31.03.2028;31.03.2028;03.07.2026;1;03.07.2026;s2+s3;SOGBB0012095 03.07.2026 (tyyppi 4) / INVGBB1011629 suljettu 17.07.2026;9217 03.07.2026 1854 EUR;+20;;;125;tapa 1 ja liab_settled_at kirjattu ennen paattymiskuuta (ADR 0009 k4) - sweep kaantaa 03/2028 ilman CR:aa
+A1;14042;B014042;1;;30.11.2028;30.11.2028;04.09.2026;;;s2+s3;SOGBB0014697 04.09.2026 (tyyppi 4) / INVGBB1014501 suljettu 23.09.2026;16048 04.09.2026 2232 EUR;+26;;;154;S1/K4-pyora
+A1;21319;B021319;1;;31.01.2027;31.01.2027;04.09.2026;;;s2+s3;SOGBB0014706 04.09.2026 (tyyppi 4) / INVGBB1014510 suljettu 23.09.2026;16038 04.09.2026 213.55 EUR;+4;;;99;S1/K4-pyora
+A1;24292;B024292;1;;30.04.2027;30.04.2027;04.09.2026;;;s2+s3;SOGBB0014705 04.09.2026 (tyyppi 4) / INVGBB1014509 suljettu 23.09.2026;16035 04.09.2026 673.04 EUR;+7;;;113;S1/K4-pyora
+A1;26437;B026437;1;;28.02.2027;28.02.2027;04.09.2026;;;s2+s3;SOGBB0014699 04.09.2026 (tyyppi 4) / INVGBB1014503 suljettu 23.09.2026;16042 04.09.2026 497.95 EUR;+5;;;110;S1/K4-pyora
+A1;27393;B027393;1;;29.02.2028;29.02.2028;07.09.2026;;;s2+s3;SOGBB0014690 07.09.2026 (tyyppi 4) / INVGBB1014494 suljettu 23.09.2026;16315 07.09.2026 1585.96 EUR;+17;;;148;S1/K4-pyora
+A1;27471;B027471;1;;30.04.2027;30.04.2027;07.09.2026;;;s2+s3;SOGBB0014684 07.09.2026 (tyyppi 4) / INVGBB1014488 suljettu 23.09.2026;16349 07.09.2026 422.04 EUR;+7;;;118;S1/K4-pyora
+A1;29483;B029483;1;;31.08.2027;31.08.2027;03.06.2026;1;03.06.2026;s2+s3;SOGBB0011163 02.06.2026 (tyyppi 4) / INVGBB1010634 suljettu 29.06.2026;5919 03.06.2026 1445 EUR (ei SO) + 8551 (pl_status tyhja, SO SOGBB0011163);+14;;;161;EPASELVA: Siirto TA -CR 5823 Done 27.08.2026 maksun jalkeen; tapa 1 kirjattu ennen paattymiskuuta
+A1;29495;B029495;1;;30.04.2028;30.04.2028;22.09.2026;;;s2;INVGBB1014058 08.09.2026 (SO-tyyppi tyhja, lunastusnimike) suljettu 22.09.2026 1967.52 EUR;;+19;;;160;S1/K4-pyora; vanha osa A voi palauttaa tavan 1 27.09. asti
+A1;32764;B032764;1;;29.02.2028;29.02.2028;04.09.2026;;;s2+s3;SOGBB0014698 04.09.2026 (tyyppi 4) / INVGBB1014502 suljettu 23.09.2026;16045 04.09.2026 1515.11 EUR;+17;;;155;S1/K4-pyora
+A2;40838;B040838;1;3;31.01.2028;31.01.2028;13.07.2026;1;13.07.2026;s2+s3;SOGBB0012082 13.07.2026 (tyyppi 4) / INVGBB1011620 suljettu 17.07.2026;10239 13.07.2026 1619 EUR;+18;;;141.13;OOMI; tapa 1 kirjattu ennen paattymiskuuta
+A2;41610;B041610;1;3;27.04.2027;27.04.2027;22.06.2026;1;22.06.2026;s2+s3;SOGBB0011040 21.06.2026 (tyyppi 4) / INVGBB1010494 suljettu 25.06.2026;7803 22.06.2026 946 EUR;+10;;;115.36;OOMI; tapa 1 kirjattu ennen paattymiskuuta
+A2;42663;B042663;1;3;20.06.2029;20.06.2029;;;;s3;SOGBB0014731 18.09.2026 (tyyppi 4) / INVGBB1014535 suljettu 23.09.2026;17514 18.09.2026 2677 EUR;;;;169.48;OOMI; redemption_paid_at puuttuu (S1b ajamatta)
+A2;43416;B043416;1;3;25.06.2028;25.06.2028;15.09.2026;;;s2+s3;SOGBB0014694 14.09.2026 (tyyppi 4) / INVGBB1014498 suljettu 23.09.2026;17129 15.09.2026 1546 EUR;+21;;;166.53;OOMI; S1/K4-pyora
+A2;44011;B044011;1;3;18.06.2027;18.06.2027;15.09.2026;;;s2+s3;SOGBB0014693 15.09.2026 (tyyppi 4) / INVGBB1014497 suljettu 23.09.2026;17172 15.09.2026 631 EUR;+9;;;137.1;OOMI; S1/K4-pyora
+A2;46058;B046058;1;3;11.02.2028;11.02.2028;04.09.2026;;;s2+s3;SOGBB0014707 04.09.2026 (tyyppi 4) / INVGBB1014511 suljettu 23.09.2026;16039 04.09.2026 1457 EUR;+17;;;197.62;OOMI; S1/K4-pyora
+A2;46429;B046429;1;3;02.07.2027;02.07.2027;01.07.2026;;;s2;INVGBB1009935 10.06.2026 (SO-tyyppi tyhja, lunastusnimike) suljettu 01.07.2026 1172 EUR;;+12;;;161.65;OOMI; S1/K4-pyora
+E1;12880;B012880;1;;31.10.2026;30.09.2026;07.09.2026;;;s2 (+1);SOGBB0014688 07.09.2026 (tyyppi 4) / INVGBB1014492 suljettu 23.09.2026;16333 07.09.2026 78 EUR Tyosuhdepyoran loppulunastus;+1;;;;jalkiveloitettu (org 30.09.) ja tuote loppulunastus - todennakoisesti kauden lopun maksu; S1/K4-pyora
+E1;991;B000991;1;;30.11.2026;31.01.2026;01.09.2026;1;01.09.2026;s2;SOGBB0014031 / INVGBB1013756 suljettu 02.09.2026 119.26 EUR;15680 01.09.2026 loppulunastus;+2;;;;jalkiveloituspyora - paattymisajankohta siirtynyt org-paivan yli; ei keskenkauden
+E1;4234;B004234;1;;31.03.2027;31.08.2026;19.08.2026;1;19.08.2026;s2;SOGBB0013448 / INVGBB1013114 202.42 EUR KOKONAAN HYVITETTY CRMGBB0002724 24.08.2026;14202 19.08.2026 loppulunastus;+7;;;;jalkiveloituspyora; ainoa lasku hyvitetty - paid_at ilman todellista maksua
+E1;11005;B011005;1;;31.12.2026;31.07.2026;01.09.2026;1;01.09.2026;s2;SOGBB0014026 / INVGBB1013751 suljettu 02.09.2026 14 EUR;15674 01.09.2026 loppulunastus;+3;;;;jalkiveloituspyora; ei keskenkauden
+E1;21682;B021682;1;;31.10.2026;31.08.2026;01.08.2026;1;01.08.2026;s2;SOGBB0012633 / INVGBB1012216 suljettu 02.08.2026 103.23 EUR;12325 01.08.2026 loppulunastus;+2;;;;jalkiveloituspyora; ei keskenkauden
+E1;33069;B033069;1;;30.11.2026;31.08.2026;01.09.2026;1;01.09.2026;s2;SOGBB0014038 / INVGBB1013763 suljettu 02.09.2026 88.32 EUR;15687 01.09.2026 loppulunastus;+2;;;;jalkiveloituspyora; ei keskenkauden
+E1;36797;B036797;1;;31.10.2028;29.02.2028;17.12.2025;1;17.12.2025;s2;INVGBB1002275 (B) + INVGBB1002276 (A, avoin) a 404.84 EUR + CRMGBB0002592 -200 EUR, SO-tyyppi 4;;+34;;;;EPASELVA: paattymisajankohta 8 kk org-paivan jalkeen ilman jalkiveloitusta; osamaksu/ristiriita
+E1;8185;B008185;1;;31.05.2028;31.05.2028;;;;s1;SOGBB0000760 10.10.2025 SO-tyyppi 3 800 EUR -> CDEPGBB0000426 + INVGBB1000431 (B);;;;;151;EPASELVA: maksettu keskenkauden-SO 2025 mutta ei paid_at eika tapaa; summa ja tarkoitus vaativat ihmisen
+E2;37745;B037745;1;3;30.11.2026;30.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;37749;B037749;1;3;09.10.2026;09.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;37758;B037758;1;3;22.11.2026;22.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;37874;B037874;1;3;15.10.2026;15.10.2026;04.09.2026;1;04.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;37913;B037913;1;3;01.10.2026;01.10.2026;02.09.2026;1;02.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;38035;B038035;1;3;09.11.2026;09.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;38056;B038056;1;3;18.10.2026;18.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;38095;B038095;1;3;09.10.2026;09.10.2026;07.09.2026;1;07.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;38298;B038298;1;3;28.10.2026;28.10.2026;02.09.2026;1;02.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;38370;B038370;1;3;11.11.2026;11.11.2026;23.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;38503;B038503;1;3;23.11.2026;23.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;38542;B038542;1;3;11.10.2026;11.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;38639;B038639;1;3;31.10.2026;31.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;38702;B038702;1;3;18.11.2026;18.11.2026;23.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;38870;B038870;1;3;20.10.2026;20.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;38995;B038995;1;3;08.10.2026;08.10.2026;31.08.2026;1;31.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;39067;B039067;1;3;08.10.2026;08.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;39079;B039079;1;3;12.10.2026;12.10.2026;25.08.2026;1;25.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;39121;B039121;1;3;02.11.2026;02.11.2026;23.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;39174;B039174;1;3;04.10.2026;04.10.2026;16.09.2026;1;16.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;39368;B039368;1;3;04.10.2026;04.10.2026;15.09.2026;1;15.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;39520;B039520;1;3;18.10.2026;18.10.2026;21.09.2026;1;;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;39560;B039560;1;3;23.11.2026;23.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;39628;B039628;1;3;30.10.2026;30.10.2026;18.09.2026;1;;s2 (+1);;;+1;;137.85;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;39630;B039630;1;3;08.10.2026;08.10.2026;16.09.2026;1;16.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;39642;B039642;1;3;27.10.2026;27.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;39752;B039752;1;3;01.10.2026;01.10.2026;24.08.2026;1;24.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40060;B040060;1;3;06.10.2026;06.10.2026;07.09.2026;1;07.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40093;B040093;1;3;28.10.2026;28.10.2026;19.09.2026;1;19.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40167;B040167;1;3;13.11.2026;13.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40198;B040198;1;3;02.10.2026;02.10.2026;17.09.2026;1;17.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40246;B040246;1;3;05.11.2026;05.11.2026;23.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40278;B040278;1;3;19.10.2026;19.10.2026;21.09.2026;1;;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40416;B040416;1;3;27.11.2026;27.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40439;B040439;1;3;14.10.2026;14.10.2026;24.08.2026;1;24.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40448;B040448;1;3;25.11.2026;25.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40450;B040450;1;3;25.11.2026;25.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40451;B040451;1;3;15.11.2026;15.11.2026;23.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40480;B040480;1;3;20.10.2026;20.10.2026;20.09.2026;1;20.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40606;B040606;1;3;21.10.2026;21.10.2026;23.09.2026;1;;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40762;B040762;1;3;24.10.2026;24.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;40765;B040765;1;3;19.11.2026;19.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41002;B041002;1;3;17.10.2026;17.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41180;B041180;1;3;09.10.2026;09.10.2026;15.09.2026;1;15.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41197;B041197;1;3;07.10.2026;07.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41288;B041288;1;3;19.10.2026;19.10.2026;21.09.2026;1;;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41311;B041311;1;3;11.11.2026;11.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41320;B041320;1;3;10.11.2026;10.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41364;B041364;1;3;13.10.2026;13.10.2026;04.09.2026;1;04.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41516;B041516;1;3;14.10.2026;14.10.2026;02.09.2026;1;02.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41527;B041527;1;3;18.10.2026;18.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41708;B041708;1;3;21.11.2026;21.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41739;B041739;1;3;31.10.2026;31.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41751;B041751;1;3;11.10.2026;11.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41752;B041752;1;3;31.10.2026;31.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41755;B041755;1;3;10.11.2026;10.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41801;B041801;1;3;06.10.2026;06.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41838;B041838;1;3;07.10.2026;07.10.2026;15.09.2026;1;15.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41894;B041894;1;3;04.10.2026;04.10.2026;05.09.2026;1;05.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;41971;B041971;1;3;25.10.2026;25.10.2026;02.09.2026;1;02.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42024;B042024;1;3;27.10.2026;27.10.2026;23.08.2026;1;23.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42063;B042063;1;3;02.10.2026;02.10.2026;18.09.2026;1;18.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42134;B042134;1;3;27.10.2026;27.10.2026;24.08.2026;1;24.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42176;B042176;1;3;01.11.2026;01.11.2026;23.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42187;B042187;1;3;11.10.2026;11.10.2026;17.09.2026;1;17.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42198;B042198;1;3;14.10.2026;14.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42220;B042220;1;3;26.10.2026;26.10.2026;24.08.2026;1;24.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42256;B042256;1;3;28.10.2026;28.10.2026;31.08.2026;1;31.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42270;B042270;1;3;05.10.2026;05.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42289;B042289;1;3;31.10.2026;31.10.2026;07.09.2026;1;07.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42361;B042361;1;3;20.10.2026;20.10.2026;04.09.2026;1;04.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42554;B042554;1;3;15.10.2026;15.10.2026;16.09.2026;1;16.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42588;B042588;1;3;29.10.2026;29.10.2026;14.09.2026;1;14.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42763;B042763;1;3;10.11.2026;10.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42851;B042851;1;3;21.10.2026;21.10.2026;23.09.2026;1;;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42876;B042876;1;3;02.11.2026;02.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42882;B042882;1;3;10.11.2026;10.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42894;B042894;1;3;06.11.2026;06.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42907;B042907;1;3;31.10.2026;31.10.2026;28.08.2026;1;28.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42915;B042915;1;3;31.10.2026;31.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42938;B042938;1;3;08.10.2026;08.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42939;B042939;1;3;07.11.2026;07.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;42943;B042943;1;3;01.10.2026;01.10.2026;17.09.2026;1;17.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43102;B043102;1;3;27.11.2026;27.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43205;B043205;1;3;10.11.2026;10.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43222;B043222;1;3;06.10.2026;06.10.2026;08.09.2026;1;08.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43233;B043233;1;3;23.11.2026;23.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43251;B043251;1;3;16.11.2026;16.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43350;B043350;1;3;05.10.2026;05.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43390;B043390;1;3;10.10.2026;10.10.2026;11.09.2026;1;11.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43440;B043440;1;3;27.11.2026;27.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43447;B043447;1;3;17.10.2026;17.10.2026;21.09.2026;1;;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43471;B043471;1;3;10.10.2026;10.10.2026;11.09.2026;1;11.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43475;B043475;1;3;25.11.2026;25.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43491;B043491;1;3;27.10.2026;27.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43568;B043568;1;3;12.10.2026;12.10.2026;04.09.2026;1;04.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43620;B043620;1;3;06.10.2026;06.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43707;B043707;1;3;24.10.2026;24.10.2026;23.09.2026;1;;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43737;B043737;1;3;07.10.2026;07.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43755;B043755;1;3;01.10.2026;01.10.2026;15.09.2026;1;15.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;43946;B043946;1;3;23.10.2026;23.10.2026;23.09.2026;1;;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44027;B044027;1;3;06.10.2026;06.10.2026;31.08.2026;1;31.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44098;B044098;1;3;03.10.2026;03.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44104;B044104;1;3;12.10.2026;12.10.2026;04.09.2026;1;04.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44107;B044107;1;3;13.11.2026;13.11.2026;23.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44109;B044109;1;3;02.10.2026;02.10.2026;04.09.2026;1;04.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44110;B044110;1;3;04.10.2026;04.10.2026;21.09.2026;1;;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44266;B044266;1;3;23.10.2026;23.10.2026;24.08.2026;1;24.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44392;B044392;1;3;25.10.2026;25.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44410;B044410;1;3;27.10.2026;27.10.2026;08.09.2026;1;08.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44491;B044491;1;3;23.10.2026;23.10.2026;03.09.2026;1;03.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44497;B044497;1;3;31.10.2026;31.10.2026;26.08.2026;1;26.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44499;B044499;1;3;18.10.2026;18.10.2026;15.09.2026;1;15.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44503;B044503;1;3;20.11.2026;20.11.2026;21.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44533;B044533;1;3;02.10.2026;02.10.2026;07.09.2026;1;07.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44547;B044547;1;3;02.11.2026;02.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44549;B044549;1;3;23.10.2026;23.10.2026;13.09.2026;1;13.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44678;B044678;1;3;02.11.2026;02.11.2026;23.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44715;B044715;1;3;14.10.2026;14.10.2026;03.09.2026;1;03.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;44792;B044792;1;3;31.10.2026;31.10.2026;24.08.2026;1;24.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45010;B045010;1;3;29.10.2026;29.10.2026;02.09.2026;1;02.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45102;B045102;1;3;21.11.2026;21.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45104;B045104;1;3;04.10.2026;04.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45175;B045175;1;3;01.10.2026;01.10.2026;02.09.2026;1;02.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45209;B045209;1;3;11.10.2026;11.10.2026;04.09.2026;1;04.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45277;B045277;1;3;30.11.2026;30.11.2026;23.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45314;B045314;1;3;23.10.2026;23.10.2026;26.08.2026;1;26.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45327;B045327;1;3;28.10.2026;28.10.2026;26.08.2026;1;26.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45355;B045355;1;3;06.10.2026;06.10.2026;01.09.2026;1;01.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45360;B045360;1;3;07.10.2026;07.10.2026;31.08.2026;1;31.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45379;B045379;1;3;06.11.2026;06.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45384;B045384;1;3;06.11.2026;06.11.2026;23.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45436;B045436;1;3;09.10.2026;09.10.2026;06.09.2026;1;06.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45537;B045537;1;3;29.11.2026;29.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45546;B045546;1;3;30.10.2026;30.10.2026;05.09.2026;1;05.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45548;B045548;1;3;07.11.2026;07.11.2026;23.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45704;B045704;1;3;10.10.2026;10.10.2026;24.08.2026;1;24.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45767;B045767;1;3;03.10.2026;03.10.2026;23.08.2026;1;23.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45780;B045780;1;3;11.10.2026;11.10.2026;01.09.2026;1;01.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45888;B045888;1;3;02.10.2026;02.10.2026;24.08.2026;1;24.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;45960;B045960;1;3;25.10.2026;25.10.2026;26.08.2026;1;26.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;46079;B046079;1;3;07.10.2026;07.10.2026;24.08.2026;1;24.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;46088;B046088;1;3;16.10.2026;16.10.2026;15.09.2026;1;15.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;46173;B046173;1;3;19.10.2026;19.10.2026;24.08.2026;1;24.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;46210;B046210;1;3;24.10.2026;24.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;46316;B046316;1;3;15.10.2026;15.10.2026;03.09.2026;1;03.09.2026;s2 (+1);;;+1;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;46326;B046326;1;3;30.10.2026;30.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;46338;B046338;1;3;26.11.2026;26.11.2026;22.09.2026;1;;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;46396;B046396;1;3;14.10.2026;14.10.2026;20.08.2026;1;20.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+E2;46434;B046434;1;3;06.10.2026;06.10.2026;21.08.2026;1;21.08.2026;s2;;;+2;;;;OOMI kauden lopun ennakkomaksu todennakoinen
+R1;6732;B006732;2;;28.02.2026;31.12.2028;02.02.2026;1;02.02.2026;s1;INVGBB1005036 02.02.2026 (tyyppi 3) + SOGBB0006251 02.03.2026 (tyyppi 3) 3016 EUR;;;;2403.19;143;keskenkauden ilman CR:aa, maksu ennen CR-jarjestelmaa (25.02.2026); date_to_non_active 02.03.2026; kausi paattynyt
+R2;896;B000896;2;;31.03.2026;31.03.2026;16.03.2026;1;16.03.2026;s1;SOGBB0006252 02.03.2026 + INVGBB1005849 16.03.2026 (tyyppi 3) 202.42 EUR;;;;161.29;;SO-tyyppi 3 mutta maksu paattymiskuussa ja kausi ei lyhentynyt - kauden loppu (paatelty)
+R2;5448;B005448;2;;31.03.2026;31.03.2026;11.03.2026;1;11.03.2026;s1;SOGBB0006599 04.03.2026 + INVGBB1005635 11.03.2026 (tyyppi 3) 43 EUR;;;;34.26;;SO-tyyppi 3 mutta kauden loppu (paatelty)
+R2;8293;B008293;2;;31.03.2026;31.03.2026;16.03.2026;1;16.03.2026;s1;SOGBB0006721 09.03.2026 + INVGBB1005857 16.03.2026 (tyyppi 3) 154.85 EUR;;;;123.39;;SO-tyyppi 3 mutta kauden loppu (paatelty)
+R2;10052;B010052;2;;31.03.2026;31.03.2026;06.03.2026;1;06.03.2026;s1;SOGBB0006600 04.03.2026 + INVGBB1005511 06.03.2026 (tyyppi 3) 47 EUR;;;;37.45;;SO-tyyppi 3 mutta kauden loppu (paatelty)
+R2;16148;B016148;2;;31.05.2026;31.05.2026;20.05.2026;1;20.05.2026;s1;SOGBB0009032 06.05.2026 + INVGBB1008838 20.05.2026 (tyyppi 3) 151.8 EUR;;;;120.96;;SO-tyyppi 3 mutta kauden loppu (paatelty)
+R2;28701;B028701;2;;31.03.2026;31.03.2026;13.03.2026;1;13.03.2026;s1;SOGBB0006598 04.03.2026 + INVGBB1005782 13.03.2026 (tyyppi 3) 129.55 EUR;;;;103.23;;SO-tyyppi 3 mutta kauden loppu (paatelty)
+R2;30750;B030750;2;;31.03.2026;31.03.2026;13.03.2026;1;13.03.2026;s1;SOGBB0006253 02.03.2026 + INVGBB1005783 13.03.2026 (tyyppi 3) 131.57 EUR;;;;104.84;;SO-tyyppi 3 mutta kauden loppu (paatelty)
+R2;418;B000418;2;;31.03.2026;31.01.2026;02.03.2026;1;02.03.2026;s3;SOGBB0006257 (tyyppi 4);4886 02.03.2026 42.42 EUR Kesken kauden lunastus;;;;;jalkiveloituspyora, pieni summa - ei keskenkauden (paatelty)
+R2;427;B000427;2;;31.03.2026;31.01.2026;18.03.2026;1;18.03.2026;s3;SOGBB0007030 (tyyppi 4);4869 18.03.2026 42.42 EUR Kesken kauden lunastus;;;;;jalkiveloituspyora - ei keskenkauden (paatelty)
+R2;1540;B001540;2;;31.03.2026;31.01.2026;16.03.2026;1;16.03.2026;s3;SOGBB0007012 (tyyppi 4);4811 16.03.2026 27.24 EUR Kesken kauden lunastus;;;;;jalkiveloituspyora - ei keskenkauden (paatelty)
+R2;2399;B002399;2;;31.03.2026;31.01.2026;27.03.2026;1;27.03.2026;s3;SOGBB0007527 (tyyppi 4);4788 27.03.2026 24.2 EUR Kesken kauden lunastus;;;;;jalkiveloituspyora - ei keskenkauden (paatelty)
+R2;4073;B004073;2;;31.03.2026;31.01.2026;23.03.2026;1;23.03.2026;s3;SOGBB0007155 (tyyppi 4);4742 23.03.2026 12.06 EUR Kesken kauden lunastus;;;;;jalkiveloituspyora - ei keskenkauden (paatelty)
+R2;4588;B004588;2;;31.03.2026;31.01.2026;02.03.2026;1;02.03.2026;s3;SOGBB0006343 (tyyppi 4);4714 02.03.2026 7 EUR Kesken kauden lunastus;;;;;jalkiveloituspyora - ei keskenkauden (paatelty)
+R2;10505;B010505;2;;31.03.2026;31.01.2026;23.03.2026;1;23.03.2026;s3;SOGBB0007157 (tyyppi 4);4341 23.03.2026 9 EUR Kesken kauden lunastus;;;;;jalkiveloituspyora - ei keskenkauden (paatelty)
+R2;27643;B027643;2;;31.08.2026;31.03.2026;29.05.2026;1;06.07.2026;s2;;;+3;;;;jalkiveloituspyora - ei keskenkauden (paatelty)
+R3;37728;B037728;2;3;30.06.2026;01.01.2028;04.06.2026;1;04.06.2026;s3;SOGBB0011031 (tyyppi 4);5948 04.06.2026 1584 EUR;;;;104.7;OOMI keskenkauden oomi_exceptional_end_date-polulla (kelpaa historiassa, ADR 0009 k1)
+R3;39275;B039275;2;3;30.06.2026;11.12.2028;17.06.2026;1;17.06.2026;s3;SOGBB0011037 (tyyppi 4);7323 17.06.2026 2165 EUR;;;;25.15;OOMI oomi_exceptional_end_date-polku
+R3;39276;B039276;2;3;30.06.2026;13.12.2028;17.06.2026;1;17.06.2026;s3;SOGBB0011038 (tyyppi 4);7322 17.06.2026 2169 EUR;;;;25.15;OOMI oomi_exceptional_end_date-polku
+R3;39952;B039952;2;3;30.06.2026;10.03.2030;22.06.2026;1;22.06.2026;s3;SOGBB0011041 (tyyppi 4);7801 22.06.2026 3120 EUR;;;;31.87;OOMI oomi_exceptional_end_date-polku
+R3;40466;B040466;2;3;30.06.2026;12.01.2028;11.06.2026;1;11.06.2026;s3;SOGBB0011032 (tyyppi 4);6616 11.06.2026 1662 EUR;;;;177.34;OOMI oomi_exceptional_end_date-polku
+R3;40704;B040704;2;3;30.06.2026;24.10.2026;15.06.2026;1;15.06.2026;s3;SOGBB0011034 (tyyppi 4);7032 15.06.2026 440 EUR;;;;102.82;OOMI oomi_exceptional_end_date-polku
+R3;41325;B041325;2;3;31.07.2026;30.06.2027;16.07.2026;1;16.07.2026;s3;SOGBB0012076 (tyyppi 4);10518 16.07.2026 1062 EUR;;;;147.18;OOMI oomi_exceptional_end_date-polku
+R3;41626;B041626;2;3;30.06.2026;29.08.2027;23.06.2026;1;23.06.2026;s3;SOGBB0011043 (tyyppi 4);7918 23.06.2026 1333 EUR;;;;185.44;OOMI oomi_exceptional_end_date-polku
+R3;42908;B042908;2;3;30.06.2026;31.10.2026;26.06.2026;1;26.06.2026;s3;SOGBB0011181 (tyyppi 4);8216 26.06.2026 539 EUR;;;;176.57;OOMI oomi_exceptional_end_date-polku
+R3;43745;B043745;2;3;31.07.2026;21.05.2028;22.06.2026;1;22.06.2026;s3;SOGBB0011042 (tyyppi 4);7818 22.06.2026 1941 EUR;;;;152.36;OOMI oomi_exceptional_end_date-polku
+R3;44982;B044982;2;3;30.06.2026;25.07.2027;17.06.2026;1;17.06.2026;s3;SOGBB0011039 (tyyppi 4);7345 17.06.2026 1193 EUR;;;;131.05;OOMI oomi_exceptional_end_date-polku
+R3;39718;B039718;2;3;30.06.2026;05.08.2028;28.05.2026;1;28.05.2026;s1;INVGBB1009146 28.05.2026 + SOGBB0009823 (tyyppi 3) 1927 EUR;5009 28.05.2026 Tyosuhdepyoran lunastus;;;;34.94;OOMI oomi_exceptional_end_date-polku
+R3;40683;B040683;2;3;31.05.2026;05.01.2027;20.05.2026;1;20.05.2026;s1;INVGBB1008842 21.05.2026 + SOGBB0009560 (tyyppi 3) 768 EUR, KOKONAAN HYVITETTY CRMGBB0002699 29.07.2026;186 20.05.2026 Tyosuhdepyoran loppulunastus;;3107 Done 21.05.2026 (custrecord_cr_type TYHJA, altname B040683 - lunastus);;149.56;OOMI; CR 3107 ilman tyyppia ei nay tyypin 2 suodattimessa
+X;4026;B004026;1;;30.06.2029;30.06.2029;;;;s1 (ei maksua);SOGBB0002748 15.12.2025 tila H (suljettu) 3569 EUR;;;;;;tyypin 3 SO ilman laskua, talletusta tai Paylinkia
+X;5849;B005849;1;;31.07.2029;31.07.2029;;;;s1 (ei maksua);SOGBB0002757 16.12.2025 tila B 3885 EUR;;;;;;tyypin 3 SO ilman maksua
+X;7722;B007722;1;;28.02.2029;28.02.2029;;;;s1 (ei maksua);SOGBB0002756 16.12.2025 tila B 3499 EUR;;;;;;tyypin 3 SO ilman maksua
+X;7795;B007795;1;;31.10.2029;31.10.2029;;;;s1 (ei maksua);SOGBB0002593 03.12.2025 tila B 4013 EUR;;;;;;tyypin 3 SO ilman maksua
+X;8267;B008267;1;;31.03.2029;31.03.2029;;;;s1 (ei maksua);SOGBB0001680 11.11.2025 tila B 3422 EUR;;;;2726.69;;tyypin 3 SO ilman maksua
+X;8354;B008354;1;;30.04.2029;30.04.2029;;;;s1 (ei maksua);SOGBB0002620 04.12.2025 tila B 3502 EUR;;;;2790.44;;tyypin 3 SO ilman maksua
+X;8424;B008424;1;;30.04.2029;30.04.2029;;;;s1 (ei maksua);SOGBB0002631 05.12.2025 tila B 3502 EUR;;;;;;tyypin 3 SO ilman maksua
+X;10272;B010272;1;;30.11.2027;30.11.2027;;;;s1 (ei maksua);SOGBB0000949 29.10.2025 tila H 2139 EUR;;;;;;tyypin 3 SO suljettu
+X;10744;B010744;1;;30.09.2029;30.09.2029;;;;s1 (ei maksua);SOGBB0001708 12.11.2025 tila B 3942 EUR;;;;;;tyypin 3 SO ilman maksua
+X;11223;B011223;1;;31.10.2026;31.10.2026;;;;s1 (ei maksua);SOGBB0002659 10.12.2025 tila B 1040 EUR;;;;;;tyypin 3 SO ilman maksua
+X;11579;B011579;1;;30.06.2029;30.06.2029;;;;s1 (ei maksua);SOGBB0003738 05.01.2026 tila B 3598 EUR;;;;;;tyypin 3 SO ilman maksua
+X;12042;B012042;1;;31.03.2029;31.03.2029;;;;s1 (ei maksua);SOGBB0001663 10.11.2025 tila B 3575 EUR;;;;2848.61;;tyypin 3 SO ilman maksua
+X;13162;B013162;1;;28.02.2027;28.02.2027;;;;s1 (ei maksua);SOGBB0000781 15.10.2025 tila H 1408 EUR;;;;;;tyypin 3 SO suljettu
+X;13559;B013559;1;;31.05.2027;31.05.2027;;;;s1 (ei maksua);SOGBB0000910 27.10.2025 tila B 2027 EUR;;;;;;tyypin 3 SO ilman maksua
+X;13670;B013670;1;;31.07.2029;31.07.2029;;;;s1 (ei maksua);SOGBB0000761 14.10.2025 tila H 3933 EUR;;;;;;tyypin 3 SO suljettu
+X;14050;B014050;1;;31.03.2028;31.03.2028;;;;s1 (ei maksua);SOGBB0000610 09.10.2025 tila B 2602.1 EUR;;;;;;tyypin 3 SO ilman maksua
+X;14571;B014571;1;;30.04.2027;30.04.2027;;;;s1 (ei maksua);SOGBB0002618 04.12.2025 tila B 1435 EUR;;;;1143.43;;tyypin 3 SO ilman maksua
+X;15534;B015534;1;;31.03.2029;31.03.2029;;;;s1 (ei maksua);SOGBB0002572 02.12.2025 tila B 3405.99 EUR;;;;2713.94;;tyypin 3 SO ilman maksua
+X;15924;B015924;1;;31.10.2028;31.10.2028;;;;s1 (ei maksua);SOGBB0000907 27.10.2025 tila B 3208 EUR;;;;;;tyypin 3 SO ilman maksua
+X;15932;B015932;1;;31.10.2027;31.10.2027;;;;s1 (ei maksua);SOGBB0009188 12.05.2026 tila H 1854 EUR;;;;1477.29;;tyypin 3 SO suljettu (CR-aika)
+X;16064;B016064;1;;31.10.2027;31.10.2027;;;;s1 (ei maksua);SOGBB0000791 15.10.2025 tila B 2191.19 EUR;;;;;;tyypin 3 SO ilman maksua
+X;16239;B016239;1;;30.09.2027;30.09.2027;;;;s1 (ei maksua);SOGBB0000871 21.10.2025 tila B 2023 EUR;;;;;;tyypin 3 SO ilman maksua
+X;20329;B020329;1;;30.09.2027;30.09.2027;;;;s1 (ei maksua);SOGBB0003030 31.12.2025 tila B 1941.2 EUR;;;;;;tyypin 3 SO ilman maksua
+X;23360;B023360;1;;31.05.2028;31.05.2028;;;;s1 (ei maksua);SOGBB0003052 31.12.2025 tila H 2552.51 EUR;;;;;;tyypin 3 SO suljettu
+X;24587;B024587;1;;30.11.2025;30.06.2027;;;;s1 (ei maksua);SOGBB0002727 12.12.2025 tila B 1876.43 EUR;;;;;;EPASELVA: paattymisajankohta 30.11.2025 jo ohi, status 1, ei tapaa
+X;24858;B024858;1;;30.06.2027;30.06.2027;;;;s1 (ei maksua);SOGBB0002660 10.12.2025 tila H 1719.55 EUR;;;;;;tyypin 3 SO suljettu
+X;24908;B024908;1;;30.11.2025;31.07.2027;;;;s1 (ei maksua);SOGBB0002755 16.12.2025 tila B 1976.63 EUR;;;;1976.63;;EPASELVA: paattymisajankohta 30.11.2025 jo ohi, status 1, ei tapaa
+X;25233;B025233;1;;31.05.2028;31.05.2028;;;;s1 (ei maksua);SOGBB0002621 04.12.2025 tila B 2706.34 EUR;;;;2156.45;;tyypin 3 SO ilman maksua
+X;27073;B027073;1;;31.05.2028;31.05.2028;;;;s1 (ei maksua);SOGBB0000909 27.10.2025 tila B 2941.15 EUR;;;;;;tyypin 3 SO ilman maksua
+X;32780;B032780;1;;31.03.2028;31.03.2028;;;;s1 (ei maksua);SOGBB0001812 25.11.2025 tila B 2627.41 EUR;;;;2093.55;;tyypin 3 SO ilman maksua
+X;33016;B033016;1;;31.05.2028;31.03.2028;;;;s1 (ei maksua);SOGBB0000786 15.10.2025 tila B 2841.21 EUR;;;;;;tyypin 3 SO ilman maksua; paattymisajankohta org-paivan jalkeen
+X;35767;B035767;1;;31.01.2028;30.11.2027;;;;s1 (ei maksua);SOGBB0000851 21.10.2025 tila H + SOGBB0000916 28.10.2025 tila B 2561.9 EUR;;;;;;tyypin 3 SO ilman maksua; paattymisajankohta org-paivan jalkeen
+X;35841;B035841;1;;31.07.2027;31.05.2027;;;;s1 (ei maksua);SOGBB0001802 21.11.2025 tila B 2111.69 EUR;;;;1682.62;;tyypin 3 SO ilman maksua; paattymisajankohta org-paivan jalkeen
+X;36087;B036087;1;;31.10.2027;31.10.2027;;;;s1 (ei maksua);SOGBB0003033 31.12.2025 tila B 2142.61 EUR;;;;;;tyypin 3 SO ilman maksua
+X;36396;B036396;1;;30.09.2026;31.07.2026;;;;s1 (ei maksua);SOGBB0002663 10.12.2025 tila B 750.98 EUR;;;;;;tyypin 3 SO ilman maksua; jalkiveloitettu

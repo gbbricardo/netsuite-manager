@@ -77,11 +77,11 @@ ID `3` drives monthly-reporting's Oomi separation and its Oomi end-date exemptio
 
 | ID | Value | Set by `handler_lunastus` when |
 |---|---|---|
-| 1 | redemption_paid | status 2 default |
+| 1 | redemption_paid | status 2 default (name contains `2C`, ADR 0010) |
 | 2 | redemption_extra_rent | |
 | 3 | redemption_maint_budget | |
 | 4 | redemption_down_payment | |
-| 5 | bike_returned | status 3 default (` - 2C`, ` - 2D`) |
+| 5 | bike_returned | status 3 default (name contains `2D`). *Corrected 24.09.2026: `2C` is method 1, not 5 (`handler_lunastus.js`, cf-gbb-tools `reference.ts`).* |
 | 6 | bike_sold_to_competitor | name suffix ` - 2B` / ` - 2B uusi TA` + status 2 |
 | 7 | bike_stolen_or_destroyed | name contains `vakuutus` + status 2 |
 

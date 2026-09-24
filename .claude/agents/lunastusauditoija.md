@@ -46,7 +46,12 @@ kohdestatus        = 3 jos selvitystapa = 5, muuten 2
 
 - `custrecord_sta_bike_status = 2` on sallittu vasta tunnistuspäivänä
 - `custrecord_gbb_redemption_paid_at` on olemassa **vain** selvitystavalla 1 (`redemption_paid`)
-- selvitystavalla 1 `liab_settled_at` on **identtinen** `redemption_paid_at`:n kanssa
+- selvitystavalla 1 `liab_settled_at` on **identtinen** `redemption_paid_at`:n kanssa — **vain kauden
+  lopun lunastuksessa**. Jos pyörällä on Done-tilainen tyypin 2 CR (keskenkauden lunastus),
+  `liab_settled_at` = CR:n `custrecord_cr_created_date` ja tapa tulee CR:ltä, vaikka maksu olisi
+  aiempi. Se **ei ole löydös** ([ADR 0008](../../docs/adr/0008-keskenkauden-lunastuksessa-cr-voittaa-maksun.md)).
+  Löydös on päinvastainen: keskenkauden pyörä, jolla tapa tai `liab_settled_at` tulee maksusta,
+  vaikka CR on olemassa
 - `custrecord_gbb_ic_redemption_dt` = `LAST_DAY(päättymisajankohta)`, saa olla menneisyydessä
 - `custrecord_gbb_date_to_non_active` = tunnistuspäivä
 - päivämääräkentät ovat write-once automaatiossa; status ei ole

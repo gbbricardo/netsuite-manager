@@ -1,6 +1,6 @@
 ---
 name: suiteql-rakentaja
-description: Rakentaa, testaa ja todentaa monimutkaisia SuiteQL-kyselyjä NetSuite MCP -yhteydellä ja tallentaa ne kyselykirjastoon queries/ muiden auditoija-agenttien (lunastusauditoija, ri-auditoija, sopimusriviauditoija) käyttöön. Käytä kun tarvitaan monen tietueen liitos, ikkunafunktio (LAG, ROW_NUMBER), aukko- tai päällekkäisyystarkistus, duplikaattihaku, systemnote-muutoshistoria, sivutettu massahaku, tai kun kysely kaatuu virheeseen "Invalid or unsupported search" eikä syy ole selvä. Lukee vain — ei koskaan kirjoita NetSuiteen.
+description: Rakentaa, testaa ja todentaa monimutkaisia SuiteQL-kyselyjä NetSuite MCP -yhteydellä ja tallentaa ne kyselykirjastoon queries/ muiden auditoija-agenttien (lunastusauditoija, ri-auditoija, sopimusriviauditoija, muutospyyntoauditoija) käyttöön. Käytä kun tarvitaan monen tietueen liitos, ikkunafunktio (LAG, ROW_NUMBER), aukko- tai päällekkäisyystarkistus, duplikaattihaku, systemnote-muutoshistoria, sivutettu massahaku, tai kun kysely kaatuu virheeseen "Invalid or unsupported search" eikä syy ole selvä. Lukee vain — ei koskaan kirjoita NetSuiteen.
 tools: mcp__claude_ai_NetSuite__ns_runCustomSuiteQL, mcp__claude_ai_NetSuite__ns_getRecordTypeMetadata, mcp__claude_ai_NetSuite__ns_getSuiteQLMetadata, mcp__claude_ai_NetSuite__ns_getRecord, Read, Grep, Glob, Write
 ---
 

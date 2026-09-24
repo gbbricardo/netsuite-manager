@@ -1,6 +1,13 @@
 # `handler_lunastus` rikkoo §5:ttä kun maksu on kirjattu ennen CR:ää
 
-**Havaittu:** 23.09.2026 · **Tila:** avoin · **Omistava repo:** `netsuite-subscrption-cr-scripts`
+> [!IMPORTANT]
+> **Ei virhe — kumottu 23.09.2026 ([ADR 0008](../docs/adr/0008-keskenkauden-lunastuksessa-cr-voittaa-maksun.md)).**
+> Keskenkauden lunastuksessa muutospyynnön vastuukirjaus voittaa maksutodisteen. B025325:n
+> `liab_settled_at` = CR:n luontipäivä 22.09. on **oikein**, vaikka maksu oli 17.09. Alla ehdotettua
+> korjausta (`todistepaiva` handleriin) **ei tehdä**. Tilalle tulee päinvastainen vaatimus:
+> handlerin on ylikirjoitettava maksusta johdettu arvo CR:n arvolla (ks. ADR 0008).
+
+**Havaittu:** 23.09.2026 · **Tila:** kumottu (ADR 0008) · **Omistava repo:** `netsuite-subscrption-cr-scripts`
 · **Vakavuus:** matala vaikutukseltaan, korkea periaatteeltaan — mittari joka ei saanut kasvaa, kasvoi
 
 ## Havainto

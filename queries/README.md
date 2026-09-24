@@ -1,7 +1,7 @@
 # Kyselykirjasto
 
 Todennettuja SuiteQL-kyselyjä, jotka `suiteql-rakentaja`-agentti on rakentanut ja ajanut NetSuitea
-vasten, ja joita auditoija-agentit (`lunastusauditoija`, `ri-auditoija`, `sopimusriviauditoija`)
+vasten, ja joita auditoija-agentit (`lunastusauditoija`, `ri-auditoija`, `sopimusriviauditoija`, `muutospyyntoauditoija`)
 käyttävät hakuihinsa. Yksi tiedosto per kysely.
 
 **Miksi kirjasto on olemassa.** Aliagentit eivät voi kutsua toisiaan. Kun auditoija tarvitsee

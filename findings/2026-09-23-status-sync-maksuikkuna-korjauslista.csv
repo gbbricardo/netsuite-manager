@@ -1,0 +1,28 @@
+internal_id;pyora_id;selvitystapa_id;selvitystapa_nimi;maksupaiva;loppuvastuut_hoidettu;lahde;peruste
+3358;B003358;1;redemption_paid;02.09.2026;02.09.2026;Paylink 15821 + INVGBB1014504;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+5324;B005324;1;redemption_paid;15.09.2026;15.09.2026;INVGBB1014017 suljettu 15.09.;lasku maksettu yli 5 vrk laskupaivasta
+5492;B005492;1;redemption_paid;05.09.2026;05.09.2026;Paylink 16105 + INVGBB1014500;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+7933;B007933;1;redemption_paid;22.09.2026;22.09.2026;INVGBB1014097 suljettu 22.09.;lasku maksettu yli 5 vrk laskupaivasta - Pending CR 6689 (2C)
+10162;B010162;1;redemption_paid;04.09.2026;04.09.2026;Paylink 16041 + INVGBB1014495;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+10316;B010316;1;redemption_paid;22.09.2026;22.09.2026;INVGBB1014060 suljettu 22.09.;lasku maksettu yli 5 vrk laskupaivasta - aiempi lasku INVGBB1013668 hyvitetty kokonaan - Pending CR 6684 (2C)
+12880;B012880;1;redemption_paid;07.09.2026;07.09.2026;Paylink 16333 + INVGBB1014492;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+14042;B014042;1;redemption_paid;04.09.2026;04.09.2026;Paylink 16048 + INVGBB1014501;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+16666;B016666;1;redemption_paid;16.09.2026;16.09.2026;INVGBB1013675 suljettu 16.09.;lasku maksettu yli 5 vrk laskupaivasta
+18311;B018311;1;redemption_paid;07.09.2026;07.09.2026;Paylink 16307 + INVGBB1014499;TARKISTA: selvitystapa jo 1 ja liab_settled_at 17.09. - korjaus 07.09. on paasaanto 5 (aikaisin todiste)
+20065;B020065;1;redemption_paid;09.09.2026;09.09.2026;INVGBB1013669 suljettu 09.09.;lasku maksettu yli 5 vrk laskupaivasta
+21319;B021319;1;redemption_paid;04.09.2026;04.09.2026;Paylink 16038 + INVGBB1014510;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+24003;B024003;1;redemption_paid;22.09.2026;22.09.2026;INVGBB1014412 suljettu 22.09.;osuisi yon ajoon laskupaivalla 21.09. - Pending CR 6687 (2C)
+24292;B024292;1;redemption_paid;04.09.2026;04.09.2026;Paylink 16035 + INVGBB1014509;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+26437;B026437;1;redemption_paid;04.09.2026;04.09.2026;Paylink 16042 + INVGBB1014503;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+26700;B026700;1;redemption_paid;22.09.2026;22.09.2026;INVGBB1014320 suljettu 22.09.;lasku maksettu yli 5 vrk laskupaivasta - Pending CR 6685 (2C)
+27393;B027393;1;redemption_paid;07.09.2026;07.09.2026;Paylink 16315 + INVGBB1014494;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+27471;B027471;1;redemption_paid;07.09.2026;07.09.2026;Paylink 16349 + INVGBB1014488;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+29495;B029495;1;redemption_paid;22.09.2026;22.09.2026;INVGBB1014058 suljettu 22.09.;lasku maksettu yli 5 vrk laskupaivasta
+31476;B031476;1;redemption_paid;04.09.2026;04.09.2026;Paylink 16040 + INVGBB1014512;TARKISTA: selvitystapa jo 1 ja liab_settled_at 17.09. - korjaus 04.09. on paasaanto 5 (aikaisin todiste)
+32764;B032764;1;redemption_paid;04.09.2026;04.09.2026;Paylink 16045 + INVGBB1014502;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+36864;B036864;1;redemption_paid;26.11.2025;26.11.2025;INVGBB1001118 suljettu 26.11.2025;TARKISTA: pyoralla ei statusta lainkaan - sweep ei kasittele sita importin jalkeenkaan
+43416;B043416;1;redemption_paid;15.09.2026;15.09.2026;Paylink 17129 + INVGBB1014498;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+44011;B044011;1;redemption_paid;15.09.2026;15.09.2026;Paylink 17172 + INVGBB1014497;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+46058;B046058;1;redemption_paid;04.09.2026;04.09.2026;Paylink 16039 + INVGBB1014511;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
+46429;B046429;1;redemption_paid;01.07.2026;01.07.2026;INVGBB1009935 suljettu 01.07.;lasku maksettu yli 5 vrk laskupaivasta
+46480;B046480;1;redemption_paid;17.09.2026;17.09.2026;Paylink 17427 + INVGBB1014496;maksu ikkunan ulkopuolella - Paylink valmis vasta 23.09.
