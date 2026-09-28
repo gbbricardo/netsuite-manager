@@ -1,6 +1,12 @@
 # Poikkeuspäivät `subsc_end_date`:iin — CSV-import syyskuu 2026
 
-Siirtää 33 pyörän päättymisajankohdan poikkeuskentästä `custrecord_sta_subsc_end_date`-kenttään,
+> [!IMPORTANT]
+> **Muutettu 25.09.2026 (P1-päätös): 33 → 18 riviä.** D9:n 15 Active-pyörää on poistettu. Ilman CR:ää
+> Fleet-päivä ei päätä pyörää, joten niiden `subsc_end_date` jää ennalleen, ja T1c tyhjentää niiden
+> Fleet-päivän ([`../2026-09-25-d9-fleet-paiva-pois/`](../2026-09-25-d9-fleet-paiva-pois/README.md)).
+> **Aja T1c ensin.** Ennen sitä tarkistuskysely palauttaa 33.
+
+Siirtää 18 pyörän päättymisajankohdan poikkeuskentästä `custrecord_sta_subsc_end_date`-kenttään,
 jotta lokakuun kirjastomuutos (päättymisajankohta = `subsc_end_date` ja vain se) ei muuta niiden
 päättymistä.
 
@@ -20,7 +26,7 @@ luovutaan. Jos poikkeuspäivä on 30.09.2026 tai aiempi, se kopioidaan CSV:llä.
 
 | Tiedosto | Rivejä | Mitä kirjoitetaan |
 |---|---|---|
-| `01-subsc-end-date.csv` | **33** | vain `custrecord_sta_subsc_end_date` ← `subsc_end_date_uusi` |
+| `01-subsc-end-date.csv` | **18** | vain `custrecord_sta_subsc_end_date` ← `subsc_end_date_uusi` |
 
 `subsc_end_date_uusi` = `COALESCE(exceptional_end_date, oomi_exceptional_end_date)`, eli pyörän
 nykyinen päättymisajankohta kirjaston mukaan. **Päättymisajankohta ei muutu yhdelläkään
@@ -45,9 +51,9 @@ Poimittu NetSuitesta 24.09.2026.
 
 | | CSV | NetSuite |
 |---|---|---|
-| Rivejä | 33 | 33 |
-| `SUM(id)` | 1 387 641 | 1 387 641 |
-| `MIN(id)` / `MAX(id)` | 37 449 / 46 740 | 37 449 / 46 740 |
+| Rivejä | 18 | 18 (T1c:n jälkeen; 24.09. ennen D9-poistoa 33) |
+| `SUM(id)` | 758 492 | 758 492 (24.09.: 1 387 641) |
+| `MIN(id)` / `MAX(id)` | 37 520 / 46 740 | 37 520 / 46 740 |
 
 ```sql
 SELECT COUNT(*) AS rivit, SUM(b.id) AS id_summa, MIN(b.id) AS min_id, MAX(b.id) AS max_id
@@ -66,7 +72,7 @@ Jakauma:
 | Status | Pyöriä | Huomio |
 |---|---|---|
 | 2 Redeemed | 16 | päättyneet. Suoja RI-luonnin Active-riveille |
-| 1 Active | 15 | **ADR 0010:n D9**: selvitystapa puuttuu, eikä tämä import ratkaise sitä |
+| ~~1 Active~~ | ~~15~~ | **Poistettu 25.09.** D9 ratkaistu: Fleet-päivä tyhjennetään (T1c), eikä `subsc_end_date`:a muuteta |
 | tyhjä | 2 | B046739, B046740 |
 
 **Erityistapaukset:**

@@ -89,3 +89,7 @@ uudelleen, älä importoi.
 
 Importin jälkeisenä aamuna (sweepin ajon jälkeen) ajetaan sama kysely → **0**. Lisäksi näiden 34
 pyörän pitää olla status 2.
+
+> [!NOTE]
+> **Todennettu 25.09.2026:** kysely palauttaa 0, ja kaikki 34 ovat status 2 sweepin yöajon jälkeen.
+> Lokissa on 34 riviä `status -> 2`, virheitä 0.
