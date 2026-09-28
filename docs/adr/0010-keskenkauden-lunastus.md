@@ -129,7 +129,7 @@ kuin `subsc_end_date`. Ero on 34:llä:
 
 | Poikkeuspäivä | Pyöriä | Toimenpide |
 |---|---|---|
-| ≤ 30.09.2026 | **33** | CSV ennen kirjastomuutosta: `subsc_end_date` = nykyinen päättymisajankohta ([`imports/2026-09-25-poikkeuspaivat-subsc/`](../../imports/2026-09-25-poikkeuspaivat-subsc/README.md)). Päättymisajankohta ei muutu, joten kirjastomuutos on näille neutraali |
+| ≤ 30.09.2026 | **33** → **18** (D9 poistettu 25.09.) | CSV ennen kirjastomuutosta: `subsc_end_date` = nykyinen päättymisajankohta ([`imports/2026-09-25-poikkeuspaivat-subsc/`](../../imports/2026-09-25-poikkeuspaivat-subsc/README.md)). Päättymisajankohta ei muutu, joten kirjastomuutos on näille neutraali |
 | > 30.09.2026 | **1** (B044504, 31.10.2026) | ei CSV:tä. Kirjastomuutoksen jälkeen pyörä seuraa `subsc_end_date`:a (01.04.2027). Jos Fleetin ennenaikainen päättyminen on todellinen, se tehdään CR:llä kuten kaikki lokakuusta alkaen |
 
 **Järjestys: CSV ensin, sitten kirjasto.** Jos kirjasto muuttuu ensin, 16 päättyneen pyörän
@@ -142,7 +142,31 @@ Tyyppi 10 on monimutkainen ja harvinainen, ja se vaatii ihmisen. Mikään skript
 pidetään: Pending- tai Done-tilainen tyypin 10 CR tekee pyörästä ennenaikaisen, jolloin se ei saa
 kauden lopun tapaa. Pyörä odottaa ihmistä. **Valvonta:** tyypin 10 CR Pending yli 30 päivää.
 
-## Avoin päätös
+## Ratkaistu päätös D9 (25.09.2026)
+
+**Tuoteomistaja 25.09.2026:** *"Ilman CR:ää ei ole todistetta ennenaikaisesta päättymisestä, joten
+ne raportoidaan aktiivisena lokakuussa. Jos lokakuussa huomataan, että ne menivät väärin, luodaan CR
+oikealle päivämäärälle, jolloin korjaus tapahtuu itsestään oikein, vain myöhässä. Jos on tekninen
+mahdollisuus, että raportointi menee väärin, ne pitää korjata."*
+
+- Fleet-päivä ei ole näillä pyörillä päättymisajankohta, vaan päättymisajankohta on `subsc_end_date` (kohta 8).
+- **T1c** tyhjentää `oomi_exceptional_end_date`:n kaikilta 15 pyörältä, ja B044271:ltä myös
+  `exceptional_end_date`:n ([`imports/2026-09-25-d9-fleet-paiva-pois/`](../../imports/2026-09-25-d9-fleet-paiva-pois/README.md)).
+  Syy on se, että kirjasto lukee `COALESCE`:a T11:een asti. Maksu tai status-sync 2.0:n OOMI-haara
+  päättäisi pyörän ennen sitä Fleet-päivän perusteella, ilman CR:ää.
+- Kohdan 8 CSV (T8) **ei** kopioi niiden Fleet-päivää `subsc_end_date`:iin: 33 → 18 riviä.
+- **B044271** (`subsc_end_date` 05.09.2026) on kauden lopun lunastus syyskuussa, ja se saa ADR 0009:n
+  kohdan 6 käsittelyn S4b:ssä. Muut 14 raportoidaan lokakuussa Active-tilaisina.
+- **Tuoteomistaja kävi pyörät läpi 25.09.2026:** kaikkia ei voinut kääntää automaattisesti
+  Redeemed-tilaan. Päätös: `oomi_exceptional_end_date` tyhjennetään kaikilta 15:ltä, ja pyörät
+  käsitellään erikseen. **Havainto:** Fleet-raportin tietoihin ei voi luottaa niin kuin alun perin
+  ajateltiin. Tämä vahvistaa kohdan 8 (Fleet-päivä ei päätä mitään) ja status-sync 2.0:n
+  tarpeellisuuden, koska ratkaisevan todisteen on tultava NetSuiten omista tiedoista (CR, maksu,
+  päättymisajankohta).
+- Seuraus kohtaan 8: niin kauan kuin T11 ei ole tuotannossa, Fleet-import voi kirjoittaa päivän
+  takaisin. T1c:n jälkitarkistus ajetaan jokaisen Fleet-importin jälkeen.
+
+Alkuperäinen kysymys:
 
 **D9 — 15 Active-pyörää, joilla on Fleetin ennenaikainen päättyminen ja joilta puuttuu
 selvitystapa.** 13 pyörän `oomi_exceptional_end_date` on 31.05.–31.08.2026, eli päättymisajankohta
@@ -163,7 +187,7 @@ tarvitaan CR? Kohdan 8 CSV ei ratkaise tätä, vaan pitää vain niiden päätty
   2.0:lle ja cf-gbb-toolsille: [`keskenkauden-lunastus-vaatimukset.md`](../keskenkauden-lunastus-vaatimukset.md).
 - **Syyskuun importit** (käyttäjä ajaa): `decided_at`-historia ja 33 pyörän `subsc_end_date`.
 - **Lokakuu:** 19 CR:ää yksitellen, Staria-skripti pois ajastuksesta, kirjastomuutos poikkeuskenttien
-  jälkeen ja D9.
+  jälkeen. D9 on ratkaistu 25.09. (T1c).
 - **Kenttäsäännöt** § 2, § 5, § 8 ja uusi § 10 päivitetty. Myös `CONTEXT.md` päivitetty.
 
 ## Todennettu vs. päätelty

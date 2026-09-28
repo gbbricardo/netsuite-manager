@@ -618,6 +618,28 @@ WHERE custrecord_sta_bike_order_type = 3 AND custrecord_sta_bike_status = 1
 
 ---
 
+### Sallittu poikkeama: tapa 1 ennen päättymiskuuta ilman `liab_settled_at`:ia (25.09.2026)
+
+ADR 0009:n kohdan 4 mukaan tapa kirjoitetaan vasta päättymiskuussa. Vanha status-sync (osa A)
+kirjoittaa kuitenkin tavan 1 heti maksun jälkeen 30.09.2026 asti. **Se ei ole korjattava virhe,
+kun `liab_settled_at` on tyhjä.** Tuoteomistaja vahvisti 25.09.2026 pyöräkohtaisesti, että
+lopputulos on silloin sama kuin säännön mukaan:
+
+- **Keskenkauden lunastus, CR vielä luomatta** (maksu saapunut, asiakaspalvelu luo CR:n
+  lokakuussa tai myöhemmin): sweep ei käännä pyörää ennen päättymiskuuta. Kun CR käsitellään,
+  handler säilyttää tavan 1 ja kirjoittaa tyhjään `liab_settled_at`:iin CR:n luontipäivän
+  (`handler_lunastus.js:348-360`, kentät suojattu erikseen). 25.09.: B005039, B015640,
+  B035208 ja B036496.
+- **Kauden lopun lunastus, maksu ajoissa**: sweep kääntää pyörän päättymiskuun 1. päivänä, koska
+  `paid_at` on todiste (todennettu 25.09. B021648:lla). `liab_settled_at` = `paid_at` täytetään
+  päättymiskuussa (status-sync 2.0, K1). 25.09.: B042831, B045266 ja B041552 (10/2026) sekä
+  B038685 ja B044476 (11/2026).
+
+**Korjattava** on vain tapaus, jossa ennen päättymiskuuta on kirjattu myös `liab_settled_at`, eikä
+tyypin 2/10 CR:ää ole. Silloin kenttää ei voi enää korvata, ja se estäisi CR:n päivän (K4, 16
+pyörää, tyhjennetty 24.09.). Auditointi ei raportoi yllä mainittua sallittua poikkeamaa §5-virheenä
+eikä ennenaikaisena lunastuksena.
+
 ## 10. Keskenkauden lunastus
 
 Päätökset: [ADR 0010](adr/0010-keskenkauden-lunastus.md) ja [ADR 0008](adr/0008-keskenkauden-lunastuksessa-cr-voittaa-maksun.md).
