@@ -1,0 +1,58 @@
+joukko;id;pyora;tila;tapa;liab_settled_at;paid_at_tai_maksu;paattymisajankohta;huomio
+V1_uusi_maksu;3280;B003280;1;;;PL 14.09.2026;30.09.2026;S1b, kauden loppu, tyypin 7 CR:t 4743/6453
+V1_uusi_maksu;3403;B003403;1;;;PL 17.09.2026;30.09.2026;S1b, kauden loppu, tyypin 7 CR:t 4745/6454
+V1_uusi_maksu;24380;B024380;1;;;PL 14.09.2026;30.06.2028;keskenkauden ilman CR:ää (S2), vain paid_at
+V1_uusi_maksu;36379;B036379;1;;;PL 14.09.2026;30.09.2027;keskenkauden ilman CR:ää (S2), vain paid_at
+V1_paid_at_puuttuu_CR2_Done;8151;B008151;1;1;21.09.2026;PL 11.09.2026;31.10.2026;CR 6624 Done, ADR 0008 ok
+V1_paid_at_puuttuu_CR2_Done;13315;B013315;1;1;21.09.2026;PL 12.09.2026;31.10.2026;CR 6643
+V1_paid_at_puuttuu_CR2_Done;14365;B014365;1;1;25.09.2026;PL 09.09.2026;31.10.2026;CR 6788
+V1_paid_at_puuttuu_CR2_Done;15281;B015281;1;1;25.09.2026;PL 09.09.2026;31.10.2026;CR 6787
+V1_paid_at_puuttuu_CR2_Done;17450;B017450;1;1;25.09.2026;INV 24.09.2026;31.10.2026;CR 6789
+V1_paid_at_puuttuu_CR2_Done;18611;B018611;1;1;25.09.2026;PL 14.09.2026;31.10.2026;CR 6786
+V1_paid_at_puuttuu_CR2_Done;29767;B029767;1;1;25.09.2026;PL 16.09.2026;31.10.2026;CR 6790
+V1_paid_at_puuttuu_CR2_Done;39534;B039534;1;1;25.09.2026;PL 13.09.2026;31.10.2026;OOMI, CR 6782
+V1_paid_at_puuttuu_CR2_Done;42663;B042663;1;1;25.09.2026;PL 18.09.2026;31.10.2026;OOMI, CR 6785 (S1b)
+V1_paid_at_puuttuu_CR2_Done;44934;B044934;1;1;17.09.2026;PL 15.09.2026;31.10.2026;OOMI, CR 6551 (S1b)
+S2_PL_kesken_kauden_ei_CR2;5492;B005492;1;;;05.09.2026;30.06.2029;
+S2_PL_kesken_kauden_ei_CR2;13550;B013550;1;1;03.07.2026;03.07.2026;31.03.2028;T10
+S2_PL_kesken_kauden_ei_CR2;14042;B014042;1;;;04.09.2026;30.11.2028;
+S2_PL_kesken_kauden_ei_CR2;15640;B015640;1;1;;21.09.2026;31.10.2028;sallittu poikkeama (kenttas. 9)
+S2_PL_kesken_kauden_ei_CR2;21319;B021319;1;;;04.09.2026;31.01.2027;
+S2_PL_kesken_kauden_ei_CR2;24380;B024380;1;;;(tyhja);30.06.2028;
+S2_PL_kesken_kauden_ei_CR2;27471;B027471;1;;;07.09.2026;30.04.2027;
+S2_PL_kesken_kauden_ei_CR2;29483;B029483;1;1;03.06.2026;03.06.2026;31.08.2027;T10
+S2_PL_kesken_kauden_ei_CR2;32764;B032764;1;;;04.09.2026;29.02.2028;
+S2_PL_kesken_kauden_ei_CR2;36379;B036379;1;;;(tyhja);30.09.2027;
+S2_PL_kesken_kauden_ei_CR2;36496;B036496;1;1;;23.09.2026;31.10.2027;sallittu poikkeama
+S2_PL_kesken_kauden_ei_CR2;40838;B040838;1;1;13.07.2026;13.07.2026;31.01.2028;OOMI, T10
+S2_PL_kesken_kauden_ei_CR2;41610;B041610;1;1;22.06.2026;22.06.2026;27.04.2027;OOMI, T10
+S2_PL_kesken_kauden_ei_CR2;43416;B043416;1;;;15.09.2026;25.06.2028;OOMI
+S2_PL_kesken_kauden_ei_CR2;44011;B044011;1;;;15.09.2026;18.06.2027;OOMI
+K1_ls_asetettu_ei_OOMI;991;B000991;1;1;01.09.2026;01.09.2026;30.11.2026;ei CR 2/10
+K1_ls_asetettu_ei_OOMI;4234;B004234;1;1;19.08.2026;19.08.2026;31.03.2027;
+K1_ls_asetettu_ei_OOMI;11005;B011005;1;1;01.09.2026;01.09.2026;31.12.2026;
+K1_ls_asetettu_ei_OOMI;13550;B013550;1;1;03.07.2026;03.07.2026;31.03.2028;T10
+K1_ls_asetettu_ei_OOMI;21682;B021682;1;1;01.08.2026;01.08.2026;31.10.2026;myos t4: status 1 + IC-paiva/done
+K1_ls_asetettu_ei_OOMI;29483;B029483;1;1;03.06.2026;03.06.2026;31.08.2027;T10
+K1_ls_asetettu_ei_OOMI;33069;B033069;1;1;01.09.2026;01.09.2026;30.11.2026;
+K1_ls_asetettu_ei_OOMI;36797;B036797;1;1;17.12.2025;17.12.2025;31.10.2028;
+K1_ls_asetettu_OOMI_pitka;40838;B040838;1;1;13.07.2026;13.07.2026;31.01.2028;T10
+K1_ls_asetettu_OOMI_pitka;41610;B041610;1;1;22.06.2026;22.06.2026;27.04.2027;T10
+K2_kattavuus;16555;B016555;1;;;jalkiveloitus 274,89 netto;31.08.2026;lunastushinta 84; Q4/T1d
+K2_kattavuus;29420;B029420;1;;;2 maksettua laskua 185,20 netto;30.09.2026;lunastushinta 110; org end 31.05.2026 (paatelty)
+K2_kattavuus;31624;B031624;1;;;185,20 netto;31.10.2026;lunastushinta 100; org end 31.03.2026 (paatelty)
+K2_kattavuus;46508;B046508;1;;;0;30.09.2026;lunastushinta 0 -> ehto tayttyy triviaalisti, vaatii ihmisen
+t1_status3_ei_tapa5;36124;B036124;3;1;;;;
+t1_status3_ei_tapa5;37996;B037996;3;1;;;;myos IC-joukossa (S2/T2)
+t1_status3_ei_tapa5;45683;B045683;3;1;;;;
+t4_status1_IC_tehty;21682;B021682;1;1;01.08.2026;01.08.2026;31.10.2026;
+t5_status_tyhja_alkanut;4339;B004339;;;;;;
+t5_status_tyhja_alkanut;46739;B046739;;;;;;
+t5_status_tyhja_alkanut;46740;B046740;;;;;;
+t5_status_tyhja_alkanut;46741;B046741;;;;;;
+t5_status_tyhja_alkanut;46830;B046830;;;;;;
+t6_status1_ei_tapaa_yli2kk;23198;B023198;1;;;;30.11.2025;ProMet, Q4/T1d
+t6_status1_ei_tapaa_yli2kk;24587;B024587;1;;;;30.11.2025;ProMet, Q4/T1d
+t6_status1_ei_tapaa_yli2kk;24908;B024908;1;;;;30.11.2025;ProMet, Q4/T1d
+S3_tyyppi10_pending_yli30pv;23888;B023888;2;1;;;;CR luotu 28.07.2026
+NeedsReview_muu_tyyppi;28437;B028437;;;;;;CR 6834 tyyppi 7, luotu 28.09.2026 (ei S1-joukkoa)
