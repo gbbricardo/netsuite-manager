@@ -145,8 +145,10 @@ write-once-tapa estää tulevan CR:n arvot.
 ### [ ] T14 — Kuukausiajo 1.10. ilman vääriä rivejä
 
 Suunnitelma: [`docs/kuukausiajo-2026-10-suunnitelma.md`](docs/kuukausiajo-2026-10-suunnitelma.md).
-29.09.: E1 (B009498, B010548 — oikea työnantaja; 27 muuta hoitaa 1196), E2 (3 OOMI-pyörää, item 30
-alkaa 1.11.), E3 (B046830 status 1), E5 (extension-parametrit UI:sta). **30.09. päivällä E1b: 1196
+E1: asiakaspalvelu tekee B009498:lle ja B010548:lle siirto-CR:n (tyyppi 1, alku 01.10., vanhan loppu
+30.09.) **viimeistään 30.09. klo 23**; 27 muuta hoitaa 1196. E2: **tehty 29.09.** — B046737, B046742 ja
+B046832 lokakuun rivit 117974–117976 käsin (Active, todennettu); 1.10. tarkistetaan, ettei tullut tuplaa. E3 (B046830 status 1),
+E5 (extension-parametrit UI:sta). **30.09. päivällä E1b: 1196
 käsin + tarkistus** — ajastettu ajo ei kirjoittanut elokuun lopussa. 30.09.: **E6 päätös T6:sta — sen sammutus pysäyttää sweepin koko
 lokakuuksi.** 1.10.: Q1–Q3, testirajaus pois deploymentista, ri_creation → ri_update → CSV.
 **Valmis kun** Q3:n tarkistukset menevät läpi ja CSV on ajettu.

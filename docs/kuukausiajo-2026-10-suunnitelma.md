@@ -50,8 +50,8 @@ aamulla kyselyllä Q2 ennen ajoa.**
 | Syyskuussa Redeemed/Returned | 1 089 | 794 uutta Ended-riviä | 7 lokakuun Active C3-riviä muuttuvat Endediksi **vain täydessä ajossa**; 3 tupla-Ended-riviä |
 | Status tyhjä | 5 | haku ohittaa | B046830 (OOMI, alkanut 1.8.) ei saa riviä |
 | Warning, 1196 korjaa 30.09. (luokka b) | 27 | Oikea työnantaja, ei Warningia — jos 1196 ajaa | **0 / 27** |
-| Warning, ei siirto-CR:ää (luokka c) | 2 | Warning | **2** |
-| Warning, OOMI item 30 alkaa vasta 1.11. (luokka d) | 3 | Warning | **3** |
+| Warning, ei siirto-CR:ää (luokka c) | 2 | Asiakaspalvelu tekee siirto-CR:n 30.09. → handler kirjoittaa rekisterin yöllä (E1) | **0**, jos CR käsitellään 1.10. yöllä |
+| Warning, OOMI item 30 alkaa vasta 1.11. (luokka d) | 3 | Warning → rivi korjataan käsin syyskuun mallin mukaan (E2) | **0** korjauksen jälkeen |
 
 **Mittaus 29.09.** ([`warning-32-kohtalo-2026-09-29.csv`](../findings/2026-09-28-tilannekatsaus/warning-32-kohtalo-2026-09-29.csv)):
 28.09. ennusteen "vanha työnantaja" ei ole virhe vaan siirto, joka tulee voimaan 1.10.
@@ -83,8 +83,8 @@ Koodin kohdat (`netsuite-monthly-reporting`, päätelty koodista):
 
 | # | Tehtävä | Kuka | Valmis kun |
 |---|---|---|---|
-| E1 | **Ei CSV:tä 27 luokan b pyörälle** — 1196 hoitaa ne (29.09. mittaus). CSV samalla arvolla olisi idempotentti mutta tarpeeton, ja se laukaisisi turhaan rekisterin UE:t (699, `ue_reporting_item_maintenance_prolongation`). **Luokka c, 2 pyörää ilman siirto-CR:ää:** B009498 (rekisterissä Oy Nautor Ab, item 30 -rivi 50399 asiakkaalla Erikssons Bolagen Ab 5323) ja B010548 (Pirkan Rakentajapalvelu Oy → rivi 49472 asiakkaalla Infra Kiri Oy 4622). Oikea työnantaja vahvistetaan asiakaspalvelulta; syyskuun RI-rivi voi kantaa samaa vanhaa virhettä. Sitten joko rekisterikorjaus käsin tai siirto-CR. | Tuoteomistaja / asiakaspalvelu | päätös ja korjaus kirjattu |
-| E2 | **3 OOMI-pyörää, item 30 -rivi alkaa vasta 1.11.2026:** B046737 (rivi 116109), B046742 (116123), B046832 (116121). Ei työnantajakysymys eikä 1196:n asia. Joko lokakuun item 30 -rivi puuttuu (OOMI-tuonnin ajoitus) tai lokakuu ei kuulu raportoitaviin. Jos ei ratkaista ennen ajoa, Warning pidättää työnantajan: päätä poistetaanko rivi ennen CSV:tä. | Tuoteomistaja | päätös kirjattu |
+| E1 | **Ei CSV:tä 27 luokan b pyörälle** — 1196 hoitaa ne (29.09. mittaus). CSV samalla arvolla olisi idempotentti mutta tarpeeton, ja se laukaisisi turhaan rekisterin UE:t (699, `ue_reporting_item_maintenance_prolongation`). **Luokka c, 2 pyörää — päätetty 29.09.: asiakaspalvelu tekee siirto-CR:n 30.09.** B009498 (rekisterissä Oy Nautor Ab → Erikssons Bolagen Ab 5323, item 30 -rivi 50399) ja B010548 (Pirkan Rakentajapalvelu Oy → Infra Kiri Oy 4622, rivi 49472). CR:n kentät: tyyppi 1 Siirto TA, tila Pending, `next_billto_customer` = uusi asiakas, `custrecord_cr_start_date` = **01.10.2026**, `custrecord_cr_end_date_of_old_sub` = **30.09.2026**. **Luotava viimeistään 30.09. klo 23 Hki**, jotta CR-käsittely (1.10. ~00:37 Hki = runtime 30.09.) ottaa sen mukaan. Rekisteri ei tarvitse 1196:ta: `handler_siirto_ta.js:128-147` kirjoittaa sen itse, kun alkupäivä ≤ seuraavan kuun 1. päivä. **Symmetria:** handler sulkee pyörän aktiiviset sopimusrivit päivään 30.09. ja kloonaa ne uuden asiakkaan sopimukselle 1.10. alkaen (`:77-115`). Koska rivit ovat jo valmiiksi uudella asiakkaalla, tulos on sama rivi katkaistuna kahtia, hinta ennallaan — ei kaksoislaskutusta, jos `end_date_of_old_sub` on 30.09. Väärä päivä avaisi aukon tai päällekkäisyyden. Done-tila laukaisee `ue_reporting_item_transfers`in, joka tekee siirtorivit kuten muille 27:lle. | Asiakaspalvelu | CR Done 1.10. aamulla, rekisterissä uusi työnantaja (Q1) |
+| E2 | **3 OOMI-pyörää, item 30 -rivi alkaa vasta 1.11.2026, koska syyskuuhun asti ne laskutettiin käsin — päätetty 29.09.: lokakuun RI-rivi luodaan keinotekoisesti oikein**, jotta marraskuun ajo jatkaa automaattisesti (item 30 kattaa 1.11. alkaen). Malli = syyskuun Active-rivi (todennettu 29.09.): **B046737** 116827 CGI Suomi Oy, vuokrakausi 01.06.2026–31.12.2027; **B046742** 116828 Tapojärvi Oy, 01.06.2026–30.09.2029; **B046832** 116829 CGI Suomi Oy, 01.08.2026–31.10.2027; kaikilla `lease_fee_vat0` 79,681275, ei tilausriviä. **Tehty 29.09.:** rivit 117974, 117975, 117976 (todennettu). Ajon jälkeinen tarkistus § 4 kohta 5. | Käyttäjä | ✅ 29.09. |
 | E3 | **B046830** `bike_status` → 1 (OOMI, alkanut 1.8.2026, ei yhtään RI-riviä). Kirjoitus laukaisee `gbb_webhook_ue_status_changed.js`:n. | Käyttäjä | pyörällä status 1 |
 | E4 | T1b (S4b) ajetaan kuten suunniteltu — ei RI-vaikutusta, mutta estää Active-jumittumisen. Poista B041564; tyhjennä B044271:n `exceptional_end_date` ensin. | Käyttäjä | TASKS T1b |
 | E5 | **Extension-deploymentin parametrit UI:sta** (`customdeploy_gbb_sub_extension`): `custscript_gbb_ext_override_sub_end_date` tyhjä, ei testipyörää, toisto 1. päivä (ei 31.). 97 kandidaattia, joista 7 OOMI (B039007, B040393, B042039, B043989, B044063, B044311, B046310) saisi väärän tyypin 7 CR:n, jos override on asetettu. | Käyttäjä | kuvakaappaus/merkintä |
@@ -105,26 +105,39 @@ Koodin kohdat (`netsuite-monthly-reporting`, päätelty koodista):
    ~13:31 lokiajan ajo on kirjoittanut 27 työnantajaa (kuten E1b:n Q0). Jos ei, **pysähdy**: 1196:n
    ajaminen ei enää auta (runtime-päivä on 1.10.), vaan 27 korjataan CSV:llä
    (`warning-32-kohtalo-2026-09-29.csv`, sarake `oikea_tyonantaja`) ennen ri_creationia.
+   **E1:n kaksi siirto-CR:ää** (B009498, B010548): tila Done, `scriptnote` 1199 näyttää
+   `handler_siirto_ta … updating bike register now`, ja rekisterin `contract_employer` = 5323 / 4622.
+   Jos CR on yhä Pending, ri_creation tekee Warningin — silloin joko CR käsin käsittelyyn ennen
+   ri_creationia tai rivit korjataan kuten E2.
 2. **Q2 — extensionin CR:t yhä Pending:** tyypin 7 CR:t, luotu 1.10., kaikki status 1. Jos
    yksikin on Done, **pysähdy**: 48 maksamatonta saa Warningin (ks. § 2). Silloin ajetaan
    ri_creation vasta kun asia on arvioitu.
 3. **Deployment:** tyhjennä `custscript_gbb_ri_test_bike_id` ja `custscript_gbb_update_test_bike_id`
    (UI, ei näy SuiteQL:ssä). Raportointipäivä 01.10.2026.
 4. Aja **ri_creation (1452)** täytenä ajona, sitten **ri_update (1453)**.
-5. **Q3 — jälkitarkistus ennen CSV:tä** (`scriptnote` 1452 ja RI-taulu):
+5. **E2 — kolmen OOMI-rivin tarkistus.** Rivit luotiin käsin jo **29.09.** (todennettu):
+   117974 (B046737, CGI), 117975 (B046742, Tapojärvi), 117976 (B046832, CGI), kaikki Active,
+   `reporting_date` 01.10.2026, vuokrakausi ja työnantaja syyskuun riviltä, `needs_review` F,
+   `lease_fee_vat0` 79,6813 (syyskuussa 79,681275 — ero < 0,0001 €, CSV:ssä ×1,255 sama sentti).
+   Ajon jälkeen tarkista, että **kullakin pyörällä on täsmälleen yksi lokakuun rivi ja se on
+   yhä Active**. Päätelty (ei todennettu): ri_creation ohittaa pyörän, jolla lokakuun rivi on jo
+   (kuten 46 maksamattomalla § 2:ssa). Jos se silti tekee toisen rivin (Warning), poista uusi rivi
+   ennen CSV:tä ja säilytä käsin tehty.
+6. **Q3 — jälkitarkistus ennen CSV:tä** (`scriptnote` 1452 ja RI-taulu):
    - summarize: bucketit `ended_created` + `oomi_ended_created` ≈ **880**,
-     `active_created_warning` ≈ **5** (luokat c ja d, jos niitä ei ole korjattu; 27 luokan b
-     pyörää eivät saa Warningia). `mapErrors` = 0.
+     `active_created_warning` ≈ **0** (+2, jos E1:n CR:t eivät ehtineet; +3, jos ri_creation ei
+     ohittanutkaan E2:n pyöriä). `mapErrors` = 0.
    - `rejected bike fields` -rivit `scriptnote`sta: odotus 0, jokainen on kadonnut rivi.
-   - Lokakuun Warning-rivit työnantajittain: vain E2:n ja testipyörän B017530 (Testi Yritys Oy)
-     työnantajat.
+   - Lokakuun Warning-rivit työnantajittain E2-korjauksen jälkeen: vain testipyörä B017530
+     (Testi Yritys Oy). **Yksikin muu Warning pidättää koko työnantajan** — CGI (209 pyörää) ja
+     Tapojärvi (185) riippuvat E2:sta.
    - 7 Redeemed-pyörän lokakuun C3-rivit (116175, 117366, 117368, 116193, 116176, 117367, 117365)
      ovat nyt Ended.
    - Gate: yhdelläkään pyörällä, jonka status on 2/3 ja päättymisajankohta ≥ 1.10., ei Active-riviä
      lokakuulle.
-6. Päätä ennen CSV:tä: 3 tupla-Ended-riviä (B008217 108439+115872, B045099 115214+115922,
+7. Päätä ennen CSV:tä: 3 tupla-Ended-riviä (B008217 108439+115872, B045099 115214+115922,
    B018137 90511+115904) ja testipyörän B017530 rivit — poistetaanko.
-7. Aja **CSV (1451)**.
+8. Aja **CSV (1451)**.
 
 ## 5. Tunnetut asiat, jotka eivät kaada ajoa
 
