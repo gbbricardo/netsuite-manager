@@ -140,6 +140,17 @@ write-once-tapa estää tulevan CR:n arvot.
 
 ---
 
+## 29.09.–1.10.2026 — lokakuun kuukausiraportointiajo
+
+### [ ] T14 — Kuukausiajo 1.10. ilman vääriä rivejä
+
+Suunnitelma: [`docs/kuukausiajo-2026-10-suunnitelma.md`](docs/kuukausiajo-2026-10-suunnitelma.md).
+29.09.: E1 (B009498, B010548 — oikea työnantaja; 27 muuta hoitaa 1196), E2 (3 OOMI-pyörää, item 30
+alkaa 1.11.), E3 (B046830 status 1), E5 (extension-parametrit UI:sta). **30.09. päivällä E1b: 1196
+käsin + tarkistus** — ajastettu ajo ei kirjoittanut elokuun lopussa. 30.09.: **E6 päätös T6:sta — sen sammutus pysäyttää sweepin koko
+lokakuuksi.** 1.10.: Q1–Q3, testirajaus pois deploymentista, ri_creation → ri_update → CSV.
+**Valmis kun** Q3:n tarkistukset menevät läpi ja CSV on ajettu.
+
 ## 30.09.2026 (ke)
 
 ### [ ] T4 — S1c: maksujen poimintakysely uudelleen
@@ -160,6 +171,10 @@ kuunvaihdetta.
 30.09. illalla `customdeploy_gbb_redemption_sync` → *Not Scheduled*
 ([suunnitelma § Lokakuu](docs/status-sync-2-tasmaytysajo.md#lokakuu--käyttöönotto-kerralla)).
 Tämä tehdään vasta T5:n jälkeen.
+
+> [!WARNING]
+> **28.09.: odottaa päätöstä E6** ([suunnitelma](docs/kuukausiajo-2026-10-suunnitelma.md)). Deployment on
+> sama kuin sweep (1440); ilman status-sync 2.0:aa sammutus pysäyttää statuskäännöt koko lokakuuksi.
 
 ---
 
