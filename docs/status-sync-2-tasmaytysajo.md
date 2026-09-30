@@ -152,6 +152,25 @@ kirjoittajia voi olla useita, mutta **tämä skripti on se, joka takaa lopputulo
 
 ### Vaihe 3 — IC-lista
 
+> [!IMPORTANT]
+> **Vaatimus 30.09.2026 (käyttäjä, D7):** status-sync 2.0:n on huolehdittava, että
+> `custrecord_gbb_ic_redemption_dt` on **aina täytetty, kun vastuut on hoidettu**. IC-päivä on
+> skriptin vastuulla, ei käsin tehtävien CSV-täyttöjen. Syyskuussa IC-päivät täytettiin käsin 29.09. ja
+> 30.09., ja 325 pyörää jäi silti ilman päivää
+> ([löydös](../findings/2026-09-30-t5-ic-paiva-puuttuu.md)).
+>
+> Kaksi kohtaa ratkaistava ennen toteutusta:
+> 1. **Ehto.** Alla oleva ehto on *status 2 tai 3*. Vaatimus sanoo *vastuut hoidettu*
+>    (`onkoVelvoitteetHoidettu`). Kauden lopussa nämä tapahtuvat samana päivänä. Keskenkauden lunastuksessa
+>    CR:n `liab_settled_at` tulee ennen statusta (kuukausiankkuri), joten vaatimuksen mukaan IC-päivä
+>    kirjoitettaisiin jo ennen kääntöä. Arvo on kummassakin tapauksessa sama, `LAST_DAY(päättymisajankohta)`.
+> 2. **Tapa 8.** Kirjasto pitää tapaa 8 `historical_unknown` maksuttomana todisteena, eli vastuut ovat
+>    hoidettu (`gbb_lunastus_lib.js:113-120`). Vaatimuksen mukaan 2.0 kirjoittaisi IC-päivän myös 280
+>    OOMI-pyörälle, joilla on tapa 8 ja kausi 05–06/2026. Taloustiimin on hyväksyttävä se, tai tapa 8
+>    on rajattava pois ja raportoitava.
+>
+> Testipyörä B017530 rajataan pois (käyttäjä 30.09.).
+
 Kirjoita `custrecord_gbb_ic_redemption_dt`, kun **kaikki** seuraavat ehdot täyttyvät:
 
 - status (vaiheen 2 jälkeen) on 2 tai 3 — tila 3 *Lunastettu*
@@ -322,6 +341,7 @@ arkistoidaan.
 | **D4** | Käynnistetäänkö IC-laskuri automaattisesti? | kyllä, mukana lokakuun käyttöönotossa | idempotentti, ja hinta on valmiina aamulla. Muuten haussa 797 on rivejä ilman hintaa, kunnes joku ajaa laskurin käsin |
 | **D5** | Kenelle raportti menee? | financen vastaava + lunastusten omistaja, sähköposti `N/email` | [Vastuurekisteri](../../Second%20brain/35-Systems/Vastuurekisteri.md) nimeää financen vastaavan. Automaatiolle ei ole omistajaa |
 | **D6** | Korjataanko 2 ↔ 3 -ristiriita automaattisesti? | ei aluksi, vain raportti | 3 tapausta. Katso ne ensin käsin: onko vika statuksessa vai selvitystavassa |
+| **D7** | Kuka takaa IC-päivän? | **Päätetty 30.09. (käyttäjä):** status-sync 2.0. IC-päivän on aina oltava täytetty, kun vastuut on hoidettu | Käsin tehdyt täytöt 29.–30.09. jättivät 325 pyörää ilman päivää. Auki ovat ehto (vastuut hoidettu vai status 2/3) ja tapa 8, ks. § Vaihe 3 |
 
 ## Mitä tämä ei tee
 

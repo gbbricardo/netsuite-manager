@@ -92,9 +92,11 @@ ajettava ja `-1`-rivit käytävä läpi ennen 30.09.
 ### [ ] T1d — Q4: neljä pysähtynyttä sopimusta taloustiimille (vastaus ennen 30.09.)
 
 [Löydös](findings/2026-09-25-pysahtynyt-jalkiveloitus.md) ja [CSV](findings/2026-09-25-pysahtynyt-jalkiveloitus.csv):
-B016555 (Fortaco), B023198, B024587 ja B024908 (ProMet Oy). Käyttäjä vie ne taloustiimille. Kun
-vastaukset tulevat: B016555:lle valmistellaan tavan 2 CSV, jos kattavuus hyväksytään. ProMet Oy:n
-pyörät hoitaa asiakaspalvelu CR:llä. **Huom.:** ProMet Oy:n lokakuun Active-rivit 104318–104320
+B016555 (Fortaco), B023198, B024587 ja B024908 (ProMet Oy). Käyttäjä vie ne taloustiimille.
+**29.09.:** ProMet Oy on konkurssissa, ja taloustiimi päättää sopimusten käsittelystä. **B016555 on
+kunnossa:** lunastusta ei ole maksettu, joten laskutus jatkuu lokakuuhun 2026. CR-6488 (syyskuu,
+Error, ei Fortacon sopimusrivejä) on korjattava ja käsiteltävä **ennen 1.10.**, jotta 1.10.
+jälkiveloitusajo löytää pyörän. Muuten lokakuu tehdään käsin. **Huom.:** ProMet Oy:n lokakuun Active-rivit 104318–104320
 on poistettava ennen palkka-CSV:tä, jos sopimukset todetaan päättyneiksi. Muuten Warning pidättää
 koko työnantajan.
 
@@ -162,11 +164,45 @@ Huomaa [ADR 0009](docs/adr/0009-kauden-lopun-lunastus.md) kohta 4: tapa 1 ja `li
 kirjataan vain, jos pyörän päättymiskuu on alkanut eikä pyörällä ole tyypin 2/10 CR:ää. Muuten
 kirjataan pelkkä `paid_at`.
 
+> [!NOTE]
+> **30.09. klo 15: import ajettu, 47/47 todennettu** ([README](imports/2026-09-30-s1c-maksupaivat/README.md)).
+> Poimintakysely palauttaa 8 uutta pyörää. Niiden keskenkauden Paylink-maksut ovat 29.09., eli ne
+> ovat osa A:n ikkunassa eivätkä ole myöhässä näkyviä maksuja. Ne on myös lisättävä T10:een (ei
+> CR:ää). B046580 ratkesi (5005 linkitetty uuteen SO:hun 30.09.). Odottaa tarkastajaa ja 1.10.
+> aamun tarkistusta.
+>
+> *Alkuperäinen muistiinpano:* **30.09.: poiminta 47, CSV valmis, import ajamatta.** [`imports/2026-09-30-s1c-maksupaivat/`](imports/2026-09-30-s1c-maksupaivat/README.md):
+> 47 riviä, `SUM(id)` 1 115 808, pelkkä `paid_at`. Mukana ovat 31 Done-CR-pyörää, 15 CR:töntä
+> pyörää (päättymiskuu ei alkanut) ja B006299 (S1b, status 2). B046580 on rajattu pois: Paylink 5005
+> on käsiraha, ja sen SO- ja talletuslinkit osoittavat B031057:n lunastukseen. Aja README:n
+> ennakkokyselyt juuri ennen importtia. **Valmis kun** jälkitarkistukset a) ja b) palauttavat 0 ja
+> poimintakysely palauttaa enää B046580:n. B003280 ja B003403 ovat kunnossa (29.09.).
+
+### [ ] T15 — 95 status 2/3 -pyörää ilman `paid_at`:ia (erillinen tehtävä, päätetty 30.09.)
+
+Löytyi T4:n yhteydessä. 95 status 2/3 -pyörällä on syyskuun maksutodiste (Paylink tai maksettu
+lunastuslasku), mutta `redemption_paid_at` on tyhjä. Osa A lukee vain Active-pyöriä. Lähes kaikilla
+on Done-tyypin 2 CR, ja maksu näkyi vasta käännön jälkeen. Rivit eivät vaikuta statukseen,
+IC-päivään eivätkä lokakuun RI-riveihin. Erikseen katsottavat: **B038940, B043876 ja B046071** ovat
+Returned-tilassa tavalla 5, ja kysely löysi niille lunastustyyppisen todisteen. Maksun tarkoitusta ei
+ole todennettu tietueesta. [Returned-löydös 29.09.](findings/2026-09-29-returned-statukset.md) mainitsee
+B043876:n ja arvioi, että status 3 -pyörän Paylink-maksu voi olla myös vahingonkorvaus. Lue Paylinkin
+tuote ennen luokittelua,
+ja **B006022**:lla on tapa 1, `liab_settled_at` 01.07. ja maksu 31.08. ilman CR:ää. Poimintakysely
+on T4:n kysely, kun status on 2/3 ja maksu 1.9. jälkeen, ja tavat 6 ja 8 on rajattu pois.
+
 ### [ ] T5 — S3: täydentävä IC-CSV
 
 Sama sääntö ja sama joukkoehto kuin T2:ssa. Mukaan tulevat pyörät, jotka ovat kääntyneet T2:n
 jälkeen (CR:t, maksut, T1:n kääntymättömät). **Valmis kun** sama kysely palauttaa 0 ennen
 kuunvaihdetta.
+
+> [!NOTE]
+> **30.09.:** T2 tehtiin käsin 29.09. (käyttäjä, noin 1 200 pyörää taloustiimin kiireellisen tarpeen vuoksi).
+> Täytön jälkeen jäljellä oli 336. Käyttäjä täytti käsin 13 pyörää, jotka vaativat ihmisen silmää,
+> klo 15:54–16:13. **Jäljellä 325** ([löydös](findings/2026-09-30-t5-ic-paiva-puuttuu.md)): 280 OOMI-pyörää
+> tavalla 8, 38 OOMI-pyörää tavalla 1 (14 S4-pyörää, 23 kesä–heinäkuussa kääntynyttä ja uusi B044026) ja 7 muuta.
+> Tavan 8 ryhmä odottaa päätöstä (ks. *Auki*: status-sync 2.0 ja IC-päivä).
 
 ### [ ] T6 — Vanha status-sync pois ajastuksesta
 
@@ -215,6 +251,13 @@ Omistaja on asiakaspalvelu. Lista on [löydöksessä](findings/2026-09-24-kesken
 (A1 12 kpl, A2 7 kpl). CR:t tehdään käsin, ei importilla. Luontipäivä on todellinen luontipäivä.
 Aikaisin päättyy B010162 (31.12.2026). Myös B013550, B029483, B040838 ja B041610 käsitellään
 tässä: niillä on tapa 1 ilman CR:ää.
+
+**Lisätty 30.09. (T4:n jälkeen):** B001220, B014289, B020743, B023083, B026911, B031196, B040304
+(OOMI) ja B045628 (OOMI). Paylink-tuote on kaikilla *Työsuhdepyörän kesken kauden lunastus*,
+maksettu 29.09., ei tyypin 2/10 CR:ää, ja ne päättyvät 06/2027–07/2028. Vanha osa A kirjoittaa
+todennäköisesti tavan 1 ja `paid_at`:n yöllä 30.09./1.10. (sallittu poikkeama, Q3). Status ei käänny
+ennen päättymiskuuta ilman CR:ää (tarkistettu koodista 30.09.). **Jos jollekin tehdään palautus-CR
+(2D), tapa 1 on tyhjennettävä ensin**, muuten pyörä kääntyy Redeemed-tilaan Returned-tilan sijaan.
 
 ### [ ] T11 — Kirjasto: päättymisajankohta = `subsc_end_date`
 
@@ -306,6 +349,15 @@ todennettu NetSuitessa 28.09., syyt ovat päätelmiä ellei toisin sanota.
 
 - [ ] **B045304** — status 2 (25.09.), tapa 8 `historical_unknown`, `liab_settled_at` 31.07. D9-pyörä ja
   T1c:n testirivi: P1:n mukaan piti jäädä Active-tilaan. Palautetaanko, vai onko tapa 1 oikein?
+  **Selvitetty 30.09. (käyttäjä): Fleet-raportin vakuutustapaus.** Pyörän olisi pitänyt päättyä
+  31.07.2026. Korvaava pyörä on **B046829**, jonka sopimus alkoi takautuvasti 01.08.2026 (NetSuite:
+  status 1, OOMI, alku 01.08.2026, luotu 17.09.2026). Status 2 ja päättyminen 31.07. ovat siis oikein, eikä
+  P1:n "jää Activeksi" koske tätä pyörää. **Auki:** tapa 8 on varattu historiatiedoille (ADR 0006). Kirjaston
+  mukaan vakuutustapaus on todennäköisesti tapa 7 `bike_stolen_or_destroyed`, mutta se on vahvistettava.
+  IC-päivä on tyhjä (T5), ja sääntö antaa 31.07.2026.
+- [x] **B017530** — **testipyörä (käyttäjä 30.09.).** Status 2, tapa 8, päättynyt 31.01.2025. Jätetään pois
+  kaikista CSV-importeista ja mittareista. Sen lokakuun Warning-rivi on testiaineistoa
+  ([kuukausiajon suunnitelma](docs/kuukausiajo-2026-10-suunnitelma.md)).
 - [ ] **B046675** — OOMI, status 2 (02.09.), tapa 8, `liab_settled_at` tyhjä, päättynyt 31.08.
   Tapa 1 + tunnistuspäivä (§ 9 OOMI) vai jätetäänkö ennalleen?
 - [ ] **B036124** — status 3 (Returned), mutta tapa 1 (lunastus maksettu). Kumpi on oikein?
@@ -352,7 +404,17 @@ todennettu NetSuitessa 28.09., syyt ovat päätelmiä ellei toisin sanota.
 ## Auki, ei päivää
 
 - **D1** (taloustiimi): IC-päivä IC-myymättömille lunastetuille pyörille? Vaikuttaa T2:een ja T5:een.
+  **30.09.:** 29.09. käsin tehdyssä täytössä noin 65 IC-myymätöntä sai IC-päivän. Kirjaa päätös, jos sellainen tehtiin.
+- **Vaatimus status-sync 2.0:lle (käyttäjä 30.09.):** skriptin on huolehdittava, että
+  `custrecord_gbb_ic_redemption_dt` on **aina täytetty, kun vastuut on hoidettu**. Kirjattu
+  [suunnitelmaan](docs/status-sync-2-tasmaytysajo.md#vaihe-3--ic-lista) (D7). Tarkennettavat: ehto on
+  "vastuut hoidettu" eikä "status 2/3", ja kirjasto pitää tapaa 8 hoidettuna. Silloin 280 T5:n
+  tavan 8 OOMI-pyörää saisivat IC-päivän automaattisesti.
 - **Vaatimukset S1–S3** (status-sync 2.0, [ADR 0010](docs/adr/0010-keskenkauden-lunastus.md)): Needs Review -jono, maksu ilman CR:ää, tyyppi 10 yli 30 pv.
+- **Ehdotus K2:lle (29.09., vahvistettava):** jälkiveloituksen kattavuuteen (ADR 0009 kohta 5)
+  lasketaan vain laskurivit, joiden kausi on alkuperäisen loppupäivän (`subsc_org_end_date`) jälkeen.
+  Esimerkki B016555: tyypin 7 CR-6107 laskutti kuukaudet 5–8/2026, jotka kuuluivat vielä
+  sopimuskauteen. Ilman rajausta kattavuus olisi täyttynyt väärin (274,89 ≥ 84).
 - **Vaatimus K3:lle ja status-sync 2.0:lle (25.09.):** OOMI-haara ei saa lukea
   `oomi_exceptional_end_date`:a. Päättymisajankohta on `subsc_end_date` (ADR 0010 kohta 8, D9). Jos
   2.0 otetaan käyttöön ennen T11:tä, sen on luettava `subsc_end_date` suoraan.
