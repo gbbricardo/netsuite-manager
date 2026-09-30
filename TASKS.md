@@ -171,11 +171,36 @@ Rekisterissä Serres Oy, mutta item 30 -rivit 97714 ja 97715 ovat Paree Group Oy
 eikä CR:ää ole (todennettu 30.09.). Ri_creation tekee lokakuulle Warning-rivin, joka pidättää työnantajan.
 Asiakaspalvelu ratkaisee, kumpi työnantaja on oikein: joko rekisteri korjataan tai tehdään siirto-CR.
 
-### [ ] T22 — Rekisteri-id 26614: CR 6031 jäi CR 6750:n alle
+### [x] T22 — B026614: kaksi peräkkäistä siirtoa, lopputulos oikein (30.09.)
 
-1196 kirjoitti 30.09. ensin CR 6031:n (tyyppi 1 2A, 1767 → 373, alku 1.10.) ja sitten CR 6750:n (tyyppi 9,
-alku 1.10. > loppu 30.09., → 1767). Rekisteri ja lokakuun RI 117176 ovat Wärtsilä Oyj Abp:llä ja täsmäävät
-toisiinsa. CR 6031:lle ei ole riviä. Asiakaspalvelu kertoo, onko CR 6031 vanhentunut vai siirtyykö pyörä oikeasti asiakkaalle 373.
+**Tausta (käyttäjä 30.09.):** Pyörä siirtyi elokuussa 2026 Solidium Oy:ltä Wärtsilä Finland Oy:lle. Syyskuun laskut
+hyvitettiin Solidiumilta ja jälkiveloitettiin Wärtsilä Finlandilta. Syyskuussa 2026 tehtiin konsernin sisäinen siirto
+Wärtsilä Finland Oy → Wärtsilä Oyj Abp. Laskutus menee lokakuusta Wärtsilä Oyj Abp:ltä.
+
+**Todennettu NetSuitesta 30.09.:** Asiakas 373 on Wärtsilä Finland Oy ja 1767 Wärtsilä Oyj Abp. Pyörän CR:t, kaikki Done:
+- 2A-paketti, luotu 31.08.:
+  - CR 6031, tyyppi 1, `official_end` 31.08., `start` 1.10.
+  - CR 6032, tyyppi 11, hyvitys, `start` 1.9.
+  - CR 6033, tyyppi 7, jälkiveloitus, `start` 1.9.
+- CR 6750, tyyppi 9 *Siirto konserni*, luotu 24.09., `start` 1.10., `end` 30.09. (loppu ennen alkua).
+
+Ensimmäisen siirron `start_date` on 1.10., koska syyskuu korjattiin 11/7-CR:illä. Siksi molemmat siirrot
+osuivat samaan 1196-ajoon 30.09. 1196 kirjoitti ensin CR 6031:n (→ 373) ja sitten CR 6750:n (→ 1767).
+Rekisteri (1767) ja lokakuun RI 117176 (Active/New, CR 6750) ovat oikein.
+
+**Tämän takia laskutus menee oikein.** CR 6031 ei ole vanhentunut. Sen RI-vaikutus on elo–syyskuun
+Ended-rivi 117069, ja CR 6750 ohitti sen lokakuussa oikein.
+
+**Jäljelle jäävä riski → T24.**
+
+### [ ] T24 — 1196 käsittelee saman pyörän CR:t ilman järjestystä
+
+Päätelty koodista: `cr_bike_register_updater.js:73-82` hakee tyypin 1/9 Done-CR:t, joiden `start_date` on seuraavan kuun 1. päivä,
+ilman `ORDER BY`-ehtoa. Kun samalla pyörällä on kaksi CR:ää samalla alkupäivällä, viimeksi kirjoitettu voittaa. Järjestys on siis sattumaa.
+B026614:llä (T22) järjestys osui oikein. Käänteisenä rekisteriin olisi jäänyt Wärtsilä Finland Oy.
+Korjaus kuuluu `netsuite-subscrption-cr-scripts`-repoon: `ORDER BY custrecord_cr_created_date, id` tai Needs Review,
+jos samalla pyörällä on useampi CR. Ennen jokaista kuunvaihdetta tarkista kysely: tyypin 1/9 Done-CR:t, joilla on sama pyörä ja sama
+`start_date` = seuraavan kuun 1. päivä.
 
 ### [ ] T23 — Kaksi muutosta samassa kuussa tuottaa tuplarivin (juurisyy, 8893)
 

@@ -61,6 +61,11 @@ työnantajalla, CR-parit). Jäljelle jää vain 41345 (ri_creation-Warning, koht
 kuussa, pidennys ja ennenaikainen lunastus → sama työnantaja saa lokakuulle Active- ja Ended-rivin.
 Jatko: TASKS.md T21 (41345), T22 (26614), T23 (juurisyy).
 
+**B026614 selvitetty (T22):** Kaksi peräkkäistä siirtoa: 2A-paketti CR 6031/6032/6033 (Solidium Oy → Wärtsilä
+Finland Oy 373) ja CR 6750 (tyyppi 9, → Wärtsilä Oyj Abp 1767). Molemmilla on `start` 1.10., joten 1196 ajoi ne
+samassa ajossa, ja järjestys osui oikein. `cr_bike_register_updater.js:73-82` ei järjestä hakua (päätelty koodista), joten tulos
+riippuu sattumasta → T24.
+
 ## Tarkistamatta jääneet
 
 - 8 työnantajaristiriitaista pyörää, joilla on jo lokakuun rivi (4864, 9498, …): voiko ri_update demota ne Warningiksi.
