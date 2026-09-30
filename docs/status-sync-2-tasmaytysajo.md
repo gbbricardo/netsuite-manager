@@ -288,7 +288,7 @@ lähes tyhjä.
 
 | Hetki | Mitä |
 |---|---|
-| 30.09. ilta | S3 ajettu. Vanha `customdeploy_gbb_redemption_sync` → *Not Scheduled* |
+| 30.09. ilta | S3 ajettu. ~~Vanha `customdeploy_gbb_redemption_sync` → *Not Scheduled*~~ **Muutettu 30.09. (E6):** vanha pysyy *Scheduled*-tilassa, kunnes uusi otetaan käyttöön, koska se on sama deployment kuin sweep. Vaihto tehdään samana päivänä. |
 | 1.10. yö | uusi deployment → *Scheduled*, kaikki neljä vaihetta päällä. Ensimmäinen ajo on kuunvaihde: noin 1 000 statuskääntöä ja saman verran IC-päiviä lokakuun kaudelle |
 | 1.10. aamu | ensimmäinen raportti. Päivitä `CLAUDE.md`:n ja muistin script-id, sillä `scriptnote.scripttype` ≠ 1440 |
 

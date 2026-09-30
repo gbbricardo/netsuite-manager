@@ -307,15 +307,32 @@ kuunvaihdetta.
 > tavalla 8, 38 OOMI-pyörää tavalla 1 (14 S4-pyörää, 23 kesä–heinäkuussa kääntynyttä ja uusi B044026) ja 7 muuta.
 > Tavan 8 ryhmä odottaa päätöstä (ks. *Auki*: status-sync 2.0 ja IC-päivä).
 
-### [ ] T6 — Vanha status-sync pois ajastuksesta
+### [ ] T6 — Vanha status-sync pois ajastuksesta — siirretty status-sync 2.0:n käyttöönottoon
 
-30.09. illalla `customdeploy_gbb_redemption_sync` → *Not Scheduled*
-([suunnitelma § Lokakuu](docs/status-sync-2-tasmaytysajo.md#lokakuu--käyttöönotto-kerralla)).
-Tämä tehdään vasta T5:n jälkeen.
+> [!IMPORTANT]
+> **Päätös E6, tuoteomistaja 30.09.2026: vanhaa ajastusta ei pysäytetä ennen kuin 2.0 on valmis.**
+> `customdeploy_gbb_redemption_sync` (1440, päivittäin klo 00:30) pysyy *Scheduled*-tilassa. Vaihto tehdään
+> samana päivänä: 2.0 → *Scheduled* ja vanha → *Not Scheduled*
+> ([suunnitelma § Lokakuu](docs/status-sync-2-tasmaytysajo.md#lokakuu--käyttöönotto-kerralla)).
 
-> [!WARNING]
-> **28.09.: odottaa päätöstä E6** ([suunnitelma](docs/kuukausiajo-2026-10-suunnitelma.md)). Deployment on
-> sama kuin sweep (1440); ilman status-sync 2.0:aa sammutus pysäyttää statuskäännöt koko lokakuuksi.
+**Peruste (todennettu NetSuitesta 30.09.):** sama deployment ajaa sekä osan A että kalenterisweepin.
+Rekisterissä on 1 017 Active-pyörää, joiden `subsc_end_date` on lokakuussa. Niistä 162:lla on jo tapa, ja 855:ltä
+tapa puuttuu. Jälkimmäiset saavat tavan vain osan A havaitsemasta lokakuun maksusta. Jos ajastus pysähtyisi, ne jäisivät
+Active-tilaan, ja 1.11. extension loisi niille tyypin 7 CR:n.
+
+**Takaraja:** jos 2.0 ei ole valmis, vanha pysyy päällä vähintään 1.11. klo 00:30 ajon yli.
+Osan A tunnetut viat hoidetaan lokakuussa T26:lla.
+
+### [ ] T26 — Lokakuu: osan A viikkotarkistus CSV:llä, kunnes 2.0 on käytössä
+
+Joka maanantai (5.10., 12.10., 19.10., 26.10.) ja 30.10.:
+1. **Myöhästyneet maksut:** S1/S1c-poimintakysely
+   ([löydös](findings/2026-09-23-status-sync-maksuikkuna-hukkaa-myohaiset-maksut.md)) → täydennys-CSV kuten S1b.
+   Kauden lopun pyörille tapa 1 + `liab_settled_at` + `paid_at`. Keskenkauden pyörille (ADR 0008) vain `paid_at`.
+2. **Ennenaikainen tapa 1:** kysely *status 1, tapa 1, ei tyypin 2/10 CR:ää Pending/Done, päättymiskuu ei alkanut*
+   (T1/K4). Löydöksistä päättää tuoteomistaja.
+
+**Valmis kun** 2.0 on käytössä tai 30.10. poiminnat palauttavat 0, jolloin 1.11. extension ei näe maksettuja Active-pyöriä.
 
 ---
 
