@@ -156,7 +156,7 @@ lokakuuksi.** 1.10.: Q1–Q3, testirajaus pois deploymentista, ri_creation → r
 
 **Tarkistettu 30.09. illalla (rekisteririskin CSV, [§ 6](findings/2026-09-30-kuukausiajo-rekisteri-riski.md)):**
 R2:n 5 OOMI-riviä korjattu (fee 79,6813), R3:n päällekkäiset item 30 -rivit inaktivoitu, B044271:n ja
-B044504:n `oomi_exc` tyhjennetty. **Q3:een 1.10. lisätään:** (a) B043367: lokakuu kuuluu raportoida Rainmaker Telepalvelu Oy:lle (tuoteomistaja 30.09.). RI 117171 Active/New on siis oikein. Rekisterissä on yhä Rainmaker Contact (CR 6777 alkaa 1.11.), joten tarkista, ettei ri_creation tee Warningia tai toista riviä. (b) B044504: `exceptional_end_date` tyhjennetty 30.09. (todennettu). (c) Yksikään Active-rivi ei saa olla `lease_fee_vat0` = 0. (f) Sweep kääntää 1.10. klo 00:30 noin 162 lokakuussa päättyvää pyörää, joilla on jo tapa, tilaan 2. **Jokaisella pitää silti olla lokakuun Active-rivi, ei Ended- eikä Warning-riviä.** Ended tulee vasta 1.11. (ADR 0002:n sopimusankkuri, todennettu 21.09. pyörällä 37874). Poimi pyörät, joilla `liab_settle_method` on asetettu ja `subsc_end_date` on 10/2026, ja katso niiden lokakuun rivin status. 30.09.: 2 Active, 160 ilman riviä, 0 poikkeuspäivää ennen 1.10.
+B044504:n `oomi_exc` tyhjennetty. **Q3:een 1.10. lisätään:** (a) B043367: lokakuu kuuluu raportoida Rainmaker Telepalvelu Oy:lle (tuoteomistaja 30.09.). RI 117171 Active/New on siis oikein. Rekisterissä on yhä Rainmaker Contact (CR 6777 alkaa 1.11.), joten tarkista, ettei ri_creation tee Warningia tai toista riviä. (b) B044504: `exceptional_end_date` tyhjennetty 30.09. (todennettu). (c) Yksikään Active-rivi ei saa olla `lease_fee_vat0` = 0. (f) Sweep kääntää 1.10. klo 00:30 noin 162 lokakuussa päättyvää pyörää, joilla on jo tapa, tilaan 2. **Jokaisella pitää silti olla lokakuun Active-rivi, ei Ended- eikä Warning-riviä.** Ended tulee vasta 1.11. (ADR 0002:n sopimusankkuri, todennettu 21.09. pyörällä 37874). Tarkistus tehdään T27:ssä.
 
 **Puhdas riskiarvio 30.09. illalla** ([löydös](findings/2026-09-30-kuukausiajo-1-10-puhdas-riskiarvio.md), kolme auditoijaa ilman aiempia löydöksiä):
 1196 ajoi 30.09. 08:22 lokiaikaa, 66/66 CR:ää, 0 virhettä (todennettu `scriptnote`). Ennuste oli kaksi
@@ -164,6 +164,20 @@ tuotannon Warningia. **Rekisteri-id 8893 / RI 117683 (ri_update D11, Joen Diesel
 Syynä oli kaksi muutosta samassa kuussa, pidennys ja ennenaikainen lunastus (T23). Jäljelle jää
 rekisteri-id 41345 (T21). **Q3:een 1.10. lisätään:** (d) tuotannon Warning-rivejä on korkeintaan 1 (41345),
 (e) 8893:lla on lokakuussa vain yksi elävä rivi.
+
+### [ ] T27 — 1.10.2026: 162 sweepin kääntämää lokakuun pyörää raportoidaan Active ([lista](findings/2026-09-30-lokakuussa-paattyvat-162-sweep.md))
+
+**Päivä: 1.10.2026, ri_creationin ja ri_updaten jälkeen, ennen CSV:tä (1451).** 162 pyörän kausi päättyy lokakuussa, ja niillä on
+jo lunastustapa. Sweep kääntää ne 1.10. klo 00:30 tilaan 2/3. **Lokakuun rivin pitää silti olla Active**, ja Ended tulee
+vasta 1.11. (ADR 0002). Aja löydöksen tarkistuskysely br_id-listalla, koska status 1 -rajaus ei enää toimi 1.10. jälkeen.
+**Valmis kun** 162/162 pyörällä on tasan yksi lokakuun rivi, joka on Active (ei Ended, Warning tai puuttuva) ja sweep on kääntänyt statuksen.
+Katso erityisesti:
+- **45 pyörää, joilla on Done-tilainen tyypin 2 CR ja valmis marraskuun Ended-rivi, mutta ei lokakuun riviä.** A2-korjaus
+  (`ri_creation.js:1146-1175`) ohjaa ne Active-polulle.
+- B037874 ja B038677: niiden olemassa oleville Active-riveille ei saa syntyä tuplaa.
+- B046434: lokakuun rivi 103913 on Deleted. Uuden Active-rivin pitää syntyä.
+
+Jos yksikin puuttuu tai on Ended, **pysäytä ennen CSV:tä**: se on puuttuva palkanpidätys.
 
 ### [ ] T21 — Rekisteri-id 41345: työnantaja rekisterissä ≠ sopimusrivit (ri_creation-Warning 1.10.)
 
