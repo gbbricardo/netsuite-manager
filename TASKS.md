@@ -158,6 +158,33 @@ lokakuuksi.** 1.10.: Q1–Q3, testirajaus pois deploymentista, ri_creation → r
 R2:n 5 OOMI-riviä korjattu (fee 79,6813), R3:n päällekkäiset item 30 -rivit inaktivoitu, B044271:n ja
 B044504:n `oomi_exc` tyhjennetty. **Q3:een 1.10. lisätään:** (a) B043367: lokakuu kuuluu raportoida Rainmaker Telepalvelu Oy:lle (tuoteomistaja 30.09.). RI 117171 Active/New on siis oikein. Rekisterissä on yhä Rainmaker Contact (CR 6777 alkaa 1.11.), joten tarkista, ettei ri_creation tee Warningia tai toista riviä. (b) B044504: `exceptional_end_date` tyhjennetty 30.09. (todennettu). (c) Yksikään Active-rivi ei saa olla `lease_fee_vat0` = 0.
 
+**Puhdas riskiarvio 30.09. illalla** ([löydös](findings/2026-09-30-kuukausiajo-1-10-puhdas-riskiarvio.md), kolme auditoijaa ilman aiempia löydöksiä):
+1196 ajoi 30.09. 08:22 lokiaikaa, 66/66 CR:ää, 0 virhettä (todennettu `scriptnote`). Ennuste oli kaksi
+tuotannon Warningia. **Rekisteri-id 8893 / RI 117683 (ri_update D11, Joen Diesel Oy) korjattu 30.09. (käyttäjä).**
+Syynä oli kaksi muutosta samassa kuussa, pidennys ja ennenaikainen lunastus (T23). Jäljelle jää
+rekisteri-id 41345 (T21). **Q3:een 1.10. lisätään:** (d) tuotannon Warning-rivejä on korkeintaan 1 (41345),
+(e) 8893:lla on lokakuussa vain yksi elävä rivi.
+
+### [ ] T21 — Rekisteri-id 41345: työnantaja rekisterissä ≠ sopimusrivit (ri_creation-Warning 1.10.)
+
+Rekisterissä Serres Oy, mutta item 30 -rivit 97714 ja 97715 ovat Paree Group Oy:n sopimuksella. Syyskuun RI 98039 on Paree Groupilla,
+eikä CR:ää ole (todennettu 30.09.). Ri_creation tekee lokakuulle Warning-rivin, joka pidättää työnantajan.
+Asiakaspalvelu ratkaisee, kumpi työnantaja on oikein: joko rekisteri korjataan tai tehdään siirto-CR.
+
+### [ ] T22 — Rekisteri-id 26614: CR 6031 jäi CR 6750:n alle
+
+1196 kirjoitti 30.09. ensin CR 6031:n (tyyppi 1 2A, 1767 → 373, alku 1.10.) ja sitten CR 6750:n (tyyppi 9,
+alku 1.10. > loppu 30.09., → 1767). Rekisteri ja lokakuun RI 117176 ovat Wärtsilä Oyj Abp:llä ja täsmäävät
+toisiinsa. CR 6031:lle ei ole riviä. Asiakaspalvelu kertoo, onko CR 6031 vanhentunut vai siirtyykö pyörä oikeasti asiakkaalle 373.
+
+### [ ] T23 — Kaksi muutosta samassa kuussa tuottaa tuplarivin (juurisyy, 8893)
+
+Kun samalle pyörälle tulee samassa kuussa pidennys ja ennenaikainen lunastus, lokakuulle syntyy
+samalle työnantajalle sekä Active- että Ended-rivi, ja ri_update D11 (`mr_monthly_reporting_ri_update.js:1110-1156`)
+demotoi Active-rivin Warningiksi. Selvitä, kumpi UE-polku jättää vanhan rivin, ja kirjaa korjaus
+`netsuite-monthly-reporting`-repoon. Sitä ennen tarkista käsin kuukausiajon edellä pyörät, joilla on samassa kuussa
+Done-CR:t tyypeille 7 (pidennys) ja 2.
+
 ### [ ] T16 — B044504 ja B044271: asiakaspalvelun CR (lokakuu)
 
 Molemmat odottavat CR:ää. B044504: molemmat poikkeuspäivät tyhjennetty 30.09. (todennettu, `subsc_end` 1.4.2027). B044271: status 1, `subsc_end` 5.9.2026, ei tapaa.
