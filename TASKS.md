@@ -147,13 +147,46 @@ write-once-tapa estää tulevan CR:n arvot.
 ### [ ] T14 — Kuukausiajo 1.10. ilman vääriä rivejä
 
 Suunnitelma: [`docs/kuukausiajo-2026-10-suunnitelma.md`](docs/kuukausiajo-2026-10-suunnitelma.md).
-E1: asiakaspalvelu tekee B009498:lle ja B010548:lle siirto-CR:n (tyyppi 1, alku 01.10., vanhan loppu
-30.09.) **viimeistään 30.09. klo 23**; 27 muuta hoitaa 1196. E2: **tehty 29.09.** — B046737, B046742 ja
-B046832 lokakuun rivit 117974–117976 käsin (Active, todennettu); 1.10. tarkistetaan, ettei tullut tuplaa. E3 (B046830 status 1),
+E1: **valmis 30.09.** Asiakaspalvelu teki 2A-paketit (CR 6859 B009498 → Nautor 1.6., CR 6862 B010548 → Pirkan 1.9.). 29.09. suunnitelman suunta oli väärin päin, ja rekisteri oli jo oikein ([§ 6](findings/2026-09-30-kuukausiajo-rekisteri-riski.md)). 27 muuta hoitaa 1196. E2: **tehty 29.09.** — B046737, B046742 ja
+B046832 lokakuun rivit 117974–117976 käsin (Active, todennettu); 1.10. tarkistetaan, ettei tullut tuplaa. E3 **peruttu 30.09.**: B046830 on vahinkotilaus (oikea pyörä B043367), eikä sille aseteta statusta (T19).
 E5 (extension-parametrit UI:sta). **30.09. päivällä E1b: 1196
 käsin + tarkistus** — ajastettu ajo ei kirjoittanut elokuun lopussa. 30.09.: **E6 päätös T6:sta — sen sammutus pysäyttää sweepin koko
 lokakuuksi.** 1.10.: Q1–Q3, testirajaus pois deploymentista, ri_creation → ri_update → CSV.
 **Valmis kun** Q3:n tarkistukset menevät läpi ja CSV on ajettu.
+
+**Tarkistettu 30.09. illalla (rekisteririskin CSV, [§ 6](findings/2026-09-30-kuukausiajo-rekisteri-riski.md)):**
+R2:n 5 OOMI-riviä korjattu (fee 79,6813), R3:n päällekkäiset item 30 -rivit inaktivoitu, B044271:n ja
+B044504:n `oomi_exc` tyhjennetty. **Q3:een 1.10. lisätään:** (a) B043367: lokakuu kuuluu raportoida Rainmaker Telepalvelu Oy:lle (tuoteomistaja 30.09.). RI 117171 Active/New on siis oikein. Rekisterissä on yhä Rainmaker Contact (CR 6777 alkaa 1.11.), joten tarkista, ettei ri_creation tee Warningia tai toista riviä. (b) B044504: `exceptional_end_date` tyhjennetty 30.09. (todennettu). (c) Yksikään Active-rivi ei saa olla `lease_fee_vat0` = 0.
+
+### [ ] T16 — B044504 ja B044271: asiakaspalvelun CR (lokakuu)
+
+Molemmat odottavat CR:ää. B044504: molemmat poikkeuspäivät tyhjennetty 30.09. (todennettu, `subsc_end` 1.4.2027). B044271: status 1, `subsc_end` 5.9.2026, ei tapaa.
+
+### [ ] T17 — Välikuukaudet sopimuksen loppuun: raportoinnin käsittely suunniteltava (B016051)
+
+Järjestelmä ei tue tätä. Välikuukaudet laskutetaan sopimuksen loppuun (31.12.2026), joten vuokrarivi
+72784 on tyhjä kausi (1.1.2027–31.12.2026). RI-rivi 1269 (Paused) muutetaan Endediksi, jos lunastusmaksu
+maksetaan 12/2026. Muuten raportointi jatkuu, kunnes maksu tai velvoitteet on katettu. Tarkista
+B016051 joulukuussa, ja suunnittele yleinen sääntö ennen seuraavaa vastaavaa tapausta.
+
+### [ ] T18 — OOMI RI-rivi fee 0: selvitä syy ([löydös](findings/2026-09-30-oomi-ri-rivi-fee-nolla.md))
+
+Rivit 116352–116356 luotiin 18.09. klo 14:32, fee 0, ilman automaatiolokia. Selvitä luoja ja
+korjaa koodipolku niin, että puuttuva hinta tuottaa Warningin eikä 0:aa (omistava repo:
+`netsuite-monthly-reporting`).
+
+### [ ] T19 — Siivoa pyörärekisteristä vahinko- ja peruttujen tilausten tietueet
+
+B046830 on vahinkotilaus OOMI-siirrosta (Fleet-raportin virhe), ja oikea pyörä on B043367. B046739 ja
+B046740 ovat peruttuja tilauksia (status tyhjä, `oomi_exc` 31.5.2026). Inaktivoi tai merkitse, jotta
+ne eivät toistu auditoinneissa. Tarkista ensin, ettei niillä ole RI-, sopimus- tai CR-linkkejä
+(30.09.: ei lokakuun RI-rivejä).
+
+### [ ] T20 — B036939: kumpi hinta on oikea, 59,76 vai 79,68?
+
+R3:ssa jäljelle jäi item 30 -rivi 70263 (59,76), ja 79,68:n rivi 70323 inaktivoitiin. Rekisterin
+`curr_subs_rent` on 79,68, ja syyskuun RI 79402 on 59,76. Tarkista sopimus ja korjaa se, joka on väärin,
+ennen marraskuun laskua.
 
 ## 30.09.2026 (ke)
 

@@ -640,6 +640,21 @@ tyypin 2/10 CR:ää ole. Silloin kenttää ei voi enää korvata, ja se estäisi
 pyörää, tyhjennetty 24.09.). Auditointi ei raportoi yllä mainittua sallittua poikkeamaa §5-virheenä
 eikä ennenaikaisena lunastuksena.
 
+### Sallittu poikkeama: kauden lopun lunastus maksettu etuajassa pidentyneen sopimuksen takia (30.09.2026)
+
+Tuoteomistaja vahvisti 30.09.2026: jos vuokrasopimus on pidentynyt kauden aikana, vanha järjestelmä
+(ennen NetSuitea) on voinut lähettää lunastusmaksupyynnön alkuperäisen jakson loppuun. Näin kävi, koska
+viimeisintä huoltoa ei viety sinne. Maksu on silloin tullut etuajassa, ja pyörällä on ennen
+päättymiskuuta tapa 1 ja `liab_settled_at` = `paid_at` ilman tyypin 2/10 CR:ää.
+
+**Tätä ei korjata.** Kyse on kauden lopun lunastuksesta, eikä CR:ää tule, joten kenttää ei tarvitse
+korvata myöhemmin. Arvo on sama, jonka § 9 antaisi päättymiskuussa. Sweep kääntää pyörän päättymiskuun
+1. päivänä. 30.09.: B000991 (11/2026), B004234 (03/2027), B011005 (12/2026) ja B033069 (11/2026).
+
+Erota tämä K4:stä: jos maksu on **keskenkauden** lunastusmaksu (B013550, B029483, B040838 ja B041610
+30.09.), odotetaan asiakaspalvelun CR:ää (T10). Auditointi ei raportoi yllä lueteltuja neljää
+pidentynyttä sopimusta K4-virheenä.
+
 ## 10. Keskenkauden lunastus
 
 Päätökset: [ADR 0010](adr/0010-keskenkauden-lunastus.md) ja [ADR 0008](adr/0008-keskenkauden-lunastuksessa-cr-voittaa-maksun.md).

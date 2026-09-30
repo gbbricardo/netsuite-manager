@@ -294,6 +294,14 @@ These are the coupling points. When reviewing a change, walk this list first.
   `dayOfMonth 31` or with a test bike id left set skips whole months with no error (September 2026,
   bike B013565 missed). The deployment is `Scheduled` in the inventory — re-verify its recurrence and
   parameters, not just its status.
+- **A transfer CR (types 1/9, "2A package" with 11 + 7) splits payroll and billing on purpose.**
+  `custrecord_cr_contract_official_end_date` + 1 is the real transfer day. Reporting switches the
+  employer from then on, clamped to next month's 1st (`ue_reporting_item_transfers.js:122-126`).
+  `custrecord_cr_start_date` is the first *unbilled* month, and the agreement rows move only then.
+  The already-billed months in between are corrected by the package's type 11/7 CRs. So "register and RI
+  on the new employer, item 30 row on the old customer until `start_date`" is **correct, not an
+  asymmetry**. On 30.09.2026 this was reported as a critical error on 8 bikes and was a false alarm
+  (`findings/2026-09-30-kuukausiajo-rekisteri-riski.md` § 6).
 - **Hard-coded list and item IDs, duplicated across repos.** CR types (1, 2, 3, 6, 7, 8, 9, 11, 13),
   CR statuses (1 Pending, 2 Done, 5 Error, 6 Needs Review, 7 Cancelled), bike statuses (1/2/3), bike
   order type 3 (OOMI), items 30 (Vuokra) and 33 (Leasingmaksu). None of it is configuration.
