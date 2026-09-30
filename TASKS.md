@@ -193,6 +193,24 @@ Ended-rivi 117069, ja CR 6750 ohitti sen lokakuussa oikein.
 
 **Jäljelle jäävä riski → T24.**
 
+### [ ] T25 — Verovapaus T siirron jälkeen: 31 rekisteriä ja 14 lokakuun RI-riviä ([löydös](findings/2026-09-30-verovapaus-siirroissa.md))
+
+Sääntö: [`docs/verovapaus-saannot.md`](docs/verovapaus-saannot.md). Syyskuun 58 tyypin 1 siirrosta 31:llä on rekisterissä T. Konsernisiirto ei selitä yhtään.
+**Ennen 1.10. ri_creationia** tuoteomistaja päättää, korjataanko rekisteri F:ksi. Jos ei korjata, noin 10 uutta lokakuun T-riviä syntyy lisää.
+Lokakuun 14 T-riviä ja syyskuun 31 T-riviä korjataan erikseen. Selvitä myös, mitä 6.8.2026 klo 17 ajettiin: systemnoten mukaan `verovapaa` muuttui F → T.
+Automaatio puuttuu kaikista repoista.
+
+**Päätökset 30.09.:**
+1. Rekisteri korjataan.
+2. F alkaa siitä uuden työnantajan Active/New-rivistä, jonka siirron UE luo tyypin 1 CR:stä.
+
+**Import ajettu 30.09., todennettu: rekisterissä 29/30 ja lokakuun RI-riveillä 13/14 on F.** Poikkeus on B030311
+(CR 6734, liikkeenluovutus), joka jäi T:ksi tarkoituksella. Jäljellä: B017961 lokakuun lopussa, syyskuun rivit (päätös)
+ja automaatio. [`imports/2026-09-30-verovapaus-siirrot/`](imports/2026-09-30-verovapaus-siirrot/README.md).
+Rekisterissä 30 pyörää, lokakuussa 14 RI-riviä. Aja **ennen 1.10. ri_creationia.** B017961 (CR 6818, RI:n vaihto 1.11.)
+saa F:n lokakuun lopussa. Syyskuun 31 T-riviä ovat historiallisia, eikä niitä korjata ilman erillistä päätöstä.
+Automaatio pitää lisätä kahteen repoon: monthly-reporting UE ja cr-scripts `cr_bike_register_apply`.
+
 ### [ ] T24 — 1196 käsittelee saman pyörän CR:t ilman järjestystä
 
 Päätelty koodista: `cr_bike_register_updater.js:73-82` hakee tyypin 1/9 Done-CR:t, joiden `start_date` on seuraavan kuun 1. päivä,

@@ -174,7 +174,8 @@ tai palautus on myöhässä.`
    - **Vuokra-arvo ≠ kattavan item 30 -rivin `price_month`** samalle pyörä+työnantaja-parille.
      Pieni ero (pyöristys, indeksikorotus kauden vaihteessa) ei ole virhe — raportoi vain jos
      lähdettä ei löydy tai ero on selvä.
-   - **Verovapaus ≠ `custrecord_gbb_verovapaa`.**
+   - **Verovapaus ≠ `custrecord_gbb_verovapaa`.** Huomioi myös sääntö `docs/verovapaus-saannot.md`: tyypin 1
+     siirron (ei konsernisiirto 9) jälkeen verovapauden pitää olla F rekisterissä ja uuden työnantajan riveillä.
    - **Vuokra-aika:** Active-rivin `lease_start` ≠ rekisterin alkupäivä; `lease_end` < rekisterin
      päättymispäivä (B2:n pitäisi siirtää eteenpäin — jos ei ole, kysy miksi); Ended-rivi jonka
      `lease_end` on tyhjä (reikä 1:n sormenjälki); Ended-rivi CR-tyypeillä 1/2/6 jonka `lease_end

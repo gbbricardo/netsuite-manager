@@ -302,6 +302,10 @@ These are the coupling points. When reviewing a change, walk this list first.
   on the new employer, item 30 row on the old customer until `start_date`" is **correct, not an
   asymmetry**. On 30.09.2026 this was reported as a critical error on 8 bikes and was a false alarm
   (`findings/2026-09-30-kuukausiajo-rekisteri-riski.md` § 6).
+- **Tax exemption ends on a non-group transfer.** `custrecord_gbb_verovapaa` = T must become F on the
+  bike register and on the new employer's RI rows when a type-1 transfer (Siirto TA) changes the
+  employer; a type-9 group transfer keeps it. Rare exceptions exist. No repo automates this and
+  monthly-reporting copies the register value onto RI rows. Rule: `docs/verovapaus-saannot.md`.
 - **Hard-coded list and item IDs, duplicated across repos.** CR types (1, 2, 3, 6, 7, 8, 9, 11, 13),
   CR statuses (1 Pending, 2 Done, 5 Error, 6 Needs Review, 7 Cancelled), bike statuses (1/2/3), bike
   order type 3 (OOMI), items 30 (Vuokra) and 33 (Leasingmaksu). None of it is configuration.
