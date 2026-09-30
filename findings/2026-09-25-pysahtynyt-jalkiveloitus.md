@@ -6,6 +6,19 @@ lokakuun palkka-CSV voidaan korjata · **Liite:** [`2026-09-25-pysahtynyt-jalkiv
 selvitystä helpottavat tiedot: työnantaja, työntekijä, runkonumero, CR:t, myyntitilaukset, laskut,
 hyvitykset ja raportointirivit.)
 
+> [!IMPORTANT]
+> **Tilanne 29.09.2026 (tuoteomistaja):**
+> - **ProMet Oy on asetettu konkurssiin.** Siksi päivämäärät näyttävät oudoilta. Kyse ei ole
+>   keskenkauden lunastuksesta, jossa CR olisi unohtunut. **Taloustiimi päättää**, mitä kolmelle
+>   sopimukselle tehdään. Alla oleva tulkinta *"keskenkauden lunastus ennen CR-käytäntöä"* on
+>   kumottu.
+> - **B016555 on kunnossa.** Lunastusmaksupyyntöä ei ole maksettu, joten **laskutusta jatketaan
+>   lokakuuhun 2026 asti**. Ehdotus tavasta 2 on hylätty: laskun INVGBF1039336 kuukaudet 5–8/2026
+>   kuuluvat sopimuskauteen (alkuperäinen loppu 31.08.2026), joten ne eivät ole ylimääräistä vuokraa.
+>   Jäljellä on käytännön asia: syyskuun jälkiveloitus CR-6488 on Error-tilassa (Fortacon
+>   sopimusrivit päättyvät 31.07.2026), ja 1.10. jälkiveloitusajo löytää pyörän vain, jos CR-6488 on
+>   käsitelty sitä ennen. Muuten `subsc_end_date` on yhä 31.08.
+
 ## Mitä löytyi
 
 Neljä pyörää on NetSuitessa tilassa **Active**. Niiden sopimuskausi on päättynyt, eikä niille ole
@@ -31,7 +44,7 @@ vaikka sopimus päätettiin 30.11.2025, eikä työnantajaa ole laskutettu jouluk
 Kaikki yllä oleva on **todennettu NetSuitesta 25.09.2026**: pyörärekisteri, muutospyynnöt,
 transaktiot, Paylink-maksupyynnöt (ei yhtään) ja raportointirivit.
 
-## Tulkinta (päätelty, vaatii taloustiimin vahvistuksen)
+## Tulkinta 25.09. (päätelty, osittain kumottu 29.09., ks. yllä)
 
 **ProMet Oy (3 pyörää).** Kolme sopimusta on päätetty samana päivänä 19–20 kk ennen alkuperäistä
 loppua. Kahdelle on tehty lunastuksen myyntitilaus joulukuussa 2025. Tämä näyttää **keskenkauden
@@ -61,10 +74,8 @@ Pyöräkohtaiset kysymykset ovat CSV:n sarakkeessa `kysymys_taloustiimille`. Tä
 
 | Pyörä | Jos | Toimenpide | Kuka |
 |---|---|---|---|
-| B016555 | kattavuus hyväksytään | selvitystapa 2 `redemption_extra_rent`, `liab_settled_at` = maksun PAYGBF0044914 päivä (CSV, netsuite-manager valmistelee), CR-6488 → Cancelled, syyskuun päällekkäiset RI-rivit käsin | taloustiimi vahvistaa, käyttäjä ajaa CSV:n |
-| ProMet × 3 | lunastus maksettu / päätetty | tyypin 2 CR (loppu 30.11.2025, takautuva) ja tarvittaessa tyypin 11 hyvitys. B023198: laskutettu 12/2025–2/2026 | asiakaspalvelu |
-| B023198 | siirtynyt Ferros Oy:lle | Siirto TA -CR | asiakaspalvelu |
-| ProMet × 3 | sopimus jatkuu | loppupäivä takaisin alkuperäiseen, ja laskutus korjataan | taloustiimi |
+| B016555 | (päätetty 29.09.) laskutus jatkuu lokakuuhun | Fortacon sopimusrivit 9/2026 alkaen, sitten CR-6488 Error → Pending ennen 1.10. Muuten lokakuun tyypin 7 CR käsin. Syyskuun RI-rivit tarkistetaan: Fortacon Ended-rivi 63387 on ristiriidassa jatkuvan laskutuksen kanssa | taloustiimi / asiakaspalvelu |
+| ProMet × 3 | (29.09.) konkurssi | taloustiimi päättää sopimusten käsittelyn. Asiakaspalvelu kirjaa päätöksen CR:llä | taloustiimi |
 
 > [!WARNING]
 > **Lokakuun rivit.** Lokakuun Active-rivit on jo luotu ProMet Oy:n pyörille (RI 104318, 104319,
