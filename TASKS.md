@@ -154,6 +154,15 @@ käsin + tarkistus** — ajastettu ajo ei kirjoittanut elokuun lopussa. 30.09.: 
 lokakuuksi.** 1.10.: Q1–Q3, testirajaus pois deploymentista, ri_creation → ri_update → CSV.
 **Valmis kun** Q3:n tarkistukset menevät läpi ja CSV on ajettu.
 
+> [!NOTE]
+> **1.10.2026: ri_creation ja ri_update ajettu, Q3 läpi** ([löydös](findings/2026-10-01-ri-creation-tarkistus.md)).
+> ri_creation `scanned=46626 created=33862 mapErrors=0`, ri_update `mapErrors=0 reduceErrors=0`, Warning 0.
+> **Huomiotekstit korjattu CSV:llä ennen palkka-CSV:tä:** 202 *Ended retrospectively* -riviä
+> ([import](imports/2026-10-01-turhat-palkkahuomiot/README.md)) ja 32 Ended-riviä, joilla oli jälkiveloituksen
+> teksti ([import](imports/2026-10-01-myohassa-teksti-ended/README.md)), molemmat todennettu. Skriptikorjaukset:
+> T28 ja T29. **Tuoteomistajan päätökset 1.10.:** ProMet Oy:n rivit 104318–104320 menevät raportille, ja
+> 35 konsernisiirron Active/New-riviä pitävät huomionsa. Jäljellä: palkka-CSV (1451).
+
 **Tarkistettu 30.09. illalla (rekisteririskin CSV, [§ 6](findings/2026-09-30-kuukausiajo-rekisteri-riski.md)):**
 R2:n 5 OOMI-riviä korjattu (fee 79,6813), R3:n päällekkäiset item 30 -rivit inaktivoitu, B044271:n ja
 B044504:n `oomi_exc` tyhjennetty. **Q3:een 1.10. lisätään:** (a) B043367: lokakuu kuuluu raportoida Rainmaker Telepalvelu Oy:lle (tuoteomistaja 30.09.). RI 117171 Active/New on siis oikein. Rekisterissä on yhä Rainmaker Contact (CR 6777 alkaa 1.11.), joten tarkista, ettei ri_creation tee Warningia tai toista riviä. (b) B044504: `exceptional_end_date` tyhjennetty 30.09. (todennettu). (c) Yksikään Active-rivi ei saa olla `lease_fee_vat0` = 0. (f) Sweep kääntää 1.10. klo 00:30 noin 162 lokakuussa päättyvää pyörää, joilla on jo tapa, tilaan 2. **Jokaisella pitää silti olla lokakuun Active-rivi, ei Ended- eikä Warning-riviä.** Ended tulee vasta 1.11. (ADR 0002:n sopimusankkuri, todennettu 21.09. pyörällä 37874). Tarkistus tehdään T27:ssä.
@@ -165,7 +174,13 @@ Syynä oli kaksi muutosta samassa kuussa, pidennys ja ennenaikainen lunastus (T2
 rekisteri-id 41345 (T21). **Q3:een 1.10. lisätään:** (d) tuotannon Warning-rivejä on korkeintaan 1 (41345),
 (e) 8893:lla on lokakuussa vain yksi elävä rivi.
 
-### [ ] T27 — 1.10.2026: 162 sweepin kääntämää lokakuun pyörää raportoidaan Active ([lista](findings/2026-09-30-lokakuussa-paattyvat-162-sweep.md))
+### [x] T27 — 1.10.2026: 162 sweepin kääntämää lokakuun pyörää raportoidaan Active ([lista](findings/2026-09-30-lokakuussa-paattyvat-162-sweep.md)) — **tehty 1.10.2026**
+
+> [!NOTE]
+> **Tulos 1.10. ri_updaten jälkeen (03:42 Hki): 162/162 pyörällä yksi lokakuun Active-rivi**, ja rekisterissä
+> niiden status on 2. Mukana 45 Done-tyypin 2 CR:n pyörää (marraskuun Ended-rivi valmiina). B046434 sai uuden
+> rivin 152076, eikä B037874:lle tai B038677:lle syntynyt tuplaa.
+> [Löydös](findings/2026-10-01-ri-creation-tarkistus.md).
 
 **Päivä: 1.10.2026, ri_creationin ja ri_updaten jälkeen, ennen CSV:tä (1451).** 162 pyörän kausi päättyy lokakuussa, ja niillä on
 jo lunastustapa. Sweep kääntää ne 1.10. klo 00:30 tilaan 2/3. **Lokakuun rivin pitää silti olla Active**, ja Ended tulee
@@ -178,6 +193,22 @@ Katso erityisesti:
 - B046434: lokakuun rivi 103913 on Deleted. Uuden Active-rivin pitää syntyä.
 
 Jos yksikin puuttuu tai on Ended, **pysäytä ennen CSV:tä**: se on puuttuva palkanpidätys.
+
+### [ ] T28 — ri_update vaihe 1c: *Ended retrospectively* vertaa päättymispäivää eikä -kuuta ([löydös](findings/2026-10-01-turhat-ri-huomiot-kehitys.md) § Virhe 1)
+
+**Kun lokakuun raportit on lähetetty.** Korjaus tehdään `netsuite-monthly-reporting`-repossa erillisessä istunnossa.
+`mr_monthly_reporting_ri_update.js:953-957` liputtaa jokaisen kesken kuuta päättyneen Ended-rivin. 1.10. liputettiin
+202 väärin, ja ne korjattiin käsin. Konsernisiirtojen Active/New-huomio jää ennalleen (tuoteomistaja 1.10.).
+**Valmis kun** korjaus on tuotannossa ja testattu löydöksen testirivien perusteella. Jos sitä ei ehditä
+1.11. mennessä, marraskuun ajossa tehdään sama import.
+
+### [ ] T29 — Jälkiveloituksen teksti (C3 + C4) jää Ended-riville ([löydös](findings/2026-10-01-turhat-ri-huomiot-kehitys.md) § Virhe 2)
+
+**Kun lokakuun raportit on lähetetty.** Korjaus tehdään `netsuite-monthly-reporting`-repossa erillisessä istunnossa.
+*"… Pyörän lunastus on myöhässä. Vuokralaskutus ja pyöräedun käsittely palkoissa jatkuu …"* jäi 32 lokakuun
+Ended-riville (`ue_reporting_item_late_redemption_prolongation.js:281-290`), ja rivit korjattiin käsin.
+**Valmis kun** Ended-rivit eivät enää kanna tekstiä, ja Active-jälkiveloitusrivit säilyttävät sen.
+Tarkistetaan 1.11. ajossa.
 
 ### [ ] T21 — Rekisteri-id 41345: työnantaja rekisterissä ≠ sopimusrivit (ri_creation-Warning 1.10.)
 
