@@ -1,4 +1,0 @@
-﻿ORIGIN INVOICE EXTERNAL ID;External ID;Invoice #;TEXT FOR INVOICE;Invoice Ref. No.;Do not trigger invoice ref number;Customer;Subsidiary;Memo main;Date;Due Date;Currency;Exchange Rate;Account;[STA] EXCLUDE FROM REMINDER;Invoice is sent;Bike id;Item;Description;Unit price;Gross Amt;Quantity;Enduser cost center;Tax Code;RevRec start date;RevRec end date
-1626-103974;CR1626-103974;;Hyvittää laskua nro INVGBF1030430;;FALSE;103974;2;;3.6.2026;;EUR;1;119;No;No;;31;Toimistomaksu 2 pyörää;11,29084;28,34001;2;;6;1.6.2026;30.6.2026
-1626-103974;CR1626-103974;;Hyvittää laskua nro INVGBF1030430;;FALSE;103974;2;;3.6.2026;;EUR;1;119;No;No;;30;Vuokrakausi 1.6.2026-30.6.2026;80,64542;101,21;1;2002;6;1.6.2026;30.6.2026
-1626-103974;CR1626-103974;;Hyvittää laskua nro INVGBF1030430;;FALSE;103974;2;;3.6.2026;;EUR;1;119;No;No;;30;Vuokrakausi 1.6.2026-30.6.2026;80,64542;101,21;1;4004;6;1.6.2026;30.6.2026

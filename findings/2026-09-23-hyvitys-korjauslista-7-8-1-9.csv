@@ -1,9 +1,0 @@
-﻿cr_id;pyora;asiakas;hyvityskuukausi;cm_tranid;cm_internal_id;cm_trandate;nykyinen_summa_netto;oikea_summa_netto;erotus_netto;erotus_brutto;korjaustyyppi;ehdotettu_toimenpide;todennettu_vai_paatelty
-4451;B040578 (40578);104143 John Deere Forestry Oy;2026-07;CRMGBF0003667;703888;2026-08-30;58,63;92,58;33,95;42,61;Lisähyvitys;lisä-CM erotukselle (vuokra 50,46 -> 79,68, admin fee 8,17 -> 12,90);todennettu (CM-rivit; laskuttanut rivi, historia 2026-07)
-4584;B038663 (38663);104015 Hilti (Suomi) Oy;2026-07;CRMGBF0003663;703884;2026-08-30;45,26;93,55;48,29;60,60;Lisähyvitys;lisä-CM erotukselle (vuokra 39,02 -> 80,65, admin fee 6,24 -> 12,90);todennettu (CM-rivit; laskuttanut rivi, historia 2026-07)
-4998;B038088 (38088);104274 Oy Apotti Ab;2026-08;CRMGBF0003672;703895;2026-08-30;86,79;90,51;3,72;4,67;Lisähyvitys;lisä-CM erotukselle (admin fee 6,77 -> 10,49);todennettu (CM-rivit) – huom. CM:stä on poistettu 09/2026-rivit jälkikäteen (CR muokattu 31.8. 15:26)
-5163;B044906 (44906);104281 Peab Oy;2026-08;CRMGBF0003671;703893;2026-08-30;39,23;93,55;54,32;68,17;Lisähyvitys;lisä-CM erotukselle (vuokra 33,82 -> 80,65, admin fee 5,41 -> 12,90);todennettu (CM-rivit) – huom. CM:stä on poistettu 09/2026-rivit jälkikäteen (CR muokattu 31.8. 16:07)
-6060;B017548 (17548);4135 North Rail Oy;2026-09;CRMGBF0003682;705545;2026-08-31;91,63;95,62;3,99;5,01;Lisähyvitys;lisä-CM erotukselle (admin fee 11,95 -> 15,94);todennettu (CM-rivit; laskuttanut rivi, historia 2026-09)
-YHTEENSÄ lisähyvitykset (5);;;;;;;321,54;465,81;144,27;181,06;;;
-YHTEENSÄ ylihyvitykset (0);;;;;;;0,00;0,00;0,00;0,00;;;
-YHTEENSÄ netto (5);;;;;;;321,54;465,81;144,27;181,06;;;
