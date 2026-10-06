@@ -108,7 +108,13 @@ pyörälle.
 | 1 Käynnissä | ei selvitystapaa | 1 | jatkuu |
 | 2 Lunastus sovittu | selvitystapa täytetty, tunnistuspäivä ei vielä koittanut | **1** | **jatkuu** |
 | 3 Lunastettu | tunnistuspäivä koittanut | 2 | päättynyt |
-| 4 IC-käsitelty | `ic_redemption_pr` laskettu | 2 | päättynyt |
+| 4 IC-käsitelty | taloustiimi merkinnyt `ic_redemption_done` = T | 2/3 | päättynyt |
+
+> [!NOTE]
+> **IC-lunastettavissa ei ole tässä tilakoneessa oma tilansa** ([ADR 0011](adr/0011-ic-paiva-velvoitteista.md), 6.10.2026).
+> Se alkaa, kun velvoitteet on hoidettu, eli jo tilassa 2, ja päättyy tilaan 4. Ehto:
+> velvoitteet hoidettu ∧ `ic_redemption_dt` ∧ `ic_redemption_pr` (myös `-1`) ∧ `ic_redemption_done` ≠ T.
+> IC-myynti ei ole ehto. Taloustiimi päättää, lunastetaanko.
 
 **Tila 2 on tämän dokumentin ydin.** Sitä ei ole tänään olemassa käsitteenä, ja sen puuttuminen on
 se mekanismi jolla pyörä merkitään lunastetuksi kuukausia liian aikaisin. Tilassa 2 pyörä on
@@ -121,7 +127,7 @@ laskutetaan ja raportoidaan normaalisti.
 |---|---|
 | 1 → 2 | selvitystapa kirjataan **ja** velvoitteet on hoidettu |
 | 2 → 3 | tunnistuspäivä on koittanut |
-| 3 → 4 | IC-laskenta ajettu |
+| 3 → 4 | taloustiimi on tehnyt IC-lunastuksen ([ADR 0011](adr/0011-ic-paiva-velvoitteista.md)) |
 | 3 → 1 | vain korjauksena, käsin |
 
 Siirtymän 2 → 3 saa tehdä **mikä tahansa** kirjoittaja kunhan ehto täyttyy. Omistajuutta ei
@@ -297,8 +303,8 @@ selvitystavasta ja statuksesta; tämä kenttä kertoo vain kuinka kauan tila on 
 | | |
 |---|---|
 | **Arvo** | `LAST_DAY(päättymisajankohta)` |
-| **Milloin** | kun pyörä on tilassa 3; saa osoittaa menneeseen kauteen |
-| **Write-once** | kyllä (automaatiossa) |
+| **Milloin** | heti kun velvoitteet on hoidettu (myös tilassa 2 ja myös tulevaan kauteen); saa osoittaa menneeseen kauteen ([ADR 0011](adr/0011-ic-paiva-velvoitteista.md)) |
+| **Write-once** | **ei.** Seuraa lähtötietoja, kunnes `ic_redemption_done` = T: jos päättymisajankohta muuttuu tai velvoitteet eivät enää ole hoidettu, IC-päivä ja `ic_redemption_pr` tyhjennetään ja kirjoitetaan uudelleen, kun ehdot täyttyvät. Done-merkinnän jälkeen ei muuteta koskaan |
 | **Omistaja** | status-sync 2.0 lokakuusta 2026 ([ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md)); syyskuu 2026 ja sitä ennen CSV-import |
 
 Kenttä kuvaa milloin kausi päättyy **rahoittajan näkökulmasta** ja se on IC-lunastushinnan
@@ -554,7 +560,7 @@ seuraavan kuun 1. päivänä alkaa jälkiveloitus (ei OOMI-pyörillä).
 
 | Milloin | Mitä | Kuka |
 |---|---|---|
-| ~15.09. (30 pv ennen) | Paylink-linkki työntekijälle, eräpäivä 14 pv. Huoltobudjetti tai käsiraha kattaa → tapa 3/4 eikä linkkiä | `netstuite-send-end-redemption-payment-link` (1.10.2026 alkaen) |
+| ~15.09. (30 pv ennen; tavoite 60 pv, § 11) | Paylink-linkki työntekijälle, eräpäivä 14 pv. Huoltobudjetti tai käsiraha kattaa → tapa 3/4 eikä linkkiä | `netstuite-send-end-redemption-payment-link` (1.10.2026 alkaen) |
 | maksupäivä | `redemption_paid_at` = maksupäivä | status-sync 2.0, vaihe *Maksu* |
 | 1.10. | tapa 1 ja `liab_settled_at` = maksupäivä (jos ei tyypin 2/10 CR:ää), status 2, `ic_redemption_dt` 31.10. — yksi kirjoitus | status-sync 2.0 |
 | 1.10. → | IC-hinta lasketaan | IC-laskuri (D4) |
@@ -572,13 +578,18 @@ Etukäteen maksettu lunastus (esim. 20.09.) saa `paid_at`:n heti, mutta tavan 1 
 | Tapa | Arvo |
 |---|---|
 | 1 `redemption_paid` | maksupäivä (`closedate`, ei `trandate`) |
-| 2 `redemption_extra_rent` | sen jälkiveloituslaskun maksupäivä, jolla kattavuus täyttyy |
+| 2 `redemption_extra_rent` | sen jälkiveloituslaskun **luontipäivä**, jolla kattavuus täyttyy (ADR 0012, muutettu 6.10.2026; aiemmin maksupäivä) |
 | 3 `redemption_maint_budget`, 4 `redemption_down_payment` | päivä jona kattavuus todettiin |
 | 1, OOMI ilman maksua | tunnistuspäivä |
 
 `custrecord_gbb_redemption_decided_at`:ia **ei lueta** kauden lopun lunastuksessa mihinkään.
 
 ### Jälkiveloituksen kattavuus
+
+> [!IMPORTANT]
+> **Korvattu 6.10.2026 ([ADR 0012](adr/0012-loppulunastushinta-ja-kattavuus.md)).** Voimassa oleva sääntö on
+> § 11 *Kattavuus*: laskutetut *pidennys*-kuukaudet × 63,75 € ≥ maksettava netto (hinta − huoltohyvitys),
+> laskun maksaminen ei ole ehto. Alla oleva 24.09. muotoilu säilytetään historiana.
 
 ```
 Σ veroton (vuokra item 30 + toimisto- ja käsittelykulu item 31)
@@ -755,6 +766,110 @@ HAVING br.custrecord_gbb_redemption_decided_at IS NULL
 **Keskenkauden maksu ilman CR:ää:** menetelmä ja kyselyt ovat
 [`../findings/2026-09-24-keskenkauden-maksu-ilman-cr.md`](../findings/2026-09-24-keskenkauden-maksu-ilman-cr.md):ssä.
 24.09.: 19 Active-pyörää, jotka käsitellään yksitellen lokakuussa.
+
+---
+
+## 11. Loppulunastushinnan määräytyminen ja kattavuus
+
+Päätökset: [ADR 0012](adr/0012-loppulunastushinta-ja-kattavuus.md) (grilling 6.10.2026). Käsitteet:
+[`CONTEXT.md`](../CONTEXT.md) § *Loppulunastushinta ja sen kattaminen*. Taustalla 5.10. tavoitetila:
+[`../findings/2026-10-05-maksulinkki-logiikkavirheet-ja-tavoitetila.md`](../findings/2026-10-05-maksulinkki-logiikkavirheet-ja-tavoitetila.md).
+
+Koskee vain **kauden lopun lunastusta** muilla kuin OOMI-pyörillä. Keskenkauden lunastus: § 10.
+OOMI: § 9 *OOMI-pyörä*.
+
+### Hintaan vaikuttavat kentät
+
+| Tieto | Kenttä | Huom. |
+|---|---|---|
+| Loppulunastushinta | `custrecord_sta_end_redemption_price` | Netto. Totuus on vuokrasopimus. Kirjoittaa GoByBike-portaali rekisteriä luotaessa (oletus 0 = käsiraha kattaa) ja ohituksena; asiakaspalvelu ja talous saavat korjata. Mikään NetSuite-skripti ei kirjoita sitä |
+| Huoltosumma | `custrecord_sta_maintenance_sum` | Netto. Staria lisää huolto-ostolaskut; käsikorjauksia esiintyy. Voi olla 0, tyhjä (= 0) tai negatiivinen |
+| Huoltoporrastaulu | `customrecord_sta_maint_extending_months`, `custrecord_sta_me_max_rate_excl_vat` | Ylärajat netto: 1 kk 64,53; 2 kk 128,28; +63,75/kk. Ensimmäinen porras on 0,99 € brutto muita leveämpi |
+| OOMI | `custrecord_sta_bike_order_type` = 3 | rajaa pois |
+
+**Ei vaikuta hintaan:** sopimuksen pidennys (`subsc_end_date − subsc_org_end_date`), huoltopidennysrivit,
+käsirahan tila (`custrecord_sta_down_payment_status`) ja tyypin 4 SO:n rivit. Käsiraha on jo vähennetty
+loppulunastushinnasta.
+
+### Kaava
+
+```
+huoltohyvitys  = pienimmän portaan yläraja, joka ≥ huoltosumma, − huoltosumma    kun huoltosumma > 0   (aina < yhden portaan väli)
+               = −huoltosumma  (kokonaan, ei kattoa)                              kun huoltosumma ≤ 0
+maksettava netto  = loppulunastushinta − huoltohyvitys
+maksettava brutto = round2(maksettava netto × 1,255)
+```
+
+Summa lasketaan **kerran**, pyynnön lähetyshetkellä, sen hetken tiedoista. Sitä ei tallenneta
+rekisteriin eikä lasketa uudelleen pyynnön korjaamiseksi. Jos huoltohyvitys on yli yhden portaan
+(vain negatiivisella summalla), pyörä nostetaan digestiin tiedoksi. Pyyntö lähtee silti.
+
+### Milloin pyyntö lähetetään
+
+Pyyntö lähetetään vain, kun sille on tarve. Aikaikkuna on **60 päivää ennen päättymisajankohtaa –
+päättymisajankohta** (tavoite; 1479 lähettää nyt 30 päivää ennen). Päättymisajankohdan jälkeen ei
+lähetetä. Työntekijälle voi ilmoittaa eräpäiväksi päättymisajankohdan, mutta järjestelmän raja on
+päättymiskuun loppu (§ 9).
+
+Ohitukset järjestyksessä. Ensimmäinen täyttyvä ratkaisee:
+
+| # | Ehto | Seuraus |
+|---|---|---|
+| 1 | OOMI | ei pyyntöä (§ 9) |
+| 2 | ei Active | ei pyyntöä |
+| 3 | selvitystapa jo asetettu | ei pyyntöä, tapaa ei ylikirjoiteta |
+| 4 | tyypin 2 tai 10 CR tilassa Pending tai Done | ei pyyntöä eikä jälkiveloitusta: pyörä päättyy CR:n mukaan (ADR 0010) |
+| 5 | pyörällä on mikä tahansa Paylink-tilaus tuotteella *Työsuhdepyörän loppulunastus*, tilasta riippumatta (`custrecord_pl_ns_bike_id` tai `custrecord_pl_notes` = `externalid`) | ei uutta pyyntöä |
+| 6 | Done-tilainen tyypin 7 CR, jonka `altname` sisältää *pidennys* (jälkiveloitus käynnissä) | ei pyyntöä; loppu ratkeaa tavalla 1 tai 2 |
+| 7 | lunastus-SO olemassa tai `end_red_so_created` = T | ei pyyntöä |
+| 8 | loppulunastushinta tyhjä tai negatiivinen | ei pyyntöä, raportoidaan |
+| 9 | loppulunastushinta = 0 € | tapa 4, ei pyyntöä |
+| 10 | huoltosumma ylittää ylimmän portaan | ei pyyntöä, raportoidaan |
+| 11 | maksettava netto ≤ 0 tai brutto < 0,65 € | tapa 3, ei pyyntöä |
+| 12 | muu | pyyntö maksettavalla summalla |
+
+Pidennyslähteiden ristiriidat (5.10. S9 ja S10) **eivät estä pyyntöä**. Ne raportoidaan datan eheyslistalla,
+koska ne ovat sopimusrivien asia, eivät hinnan.
+
+### Kattavuus: milloin velvoite on hoidettu
+
+Pyörällä on täsmälleen yksi selvitystapa: ensimmäinen, joka yksin kattaa. Lähteitä ei yhdistetä.
+
+| Tapa | Velvoite hoidettu, kun | `liab_settled_at` |
+|---|---|---|
+| 4 `redemption_down_payment` | loppulunastushinta = 0 € | ajopäivä |
+| 3 `redemption_maint_budget` | huoltohyvitys kattaa hinnan (ohitus 11), todetaan lähetyshetkellä | ajopäivä |
+| 1 `redemption_paid` | pyörällä on maksettu (`custrecord_pl_ns_status` = 3) loppulunastustilaus. Summaa ei verrata: Paylink-tilausta ei voi maksaa vajaana | maksupäivä |
+| 2 `redemption_extra_rent` | laskutetut jälkiveloituskuukaudet × 63,75 € ≥ maksettava netto | rajan ylittävän laskun **luontipäivä** |
+
+**Tavan 2 laskenta:**
+
+```
+maksettava netto (kaavalla, tarkistushetken tiedoista)
+− 63,75 € × (laskutetut, hyvittämättömät laskut, jotka on luotu tämän pyörän Done-tilaisista
+             tyypin 7 CR:istä, joiden altname sisältää "pidennys")
+≤ 0   →  tapa 2
+```
+
+- Yksi jälkiveloituslasku = yksi kuukausi = 80,00 € brutto (63,75 € netto), laskun summasta
+  riippumatta (todellinen lasku 6.10.: 115,46 tai 114,25 € brutto). Jälkiveloituskuukausi on eri asia
+  kuin vuokrakuukausi (`CONTEXT.md`). Jos `handler_jalki` joskus laskuttaa useamman kuukauden kerralla, sääntö
+  avataan uudelleen.
+- Laskun maksaminen ei ole ehto. Työnantajan maksu on talouden perintää.
+- Vain *pidennys*-CR:t lasketaan. Muut tyypin 7 CR:t (*Jälkiveloitus*, *Jälkiveloitus - Poikkeus*,
+  *2A - jälkiveloitus*) laskuttavat sopimuskauden kuukausia, eivät kata lunastusta (vrt. B016555, CR-6107).
+- Viimeinen kuukausi laskutetaan kokonaan, vaikka se ylittäisi jäljellä olevan summan. Ylitystä ei
+  hyvitetä automaattisesti.
+- Vertailukohta lasketaan kaavalla, ei Paylink-tilauksen summasta: käsin muokattu tilaus
+  korvautuu NetSuitessa (`paylink_order_sync.ss2.js:256-280` päivittää maksamattoman tilauksen summat, K).
+
+### Avoin pyyntö
+
+- **Jälkiveloituksen aikana** asiakaspalvelu päivittää avoimen Paylink-tilauksen nettosumman käsin
+  vastaamaan jäljellä olevaa summaa (maksettava netto − 63,75 € × kuukaudet). Tuleva raporttiskripti
+  (erillinen, ei vielä määritelty) listaa päivitettävät ja käyttää samaa hintakirjastoa kuin 1479.
+- **Kun velvoite hoidetaan tavalla 2, 3 tai 4**, pyörän avoimet loppulunastustilaukset perutaan
+  Paylinkissä. Jos peruttu tilaus on ehditty maksaa, palautus on talouden asia.
 
 ---
 

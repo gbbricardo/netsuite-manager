@@ -25,6 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 3 | **Status-sync part A loses late payments permanently** (23.09.2026). Its ±5-day window is keyed on the payment/invoice date, not on when the payment became visible. 24 paid Active bikes have no settle method and will never end. Correction CSV: `findings/2026-09-23-status-sync-maksuikkuna-hukkaa-myohaiset-maksut.md`. **The fix is not a patch.** The script is rewritten as status-sync 2.0 ([ADR 0007](docs/adr/0007-status-sync-2-tasmaytysajo.md), `docs/status-sync-2-tasmaytysajo.md`): a nightly Map/Reduce reconciling payment, status and `ic_redemption_dt` (finance's saved search 797). Approved 23.09.: **September runs on CSV imports, cut-over 1.10. in one go, October is the test month.** The script id changes. **S1 ran 23.09. 17:21, 27/27 correct**; 5 more bikes surfaced from the Paylink backlog afterwards (S1b needed; re-run the extraction query on 30.09.). CSV imports do **not** fire `ue_gbb_redemption_decided_at`, so `decided_at` stays empty on imported rows. | The CSV must run before the 4 Pending 2C CRs are processed, or `handler_lunastus` writes the CR's creation date instead of the payment date (§5). A *Paid In Full* invoice can be a fully credited one: never widen the window without the credit check. |
 | 4 | **End-of-term redemption rules confirmed 24.09.2026** ([ADR 0009](docs/adr/0009-kauden-lopun-lunastus.md), `docs/lunastuksen-kenttasaannot.md` § 9). End-of-term = no type 2/10 CR in Pending/Done; deadline is the end of the end month; **OOMI bikes are Redeemed in their end month without payment** (method 1, `liab_settled_at` = tunnistuspäivä, `paid_at` empty — Oomi covers unpaid fees); extension ends automatically once paid type-7 invoices (net rent + admin fee) cover `end_redemption_price`; `redemption_decided_at` has no meaning at end of term. Resolves ADR 0008 D7/D8. Open: **S4** CSV (34 stuck OOMI bikes, `imports/2026-09-24-oomi-kauden-loppu/`) must run before S3 on 30.09.; K1–K3 go into status-sync 2.0; **K4**: 16 S1 bikes got method 1 before their end month; clearing CSV `imports/2026-09-24-s1-ennenaikainen-tapa/` **ran 24.09., 16/16 verified**; re-check 28.09. (B029495 may regain method 1 from old part A's ±5-day window). | Without S4 those 34 bikes stay Active forever — the sweep never sees a bike with no settle method. The OOMI `paid_at ≠ liab_settled_at` pattern is correct, not a §5 violation. |
 | 5 | **Mid-term redemption rules confirmed 24.09.2026** ([ADR 0010](docs/adr/0010-keskenkauden-lunastus.md), `docs/lunastuksen-kenttasaannot.md` § 10, requirements `docs/keskenkauden-lunastus-vaatimukset.md`). The type-2 CR alone is decision *and* evidence (no payment wait); no CR → no mid-term redemption, missing CRs are created **by hand** in October (19 bikes, `findings/2026-09-24-keskenkauden-maksu-ilman-cr.md`); `decided_at` = `cr_created_date`, written by the handler, history via CSV; rows cut at `end_date_of_old_sub`, money fixed by a type-11 CR (the only credit path — Staria `sta_mr_mid_life_redemption` is still **Scheduled every 2 h** and must go Not Scheduled); empty official end / created date or a later end date → Needs Review (owners finance + customer service, deadline end of creation month). **Exceptional end-date fields are abandoned**: päättymisajankohta becomes `subsc_end_date` only in October; `oomi_exceptional_end_date` stays Fleet-CSV visibility only. Open: **D9** — 15 Fleet-ended Active bikes with no settle method. | CSV `imports/2026-09-25-poikkeuspaivat-subsc/` (33 bikes) **must run before** the library drops the `COALESCE`, or 16 ended bikes regain a later end date and RI creation may emit Active rows for them. |
+| 6 | **The end-redemption Payment Link script went live 1.10.2026 and misprices late-redemption bikes** (`netstuite-send-end-redemption-payment-link`, script **1479**, `findings/2026-10-02-maksulinkki-ensimmainen-ajo.md`). The first production run sent 748 real Paylink links with 0 errors, and 215 were paid the same day. But the maintenance refund is anchored on `MONTHS_BETWEEN(subsc_end_date, subsc_org_end_date)`, and `handler_jalki` moves `subsc_end_date` once for every jälkiveloitus month. Result: **6 links undercharged by €80–160** (≈ €720; B006488 already paid €3.45), **4 bikes settled free as method 3** (≈ €598, now status 2), B046508 settled as method 4 while its price-0 question was still open, and 69 jälkiveloitus bikes listed `NOT_PRICED` in every daily digest. The fix belongs in the owning repo; the owner decides first. Every affected bike is a task in TASKS T30–T38 (`findings/2026-10-02-maksulinkki-tutkittavat.csv`), and the deadline is the next cohort run on **31.10.2026**. | Every month, the bikes that `handler_jalki` extends come back into the window (`not_before` filters on the *moving* `subsc_end_date`). Until the anchor is fixed, each new settlement 3/4 or link on a bike with a Done *pidennys – jälkiveloitus* CR is suspect. |
 
 **Resolved 22.09.2026 — both schedules are ON.**
 
@@ -89,7 +90,7 @@ bikes **0**, bikes with no status **140**.
 > **Read script execution logs from SuiteQL table `scriptnote`** (`scriptexecutionlog` fails with
 > `Invalid search type`). Its column **`scripttype` holds the script's internal id**, not a type.
 > Internal ids: **1452** ri_creation, **1453** ri_update, **1440** sweep, **1199** CR handler,
-> **1196** CR bike-register updater. The id in a `scriptrecord.nl?id=` URL is a different id.
+> **1196** CR bike-register updater, **1479** end-redemption Payment Link. The id in a `scriptrecord.nl?id=` URL is a different id.
 > `date` carries a time component, so filter with a range, never `date = TO_DATE(…)`.
 >
 > **The log's own date is the runtime clock, ~10 h behind Helsinki**, so late-evening Finnish runs
@@ -142,7 +143,7 @@ touching `netsuite-monthly-reporting`.
 
 ## What This Repository Is
 
-An **orchestration and audit layer** over seven sibling repositories that all automate the same
+An **orchestration and audit layer** over eight sibling repositories that all automate the same
 NetSuite account (GoByBike / `GobybikeFinland` on GitHub). This repo holds **no NetSuite scripts of
 its own** and does not deploy anything.
 
@@ -161,7 +162,7 @@ Its job is to answer questions that no single sibling repo can answer on its own
 > analysis over them. Findings are written up *here*; fixes are made in the owning repo, in a
 > separate session, following that repo's own conventions.
 
-## The Seven Orchestrated Repositories
+## The Eight Orchestrated Repositories
 
 All live as siblings under `../` (i.e. `C:\Users\Riku\Documents\GitHub\<name>`), each with its own
 git remote under `github.com/GobybikeFinland/`.
@@ -174,6 +175,7 @@ git remote under `github.com/GobybikeFinland/`.
 | `netsuite-bike-redemption-status-sync` | SuiteScript Scheduled Script | Second, independent writer of bike status `2` (Redeemed), driven by *payment arrival* rather than CR processing. Also stamps `custrecord_gbb_redemption_paid_at`. |
 | `netsuite-paylink-order-tracking` | SuiteScript 2.1, 4 scripts, no build | Paylink → NetSuite staging pipeline: `customrecord_payment_requests` → Sales Order + Customer Deposit. Upstream source of the payment facts the two repos above depend on. |
 | `netsuite-ic-calculators` | SuiteScript 2.1 MR + pure-JS libs, Jest | Intercompany redemption price amortisation. The only sibling with a meaningful local test suite. |
+| `netstuite-send-end-redemption-payment-link` *(sic, "netstuite")* | SuiteScript 2.1 Map/Reduce + 3 libs, no build, `node test/run_tests.js` for the pure libs | **Step 1 of end-of-term redemption** (*loppulunastus*). Daily: Active non-OOMI bikes whose `subsc_end_date` is within 30 days get a Paylink order (`notes` = bike `externalid`, product `Työsuhdepyörän loppulunastus`) and a Brevo mail (template 65, shared `/SuiteScripts/Brevo/lib_brevo_api.js`). The price is `end_redemption_price` minus the unused maintenance-bracket remainder. Stamps `custrecord_gbb_eredem_link_sent` and writes settle method **3** (maintenance budget covers the price) or **4** (stored price 0 €) with `liab_settled_at` = run date. Live since **1.10.2026**, script 1479. Steps 2–3 (payment → SO/deposit) are paylink-order-tracking. See § *Payment Link* below. |
 | `cf-gbb-tools` | Next.js on Cloudflare Workers (OpenNext), TypeScript, vitest | The human-facing side: internal tools behind Cloudflare Access that read and *write* NetSuite over REST/SuiteQL (bike-register lookup, subscription change-request creation, NetSuite alerts, Oomi redemption). Not SuiteScript — a separate client with its own field assumptions. |
 
 ## Working Commands
@@ -181,14 +183,15 @@ git remote under `github.com/GobybikeFinland/`.
 This repo has no build. The commands below are run **inside the sibling repo** being inspected.
 
 ```bash
-# Unit tests — only two siblings have them
+# Unit tests — only two siblings have real suites (the Payment Link repo has a plain-node check of its pure libs)
 cd ../netsuite-ic-calculators && npm test        # jest --verbose
 cd ../netsuite-ic-calculators && npx jest tests/gbb_ic_redemption_calculator.test.js   # single file
 cd ../cf-gbb-tools && npm test                   # vitest run (pure logic only, not routes)
 cd ../cf-gbb-tools && npx vitest run src/app/lib/helsinki-date.test.ts                 # single file
+cd ../netstuite-send-end-redemption-payment-link && node test/run_tests.js            # price + Helsinki-date libs
 ```
 
-The other five repos have **no test runner at all** — verification means deploying to a NetSuite
+The other six repos have **no test runner at all** — verification means deploying to a NetSuite
 account and running there. Never report a SuiteScript change as "tested" without a NetSuite run.
 
 Cross-repo state sweep:
@@ -196,7 +199,7 @@ Cross-repo state sweep:
 ```bash
 for p in netsuite-monthly-reporting netsuite-ic-calculators netsuite-bike-redemption-status-sync \
          netsuite-paylink-order-tracking netsuite-subscription-extension \
-         netsuite-subscrption-cr-scripts cf-gbb-tools; do
+         netsuite-subscrption-cr-scripts cf-gbb-tools netstuite-send-end-redemption-payment-link; do
   echo "== $p"
   git -C ../$p status -sb | head -3
   git -C ../$p log -1 --format='%ad %s' --date=short
@@ -251,10 +254,11 @@ These are the coupling points. When reviewing a change, walk this list first.
 
 | Record | Written by | Read by |
 |---|---|---|
-| `customrecord_sta_bike_register` | CR handlers (via `cr_bike_register_apply` / `cr_bike_snapshot`), bike-redemption-status-sync, paylink post-processor, ic-calculators, cf-gbb-tools | effectively everything |
+| `customrecord_sta_bike_register` | CR handlers (via `cr_bike_register_apply` / `cr_bike_snapshot`), bike-redemption-status-sync, paylink post-processor, ic-calculators, cf-gbb-tools, payment-link (`eredem_link_sent`, settle method 3/4 + `liab_settled_at`) | effectively everything |
 | `customrecord_subscrption_change_request` | subscription-extension (type 7), CR type-13 handler (creates 7, 9, 11), cf-gbb-tools | CR dispatcher, monthly-reporting User Event scripts |
 | `customrecord_sta_ca_agreement_row` | CR handlers (close / clone / reparent) | monthly-reporting (monthly price), subscription-extension (coverage check), ic-calculators |
-| `customrecord_payment_requests` | paylink-order-tracking | subscription-extension (check 2), bike-redemption-status-sync, cf-gbb-tools netsuite-alerts |
+| `customrecord_payment_requests` | paylink-order-tracking (rows for the Payment Link's orders since 1.10.2026) | subscription-extension (check 2), bike-redemption-status-sync, cf-gbb-tools netsuite-alerts. *Not* read by payment-link, by design |
+| `customrecord_sta_maint_extending_months` | nobody (static table, 49 rows) | payment-link (bracket = lease extension in place), ic-calculators (bracket = maintenance sum) — two rules on one table |
 | `customrecord_gbb_monthly_reporting_item` | monthly-reporting only | monthly-reporting only — but derived from all of the above |
 
 ### Known structural asymmetries to keep re-checking
@@ -329,6 +333,46 @@ These are the coupling points. When reviewing a change, walk this list first.
   the CR dispatcher writes `Needs Review`; paylink writes `Pending Bike`. None surface as execution-log
   errors. Judging "did the change work?" from the execution log is wrong in all of them — count the
   quiet states before and after instead.
+- **Lease extension means two things, and the Payment Link reads only one of them.** `subsc_end_date − subsc_org_end_date`
+  counts maintenance-driven months (`sta_ue_bike_register_hook.js`, a one-way ratchet) *and*
+  jälkiveloitus months (`handler_jalki` moves the end date for every *pidennys – jälkiveloitus* type-7 CR).
+  The Payment Link prices the maintenance refund on that difference. Its second witness, the prolongation agreement rows, is
+  compared only as a yes/no. A late-redemption bike that also has maintenance rows is therefore refunded
+  for its jälkiveloitus months as if they were unused maintenance budget. **Verified 1.10.2026: 6 links + 4
+  settlements**, each off by exactly its jälkiveloitus CR count. The IC calculator
+  (`gbb_ic_redemption_price_mr.js:158`) derives the period from the **maintenance sum** instead. One bracket table,
+  two rules.
+- **The Paylink product title is a routing key.** The Payment Link sends `custscript_gbb_eredem_item_title`
+  (default `Työsuhdepyörän loppulunastus`). `paylink_ns_processor.ue.js:28` `PRODUCT_MAP` matches that exact text
+  to item 46 / SO type 4. Change the parameter and every payment lands in `Error: No product configuration`,
+  which status-sync then never sees.
+- **`not_before` floors a moving date.** The Payment Link's cohort floor filters `subsc_end_date`, which
+  jälkiveloitus moves forward. September-and-older cohorts invoiced by the old manual process therefore re-enter the window each month.
+  `custrecord_gbb_eredem_link_sent` stops a second link only for links this script sent itself.
+
+### Payment Link (`netstuite-send-end-redemption-payment-link`) — what it owns
+
+- **Flow:** step 1 of end-of-term redemption only. Step 2 (`paylink_order_sync` → `customrecord_payment_requests`)
+  and step 3 (`paylink_ns_processor.ue.js` → SO type 4 + Customer Deposit, bike found by `notes` = `externalid`)
+  are paylink-order-tracking. Status-sync part A then writes `paid_at` + method 1, and the sweep (1440) writes status 2
+  at the start of the end month. Unpaid → `netsuite-subscription-extension` on the 1st → type 7 → `handler_jalki`.
+  An unpaid link is **out of scope** by that repo's decision: no reminder, no re-send.
+- **Selection** (`getInputData`): Active, not OOMI (`IS NULL OR <> 3`), `eredem_link_sent` not T, **no settle method**,
+  `subsc_end_date` in [today, today + `days_before` (30)] Helsinki **and** ≥ `not_before` (`2026-10-01`, mandatory).
+  Per-bike checks in order: sent → settled → `end_red_so_created` → linked type-4 SO → price empty → price 0 (method 4)
+  → extension sources disagree / unpriceable → price ≤ 0,65 € (method 3) → link.
+- **Tools:** Paylink REST (own lib `lib_gbb_paylink_api.js`, test vs prod by the `paylink_url` parameter),
+  Brevo via the **shared** `/SuiteScripts/Brevo/lib_brevo_api.js` (two other live scripts depend on it), `N/email` digest
+  to info@gobybike.fi, `lib_gbb_helsinki_date.js` for Finnish calendar days. Safety: `dry_run`, `test_bike_id`.
+- **NetSuite ids:** script `customscript_gbb_mr_eredem_paylink` = **1479**, deployment `customdeploy_gbb_eredem_test`
+  (the production one despite its name, `Scheduled`), File Cabinet folder 40451 `[GBB] Send end redemption payment link`.
+  Repo decision: daily 08:00. The first unattended run had not appeared in `scriptnote` by 2.10. 10:09 Helsinki.
+- **Read the run** from `scriptnote` (`scripttype = 1479`): the `selection` line (window, floor, Paylink env, count)
+  and `run complete` (outcome counts). Per bike, the title is `<STATUS> <bike name>` with the whole price trail in
+  the detail. Outcomes that need a person: `STAMP_FAILED`, `EMAIL_FAILED`, `SENT_TO_FALLBACK`, `NOT_PRICED`, `SKIP_*`, `SETTLED_*`.
+- **Its own rules:** every business decision there is the owner's (that repo's rule 1). Its agent never writes to
+  NetSuite. Settled decisions live in its `docs/DEPLOYMENT.md` § *Settled specifics*. Record cross-repo findings here and
+  take fixes there.
 
 ### Documentation trust order
 

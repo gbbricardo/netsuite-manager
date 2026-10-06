@@ -3,14 +3,14 @@
 **Päivitetty:** 2026-09-23 · **Kohde:** `netsuite-bike-redemption-status-sync` (korvaa
 `gbb_ss_bike_redemption_status_sync.js`:n) · **Tila:** rakenne hyväksytty
 ([ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md)), käyttöönotto lokakuussa 2026 yhdellä kertaa,
-päätökset D1 ja D5 auki
+päätös D5 auki (D1 ja D7 ratkaistu [ADR 0011](adr/0011-ic-paiva-velvoitteista.md):llä 6.10.2026)
 **Sisältää:** [`status-sync-maksuhavainto-muutosspeksi.md`](status-sync-maksuhavainto-muutosspeksi.md)
 (= vaihe *Maksu* alla) · **Säännöt:** [`lunastuksen-kenttasaannot.md`](lunastuksen-kenttasaannot.md)
 
 ## Tehtävä yhdellä lauseella
 
-> **Joka yö koko pyörärekisteri on lunastusten osalta oikeassa tilassa, ja jokainen lunastettu
-> pyörä on taloustiimin IC-listalla — ja se mikä ei korjaudu automaattisesti, on nimeltä
+> **Joka yö koko pyörärekisteri on lunastusten osalta oikeassa tilassa, ja jokainen pyörä, jonka
+> velvoitteet on hoidettu, on hinnoiteltuna taloustiimin IC-listalla — ja se mikä ei korjaudu automaattisesti, on nimeltä
 > jonkun listalla.**
 
 Nykyinen skripti tekee tästä kolmanneksen: se kääntää statuksen 1 → 2/3 (osa B) ja havaitsee osan
@@ -153,32 +153,26 @@ kirjoittajia voi olla useita, mutta **tämä skripti on se, joka takaa lopputulo
 ### Vaihe 3 — IC-lista
 
 > [!IMPORTANT]
-> **Vaatimus 30.09.2026 (käyttäjä, D7):** status-sync 2.0:n on huolehdittava, että
-> `custrecord_gbb_ic_redemption_dt` on **aina täytetty, kun vastuut on hoidettu**. IC-päivä on
-> skriptin vastuulla, ei käsin tehtävien CSV-täyttöjen. Syyskuussa IC-päivät täytettiin käsin 29.09. ja
-> 30.09., ja 325 pyörää jäi silti ilman päivää
-> ([löydös](../findings/2026-09-30-t5-ic-paiva-puuttuu.md)).
->
-> Kaksi kohtaa ratkaistava ennen toteutusta:
-> 1. **Ehto.** Alla oleva ehto on *status 2 tai 3*. Vaatimus sanoo *vastuut hoidettu*
->    (`onkoVelvoitteetHoidettu`). Kauden lopussa nämä tapahtuvat samana päivänä. Keskenkauden lunastuksessa
->    CR:n `liab_settled_at` tulee ennen statusta (kuukausiankkuri), joten vaatimuksen mukaan IC-päivä
->    kirjoitettaisiin jo ennen kääntöä. Arvo on kummassakin tapauksessa sama, `LAST_DAY(päättymisajankohta)`.
-> 2. **Tapa 8.** Kirjasto pitää tapaa 8 `historical_unknown` maksuttomana todisteena, eli vastuut ovat
->    hoidettu (`gbb_lunastus_lib.js:113-120`). Vaatimuksen mukaan 2.0 kirjoittaisi IC-päivän myös 280
->    OOMI-pyörälle, joilla on tapa 8 ja kausi 05–06/2026. Taloustiimin on hyväksyttävä se, tai tapa 8
->    on rajattava pois ja raportoitava.
->
-> Testipyörä B017530 rajataan pois (käyttäjä 30.09.).
+> **Säännöt: [ADR 0011](adr/0011-ic-paiva-velvoitteista.md) (6.10.2026).** Laukaisija on *velvoitteet
+> hoidettu* (`onkoVelvoitteetHoidettu`), ei status 2/3. IC-päivä seuraa lähtötietoja, kunnes taloustiimi
+> merkitsee `ic_redemption_done` = T. Tapa 8 saa IC-päivän. IC-myynti ei ole ehto. Testipyörä B017530
+> rajataan pois (käyttäjä 30.09.).
 
-Kirjoita `custrecord_gbb_ic_redemption_dt`, kun **kaikki** seuraavat ehdot täyttyvät:
+**Kirjoita** `custrecord_gbb_ic_redemption_dt` = `icLunastuspaiva(bike)`, kun **kaikki** täyttyvät:
 
-- status (vaiheen 2 jälkeen) on 2 tai 3 — tila 3 *Lunastettu*
-- `ic_redemption_dt` on tyhjä (write-once)
-- `ic_redemption_done` ei ole `T` eikä `ic_redemption_pr` ole asetettu, koska finance on jo
-  käsitellyt sen
-- pyörä kuuluu IC-piiriin (D1)
+- velvoitteet on hoidettu (vaiheiden 1–2 jälkeen, muistissa), vaikka status olisi yhä 1
+- `ic_redemption_done` ≠ T
+- `ic_redemption_dt` on tyhjä **tai poikkeaa** arvosta `icLunastuspaiva(bike)`. Poikkeava arvo
+  korvataan, ja `ic_redemption_pr` tyhjennetään samassa kirjoituksessa, jotta laskuri hinnoittelee
+  pyörän uudelleen
 - `paattymisajankohta(bike)` on olemassa. Jos ei ole, pyörä raportoidaan
+
+**Tyhjennä** `ic_redemption_dt` ja `ic_redemption_pr`, kun velvoitteet **eivät** ole hoidettu,
+`ic_redemption_done` ≠ T ja IC-päivä on asetettu. Pyörä poistuu silloin listalta ja palaa, kun
+ehdot täyttyvät uudelleen.
+
+**Kun `ic_redemption_done` = T, IC-kenttiin ei kosketa koskaan.** Jos lähtötiedot eivät enää täsmää,
+pyörä menee poikkeamaraporttiin (vaihe 4), eikä sitä korjata.
 
 Arvo tulee kirjastosta, ei skriptistä. **Kirjastoon lisätään uusi funktio** (omistaja
 `netsuite-subscrption-cr-scripts`, `VERSION` → 1.2.0, yksikkötestit):
@@ -229,15 +223,15 @@ UNION ALL
 SELECT id, 'status' FROM customrecord_sta_bike_register
  WHERE custrecord_sta_bike_status = 1 AND custrecord_gbb_liab_settle_method IS NOT NULL
 UNION ALL
-SELECT id, 'ic'     FROM customrecord_sta_bike_register
- WHERE custrecord_sta_bike_status IN (2,3) AND custrecord_gbb_ic_redemption_dt IS NULL
-   AND NVL(custrecord_gbb_ic_redemption_done,'F') = 'F' AND custrecord_gbb_ic_redemption_pr IS NULL
+SELECT id, 'ic'     FROM customrecord_sta_bike_register   -- ADR 0011: velvoitteet arvioi map, ei kysely
+ WHERE NVL(custrecord_gbb_ic_redemption_done,'F') = 'F'
+   AND (custrecord_gbb_liab_settle_method IS NOT NULL OR custrecord_gbb_ic_redemption_dt IS NOT NULL)
 UNION ALL
 SELECT id, 'tarkistus' FROM customrecord_sta_bike_register
  WHERE (custrecord_sta_bike_status = 3 AND NVL(custrecord_gbb_liab_settle_method,0) <> 5)
     OR (custrecord_sta_bike_status = 2 AND custrecord_gbb_liab_settle_method = 5)
     OR (custrecord_sta_bike_status IN (2,3) AND COALESCE(…päättymisajankohta…) >= ADD_MONTHS(TRUNC(CURRENT_DATE,'MM'),1))
-    OR (custrecord_sta_bike_status = 1 AND (custrecord_gbb_ic_redemption_dt IS NOT NULL OR custrecord_gbb_ic_redemption_done = 'T'))
+    OR (custrecord_sta_bike_status = 1 AND custrecord_gbb_ic_redemption_done = 'T')   -- ADR 0011: status 1 + IC-päivä on sallittu
     OR (custrecord_sta_bike_status IS NULL AND custrecord_sta_subsc_start_date <= CURRENT_DATE)
     OR (custrecord_sta_bike_status = 1 AND custrecord_gbb_liab_settle_method IS NULL
         AND COALESCE(…) < ADD_MONTHS(TRUNC(CURRENT_DATE,'MM'),-2))
@@ -335,13 +329,13 @@ arkistoidaan.
 
 | # | Kysymys | Suositus | Peruste |
 |---|---|---|---|
-| **D1** | Kirjoitetaanko IC-päivä vain IC-myydyille pyörille vai kaikille lunastetuille? | **Kysy financelta.** Oletus: vain IC-myydyt | 281 ei-IC-myytyä on IC-päivällä ja done-merkinnällä, joten finance on käsitellyt niitäkin. Laskuri tarvitsee kustannuslähteen (FAM tai `ic_sale_price`) ja merkitsee muut `-1`:ksi |
-| **D2** | `LAST_DAY(päättymisajankohta)` kaikille? | **Ratkaistu 23.09.:** kyllä | IC-päivä on kirjanpitokausi (ADR 0007). Nykyisiä 7 % poikkeamia ei muuteta (write-once) |
-| **D3** | Kirjoitetaanko IC-päivä heti tilaan 3 tultaessa? | **Ratkaistu 23.09.:** kyllä | Taloustiimi tarvitsee tiedon ennen kuun loppua, ja tunnistuspäivä on kuun ensimmäinen. Historia on sallittu |
-| **D4** | Käynnistetäänkö IC-laskuri automaattisesti? | kyllä, mukana lokakuun käyttöönotossa | idempotentti, ja hinta on valmiina aamulla. Muuten haussa 797 on rivejä ilman hintaa, kunnes joku ajaa laskurin käsin |
+| **D1** | Kirjoitetaanko IC-päivä vain IC-myydyille pyörille vai kaikille lunastetuille? | **Ratkaistu 6.10. ([ADR 0011](adr/0011-ic-paiva-velvoitteista.md)):** kaikille, joiden velvoitteet on hoidettu. IC-myymätön saa hinnan `-1`, ja taloustiimi päättää | 281 ei-IC-myytyä on IC-päivällä ja done-merkinnällä, joten finance on käsitellyt niitäkin. Laskuri tarvitsee kustannuslähteen (FAM tai `ic_sale_price`) ja merkitsee muut `-1`:ksi |
+| **D2** | `LAST_DAY(päättymisajankohta)` kaikille? | **Ratkaistu 23.09.:** kyllä | IC-päivä on kirjanpitokausi (ADR 0007). ~~Nykyisiä 7 % poikkeamia ei muuteta (write-once)~~ **6.10.: write-once kumottu (ADR 0011), poikkeamat korjataan, ellei done = T** |
+| **D3** | Kirjoitetaanko IC-päivä heti tilaan 3 tultaessa? | **Ratkaistu 23.09.:** kyllä. **Tarkennettu 6.10. (ADR 0011):** jo kun velvoitteet on hoidettu, ennen tilaa 3 | Taloustiimi tarvitsee tiedon ennen kuun loppua, ja tunnistuspäivä on kuun ensimmäinen. Historia on sallittu |
+| **D4** | Käynnistetäänkö IC-laskuri automaattisesti? | **Päätetty 6.10. (ADR 0011):** kyllä, `summarize` käynnistää sen. Laskurin päivittäinen varmistusajastus on auki | idempotentti, ja hinta on valmiina aamulla. Muuten haussa 797 on rivejä ilman hintaa, kunnes joku ajaa laskurin käsin |
 | **D5** | Kenelle raportti menee? | financen vastaava + lunastusten omistaja, sähköposti `N/email` | [Vastuurekisteri](../../Second%20brain/35-Systems/Vastuurekisteri.md) nimeää financen vastaavan. Automaatiolle ei ole omistajaa |
 | **D6** | Korjataanko 2 ↔ 3 -ristiriita automaattisesti? | ei aluksi, vain raportti | 3 tapausta. Katso ne ensin käsin: onko vika statuksessa vai selvitystavassa |
-| **D7** | Kuka takaa IC-päivän? | **Päätetty 30.09. (käyttäjä):** status-sync 2.0. IC-päivän on aina oltava täytetty, kun vastuut on hoidettu | Käsin tehdyt täytöt 29.–30.09. jättivät 325 pyörää ilman päivää. Auki ovat ehto (vastuut hoidettu vai status 2/3) ja tapa 8, ks. § Vaihe 3 |
+| **D7** | Kuka takaa IC-päivän? | **Päätetty 30.09. (käyttäjä):** status-sync 2.0. IC-päivän on aina oltava täytetty, kun vastuut on hoidettu | Käsin tehdyt täytöt 29.–30.09. jättivät 325 pyörää ilman päivää. **6.10.:** ehto = velvoitteet hoidettu, tapa 8 mukana ([ADR 0011](adr/0011-ic-paiva-velvoitteista.md)) |
 
 ## Mitä tämä ei tee
 

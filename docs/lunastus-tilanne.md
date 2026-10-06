@@ -109,8 +109,10 @@ todiste.** Se oli vaiheen 3 ainoa este.
 > taloustiimin listalta** (saved search 797), joista noin 350 kesä–elokuulta.
 > **Rakenne hyväksytty 23.09.** ([ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md)). **Syyskuu
 > hoidetaan CSV:illä** (S1 maksut, S2 IC-päivät, S3 täydennys 30.09.). **Käyttöönotto 1.10.
-> kerralla**, ja lokakuu on testikuukausi. Auki: D1 (IC-päivä myös ei-IC-myydyille?) ja D5
-> (raportin vastaanottaja).
+> kerralla**, ja lokakuu on testikuukausi. Auki: D5 (raportin vastaanottaja).
+> **6.10.2026: IC-lunastuksen tavoitetila määritelty ([ADR 0011](adr/0011-ic-paiva-velvoitteista.md)).**
+> IC-päivä kirjoitetaan, kun velvoitteet on hoidettu, ei status 2/3:sta. Se kirjoitetaan myös IC-myymättömille (D1 ratkaistu)
+> ja tavalle 8. Se seuraa lähtötietoja, kunnes taloustiimi merkitsee done:n. Tehtävät T39–T42.
 >
 > **S1 ajettu 23.09. klo 17:21: 27/27 oikein**, ja 2C-CR:t olivat yhä Pending. Paylink-jonon purku
 > jatkui importin jälkeen, ja **5 uutta pyörää** putosi samaan aukkoon (S1b tarvitaan, kaksi niistä
@@ -373,6 +375,20 @@ automaattisesti kattavuusehdolla. Ratkaisee ADR 0008:n D7:n ja D8:n.
 | K2 | Status-sync 2.0: jälkiveloituksen kattavuustarkistus → tapa 2 (k. 5) | lokakuun käyttöönotto | uusi, ei toteutettu |
 | K3 | Status-sync 2.0 / kirjasto: OOMI-haara → tapa 1, `liab_settled_at` = tunnistuspäivä ilman maksua (k. 6) | lokakuun käyttöönotto | uusi, ei toteutettu |
 | K4 | S1:n 16 CR:töntä pyörää (kausi 10/2026–2029) saivat tavan 1 ennen päättymiskuuta → tapa ja `liab_settled_at` tyhjennetään CSV:llä ([import](../imports/2026-09-24-s1-ennenaikainen-tapa/README.md)). **B016666:n CR 6718 on Pending — aja ennen seuraavaa CR-ajoa.** Tarkista uudelleen 28.09. (B029495) | heti | ✔ **ajettu 24.09., 16/16 oikein** (tapa ja `liab_settled_at` tyhjiä, `paid_at` ennallaan, CR 6718 yhä Pending). Uusintatarkistus 28.09. |
+
+### Maksulinkki tuotannossa 1.10.2026 (vaihe 1, `netstuite-send-end-redemption-payment-link`)
+
+Kauden lopun lunastuksen ensimmäinen vaihe on nyt automaattinen: script 1479 lähettää 30 päivää ennen
+`subsc_end_date`:a Paylink-linkin Brevolla ja kirjaa tavan 3/4, kun hinta on nolla.
+Ensimmäinen ajo ([löydös](../findings/2026-10-02-maksulinkki-ensimmainen-ajo.md)) lähetti **748 linkkiä, 0 virhettä**.
+**215 maksettiin 1.10.**, ja niillä on status 2, tapa 1 ja `paid_at` 1.10. (N). Niiltä puuttuu `liab_settled_at`, koska
+vanha osa A ei kirjoita sitä (T26).
+
+**Mittarivaikutus:** tapoja 3 ja 4 kirjoitetaan nyt automaattisesti, kun ennen 1.10. niitä oli 4 ja 0. Tavat 3/4 kääntyvät
+statukseen 2 sweepissä päättymiskuun alussa.
+
+**Virhe:** jälkiveloituskuukaudet lasketaan huoltopidennykseksi. Tämän takia 6 linkkiä on liian pieniä, ja 4 tapa 3 -kirjausta
+on tehty pyörille, jotka eivät ole ilmaisia. Lisäksi 69 jälkiveloituspyörää on `NOT_PRICED`-tilassa. → TASKS T30–T38 (takaraja 31.10.).
 
 ## Avoimet päätökset
 

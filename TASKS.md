@@ -69,6 +69,11 @@ Tämän jälkeen T5 (S3) antaa niille IC-päivän 30.09.2026.
 
 ### [ ] T2 — S2: IC-päivät CSV:llä
 
+> [!NOTE]
+> **6.10.2026: [ADR 0011](docs/adr/0011-ic-paiva-velvoitteista.md) muuttaa tämän säännön.** Joukkoehto on nyt *velvoitteet
+> hoidettu, ei done*, ei *status 2/3, IC-myyty*. Tehtävä korvautuu status-sync 2.0:n ensimmäisellä ajolla (T41). Aja CSV
+> enää vain, jos taloustiimi tarvitsee päiviä ennen sitä, ja silloin uudella ehdolla.
+
 Suunnitelma: [`docs/status-sync-2-tasmaytysajo.md`](docs/status-sync-2-tasmaytysajo.md) § Syyskuu,
 rivi S2. Sääntö: `ic_redemption_dt = LAST_DAY(päättymisajankohta)` ([ADR 0007](docs/adr/0007-status-sync-2-tasmaytysajo.md),
 [ADR 0009](docs/adr/0009-kauden-lopun-lunastus.md): jälkiveloitetulla pyörällä kyse on siirretystä
@@ -131,6 +136,7 @@ Tuoteomistajan luokittelu: B005039, B015640, B035208 ja B036496 ovat keskenkaude
 CR luodaan lokakuussa tai myöhemmin. B042831, B045266 ja B041552 ovat kauden lopun lunastuksia 10/2026,
 B038685 ja B044476 kauden lopun lunastuksia 11/2026, ja kaikki viisi ovat maksaneet ajoissa.
 **Seuranta:** 2.10. kolme lokakuun OOMI-pyörää ovat status 2, ja 2.11. kaksi marraskuun pyörää.
+**2.10. todennettu:** B041552, B042831 ja B045266 ovat status 2 tavalla 1. Jäljellä on 2.11.
 Neljälle keskenkauden pyörälle tulee tyypin 2 CR, ja niiden `liab_settled_at` = CR:n luontipäivä.
 
 **Laajennettu 25.09. (T1:n sivuhavainto), aiempi muotoilu:** vanha osa A jatkaa ennenaikaisen tavan 1
@@ -139,6 +145,169 @@ tapa 1, ei tyypin 2/10 CR:ää Pending/Done, päättymiskuu ei alkanut*. 25.09. 
 pyörää (lista T1:ssä). **Tuoteomistaja päättää**, tyhjennetäänkö tapa K4:n tapaan CSV:llä.
 OOMI-pyörät kääntyvät päättymiskuussaan joka tapauksessa oikein (kohta 6). Ei-OOMI-pyörillä
 write-once-tapa estää tulevan CR:n arvot.
+
+---
+
+## Lokakuu 2026 — maksulinkin (1479) ensimmäisen ajon jälkityöt
+
+Lähde: [löydös](findings/2026-10-02-maksulinkki-ensimmainen-ajo.md). Kaikki 87 pyörää havaintoineen:
+[`findings/2026-10-02-maksulinkki-tutkittavat.csv`](findings/2026-10-02-maksulinkki-tutkittavat.csv).
+
+**Ei kiireellinen. Takaraja on seuraava kohorttiajo 31.10.2026**, jolloin 30.11. päättyvä kohortti tulee 30 päivän ikkunaan.
+Siihen mennessä pyörät on tutkittava ja ratkaistava, ja T37:n skriptikorjausten on oltava tuotannossa. Päivittäiset ajot jatkuvat
+sitä ennen, mutta lokakuun kohortti on jo leimattu, joten väliajoissa näkyvät vain T34–T36:n pyörät. Päätökset tekee tuoteomistaja.
+Korjaukset tehdään omistavassa repossa erillisessä istunnossa. (N) = todennettu NetSuitesta 2.10., (K) = laskettu tai päätelty.
+
+### [ ] T30 — Ajastuksen todennus
+
+1.10. klo 13:09 Helsingin aikaa jälkeen `scriptnote`:ssa ei ole yhtään ajoa (tilanne 2.10. klo 10:09). Repon päätös on
+"päivittäin klo 08:00". Selvitä, onko kellonaika Helsingin vai runtime-aikaa, ja todenna ensimmäinen valvomaton ajo
+(`scripttype = 1479`, rivit `selection` ja `run complete`). **Valmis kun** lokissa näkyy kaksi peräkkäistä ajastettua ajoa.
+
+### [ ] T31 — Kuusi liian pientä maksulinkkiä (yhteensä noin 720 €, K)
+
+**Päätetty 2.10. (D-R1a, D-R1b):** kaikki kuusi = R1 + R3 ([käsittelyloki](findings/2026-10-02-maksulinkki-kasittelyloki.md)). Oikeat hinnat ja syy
+on kirjattu lokin luovutustaulukkoon, ja **asiakaspalvelu hoitaa loput**. Huom. R3: maksetut jälkiveloitusvuokrat kattavat B001767:n, B003243:n
+ja B006488:n lunastuksen kokonaan. Kattavuus = hinta − huoltohyvitys (M1, päätetty 2.10.). Jäljellä: luovutus asiakaspalvelulle.
+**2.10. ilta (R7):** kaikilla kuudella on myös manuaalitilaus (31.07./31.08.), ja ne ovat 5/6 tapauksessa yhden bracketin pienempiä kuin R1:n hinta.
+Päätettävä, kumpi hinta on viite. **B023007 maksoi manuaalitilauksen 2.10.**, joten sen uusi linkki 351659 poistetaan. Lisäksi B010348 (ei T31): manuaalitilaus
+331600 (70 €) on vanhentunut, ja uusi linkki 33,28 € on oikea.
+
+Linkki hinnoiteltiin bracketilla *huolto + jälkiveloitus* kk. Oikea summa on laskettu huoltosumman bracketilla. Päätä jokaiselle:
+peruutetaanko Paylink-tilaus ja lähetetäänkö uusi, laskutetaanko erotus, vai kattaako maksettu jälkiveloitusvuokra sen (ADR 0009 k. 5)?
+
+- [ ] **B001767** — linkki 9,96 €, oikea 169,96 €. Jälki-CR:t 6441 ja 6891. Paylink 2099, maksamatta
+- [ ] **B002022** — 55,77 € / 135,77 €. CR 6893. Paylink 2101, maksamatta
+- [ ] **B003047** — 111,07 € / 191,07 €. CR 6896. Paylink 2106, maksamatta
+- [ ] **B003243** — 21,07 € / 181,07 €. CR:t 6451 ja 6898. Paylink 2107, maksamatta
+- [ ] **B006488** — **maksanut 3,45 €** 1.10., oikea 163,45 €. CR:t 6473 ja 6924. Status 2 ja tapa 1 on jo kirjattu
+- [ ] **B023007** — 68,41 € / 148,42 €. CR 6951. Paylink 1785266682739, maksamatta
+
+**Valmis kun** jokaisella on päätös, ja mahdollinen uusi linkki tai lasku on lähetetty.
+
+### [ ] T32 — Neljä virheellistä tapa 3 -kirjausta (perimättä noin 598 €, K)
+
+**Selvitetty 2.10. = R2 + R3** ([käsittelyloki](findings/2026-10-02-maksulinkki-kasittelyloki.md)). Päätös: oikea tapa on **2** (ylimääräiset vuokrat),
+ei 3. 598 € ei ole perimättä, koska se laskutetaan jälkiveloituksena. Auki: (1) `liab_settled_at` 1.10. vai tyhjä, kunnes kattava lasku on maksettu?
+(2) Tapa 3 → 2 CSV:llä. (3) **B002668:lla on käsin tehty lunastuslasku INVGBB1014923 (50,39 €, *Operaatio GBB* 1.10.)**, joka on todennäköisesti tuplaveloitus.
+
+Skripti kirjasi `redemption_maint_budget` (3) ja `liab_settled_at` 1.10., ja sweep käänsi statuksen 2. Huoltosumman bracketilla
+hinta ei ole 0, ja kaikilla on Done-tilaisia jälkiveloitus-CR:iä. Päätä: tyhjennetäänkö tapa ja `liab_settled_at` CSV:llä ja palautetaanko
+status 1 (K4:n malli)? Vai kattaako jälkiveloitus lunastuksen, jolloin oikea tapa on 2 (K2)? **Huom.:** status 2 lopettaa jälkiveloituksen
+1.11. (extension ei näe pyörää), ja RI saa Ended-rivin 1.11. Päätös on siis tehtävä ennen 1.11.
+
+- [ ] **B002668** — oikea hinta 129,93 €. Huolto 275,04 → 5 kk, pidennys 7 kk. CR:t 6445 ja 6894
+- [ ] **B002729** — 200,07 €. Huolto 62,95 → 1 kk, pidennys 4 kk. CR:t 4740, 6446 ja 6895
+- [ ] **B003264** — 137,26 €. Huolto 151,39 → 3 kk, pidennys 5 kk. CR:t 6452 ja 6899
+- [ ] **B006941** — 131,17 €. Huolto 162,54 → 3 kk, pidennys 5 kk. CR:t 6475 ja 6926
+
+**Valmis kun** jokaisen tapa, `liab_settled_at` ja status vastaavat päätöstä. B006956 (30.09. testiajo, tapa 3) on tarkistettu
+oikeaksi: 5 kk huoltoa = 5 kk pidennystä, ei CR:iä.
+
+### [ ] T33 — Tapa 4 hinnasta 0 €
+
+**Selvitetty 2.10.** ([käsittelyloki](findings/2026-10-02-maksulinkki-kasittelyloki.md) R5, R6): molemmat ovat ITSEHANKINTA-pyöriä. Niillä hinta 0 on
+tuotteen normaali (269/405, käsiraha Paylinkissä 223:lla), joten tapa 4 on oikein. **Vahvistettava.** B046508:n jälkiveloitus (2 × 120 € Storia Oy +
+2 RI-riviä) on silloin aiheeton (R6: extension ei tarkista hintaa 0), ja se puretaan.
+
+Skripti tulkitsee tallennetun hinnan 0 € käsirahaksi, eikä mikään automaatio ylläpidä hintaa (repon oma tekninen velka).
+
+- [ ] **B046508** — tapa 4 1.10., status 2. Done-tilaiset tyypin 7 CR:t 6513 ja 6972, `org_end` 31.08. Pyöräkohtainen kysymys
+  *"onko hinta oikeasti 0 vai puuttuuko se?"* on auki (*Jälkiveloituksen kattavuus*). Jos hinta puuttuu, tapa 4 on väärin
+  ja jälkiveloitus on pysähtynyt.
+- [ ] **B046755** — tapa 4 1.10., status 2. Ei CR:iä eikä SO:ta, päättyy 31.10. Todenna käsiraha sopimuksesta tai myyntitilauksesta.
+
+### [ ] T34 — NOT_PRICED: poikkeavat pyörät
+
+- [ ] **B010533** — huoltosumma 265,93 € edellyttää 5 kk pidennystä. Pidennys on 4 kk = 2 kk huoltoa (2 pidennysriviä) + 2
+  jälkiveloitus-CR:ää. Puuttuuko huoltopidennyksestä 3 kk (`sta_ue_bike_register_hook`), vai onko summa väärin? Hinta 49 €.
+- [ ] **B046667** — pidennys 1 kk, mutta Done-tilaisia tyypin 7 CR:iä on 2, ja huoltosumma on tyhjä. Onko toinen CR tupla, vai puuttuuko päivän siirto?
+- [ ] **B016555** — pidennys 2 kk, Done-tilaisia tyypin 7 CR:iä 3 (Fortaco, T1d, CR-6488 korjattu). Täsmääkö laskutus pidennykseen?
+- [ ] **B029420** — 5 kk jälkiveloitusta, hinta 110 €, kattavuuslistalla 185,20 € ≥ 110 €. Päättyykö tavalla 2 (K2)?
+- [ ] **B015132** — NOT_PRICED 1.10., nyt status 2 tapa 1. Mikä maksu kirjattiin ja millä summalla, kun linkkiä ei lähetetty?
+
+### [ ] T35 — Ohitetut pyörät, joilla on vanha SO (ei linkkiä eikä omistajaa)
+
+`end_red_so_created = T` tai linkitetty SO estää linkin pysyvästi. Selvitä jokaiselta, onko SO yhä voimassa oleva lunastusvaatimus
+ja kuka perii sen. Jos se ei ole voimassa, SO suljetaan, lippu tyhjennetään, ja pyörä saa linkin.
+
+- [ ] **B012880** — **maksettu**: Paylink 5765 completed, SO type 4 SOGBB0014688 tila G, `paid_at` 7.9. Silti **status 1 ilman tapaa**
+  (osa A ohitti, vrt. maksuikkunalöydös 23.09.). `subsc_end` siirtyi 30.9. → 31.10. ilman CR:ää. Tarvitsee tavan 1 ja `liab_settled_at`:in
+  (S1-malli), ja päivän siirron syy on selvitettävä.
+- [ ] **B001876** — SO type 4 SOGBB0000526, tila B, 30.9.2025. Jälki-CR:t 4738, 6442 ja 6892, `org_end` 30.4.2026.
+- [ ] **B019460** — SO type 4 SOGBB0000535, tila H (suljettu), 30.9.2025. Jälki-CR:t 6490 ja 6947. Suljettu SO estää silti linkin.
+- [ ] **B031422** — SO type 4 SOGBB0000529, tila B, 30.9.2025 (Netvisor-siirto, 1 171,01 €). Päättyy 31.10.2026.
+- [ ] **B011223** — SO type 3 (keskenkauden) SOGBB0002659, tila B, 10.12.2025. Ei tyypin 2 CR:ää, päättyy 31.10.2026. Kuuluuko T10:een?
+- [ ] **B036396** — SO type 3 SOGBB0002663, tila B, 10.12.2025. Jälki-CR:t 4772, 6509 ja 6970.
+
+B026671 (SKIP_LINKED_SO) on kunnossa: maksettu 30.9., status 2, tapa 1.
+
+### [ ] T36 — 64 jälkiveloituspyörää ilman huoltoa (NOT_PRICED joka päivä)
+
+Status 1, ei tapaa eikä huoltopidennystä. Pidennys on Done-tilaisten tyypin 7 CR:ien määrä. Pyörät ovat vanhan manuaaliprosessin
+kohortteja (`org_end` 31.7.–30.9.2026), jotka tulivat ikkunaan, kun `handler_jalki` siirsi päivän 31.10.:een. **Päätettävä kerralla:**
+saavatko jälkiveloituspyörät maksulinkin, ja millä hinnalla (koko `end_redemption_price` vai K2-kattavuuden jälkeinen erotus)? Vai hoidetaanko
+ne pelkällä jälkiveloituksella ja K2:lla?
+
+B003230, B003462, B003531, B003679, B003698, B003714, B003747, B004076, B004121, B004271, B004475, B004513, B004531,
+B004543, B004566, B004630, B004667, B004852, B004857, B005057, B005224, B005300, B005359, B006263, B006432, B006728,
+B007218, B007263, B007326, B009045, B010681, B010817, B011244, B012132, B013198, B014017, B014671, B014826, B015501,
+B016491, B016535, B016591, B017920, B020339, B021401, B022581, B023015, B023763, B024260, B025070, B025313, B026058,
+B026345, B029068, B029828, B030349, B030615, B030725, B033147, B033376, B033546, B035615, B036062, B036435.
+
+**Valmis kun** päätös on kirjattu ja T37:n korjaus toteuttaa sen.
+
+### [ ] T37 — Skriptikorjaukset ennen 31.10. (omistava repo `netstuite-send-end-redemption-payment-link`)
+
+Tehdään repon omassa istunnossa sen sääntöjen mukaan. Tuoteomistaja päättää jokaisesta kohdasta. Testaus: dry run ja `test_bike_id`.
+
+**Määrittely 5.10.: [logiikkavirheet ja tavoitetila](findings/2026-10-05-maksulinkki-logiikkavirheet-ja-tavoitetila.md)**: tavoitekaava, skenaariot S1–S13,
+korjauskohdat L1–L8 ja hyväksymiskriteerit. Korjaukset toteutetaan tämän mukaan.
+
+**Lähtöaineisto 3.10.:** [hintapoikkeamat](findings/2026-10-03-maksulinkki-hintapoikkeamat.md) (kaikki 748 linkkiä sääntöä 1 vasten, logiikkavirheet L1–L8,
+marraskuun simulointi) ja [ylimääräiset viestit](findings/2026-10-03-maksulinkki-ylimaaraiset-viestit.md) (7 pyörää). Uusi virheluokka L2: negatiivinen
+huoltosumma ilman pidennystä ei hyvity (3 linkkiä lokakuussa, 3 marraskuussa). **Päätetty 5.10.: negatiivinen summa vähennetään kokonaan** (126 aktiivista,
+42:lla alle −64,53). Hyvitys = (summan bracketin yläraja tai 0) − summa.
+
+- [ ] **K-a Pidennyksen ankkuri — päätetty 2.10.: hyvitys lasketaan `custrecord_sta_maintenance_sum`:sta** (bracket summasta, ei pidennyksestä; muu 14.9. kaava ennallaan) (`gbb_mr_send_end_redemption_paylink.js:359-365, 477-492`). Jälkiveloituskuukaudet eivät saa kasvattaa
+  huoltohyvitystä. Vähennä Done-tilaisten *pidennys – jälkiveloitus* -CR:ien määrä `extension_months`:ista, tai laske huoltopidennys
+  pidennysrivien kausista. Testitapaukset: T31 ja T32, joiden lasketut hinnat on toistettava.
+- [ ] **K-b0 `link_sent`-täyttö (päätös 2.10., R3).** Merkitse `custrecord_gbb_eredem_link_sent = T` jokaiselle pyörälle, joka sai linkin manuaaliprosessissa.
+  **Riippuu paylink-order-tracking-muutoksesta (tuoteomistaja tekee 2.10.):** kaikki Paylink-tilaukset NetSuiteen, käsittely vasta maksun jälkeen.
+  Sen jälkeen täyttö tehdään SuiteQL:llä (`notes` = `externalid`). Tämä poistaa myös T36:n 64 pyörää digestistä, ja samalla tarkistetaan T31:n mahdolliset tuplatilaukset.
+- [ ] **K-b Valinta / lattia.** **Työnkulku 2.10.: linkki ennen jälkiveloitusta, jälkiveloitus vain, jos linkkiä ei makseta** (R3). Varmistus: ohita pyörät, joilla on Done-tilainen jälkiveloitus-CR. `not_before` rajaa liikkuvaa `subsc_end_date`:a. Toteuta T36:n päätös: joko jälkiveloituspyörät rajataan pois
+  (ja ne jäävät K2:lle), tai ne hinnoitellaan oikein.
+- [ ] **K-c Settlementin vartija.** Tapaa 3/4 ei kirjoiteta, jos pyörällä on Done-tilainen jälkiveloitus-CR. Pyörä listataan silloin digestiin.
+  Muuten jälkiveloitus pysähtyy hiljaa (T32, B046508).
+- [ ] **K-d Digestin toisto.** Samat NOT_PRICED-pyörät listataan joka päivä. Listataanko vain ensimmäisellä kerralla, vai leimataanko ne?
+- [ ] **K-e Testiajon kirjoitukset.** Live-ajo `test_bike_id`:llä Paylink-testiä vasten kirjoitti silti oikean tavan 3 (B006956 30.09.).
+  Estä tai dokumentoi.
+- [ ] **K-f Vanhat SO:t** (T35). Sääntö sille, milloin vanha type 3/4 SO tai `end_red_so_created` ei enää estä linkkiä.
+- [ ] **K-g Tuotenimi.** `custscript_gbb_eredem_item_title` on reititysavain `paylink_ns_processor.ue.js:28`:n `PRODUCT_MAP`:iin.
+  Lukitse arvo tai varoita poikkeamasta.
+- [ ] **K-h Huoltohyvityksen yläraja** (R4, [käsittelyloki](findings/2026-10-02-maksulinkki-kasittelyloki.md)). Tuoteomistaja 2.10.: hyvitys ≤ noin 64,54 € netto.
+  Repon 14.9. ankkuripäätös (B021054: 163,34 €) on ristiriidassa tämän kanssa. B021054:n oikea hyvitys on 35,06 € (2.10.). Ehdotus: hyvitys =
+  (summan bracketin yläraja tai 0) − summa. Auki: voittaako katto, jos hyvitetty summa on > 64,54 € (B000928, −79,68)?
+  *(2.10. aiempi K-h "vähennä jälkivuokrat hinnasta" on peruttu: linkki lähtee ennen jälkiveloitusta, joten oikea korjaus on K-b:n rajaus.)*
+
+**Valmis kun** korjaukset ovat tuotannossa, ja 30.11. kohortin koko dry run (`days_before` väliaikaisesti ≥ 30) ei näytä yhtään pyörää,
+jonka hinnassa on jälkiveloituskuukausia. Löydöksen jälkitarkistus palauttaa silloin vain ratchet-hyvityksiä.
+
+### [ ] T38 — 215 maksettua linkkiä ilman `liab_settled_at`:ia (osa T26:ta)
+
+Vanha osa A kirjoitti 1.10. tavan 1 ja `paid_at`:in, mutta `liab_settled_at` jäi tyhjäksi (N). Kenttäsääntöjen § 9 vaatii maksupäivän.
+Tämä on mekaaninen täydennys, ei pyöräkohtainen selvitys: CSV kyselyn pohjalta T26:n viikkotarkistuksessa.
+
+```sql
+SELECT br.id, br.name, TO_CHAR(br.custrecord_gbb_redemption_paid_at, 'DD.MM.YYYY') AS liab_settled_at
+FROM customrecord_sta_bike_register br
+WHERE br.custrecord_gbb_eredem_link_sent = 'T' AND br.custrecord_gbb_liab_settle_method = 1
+  AND br.custrecord_gbb_liab_settled_at IS NULL AND br.custrecord_gbb_redemption_paid_at IS NOT NULL
+```
+
+**3.10.:** laajuus on koko erä, ei vain 215. Kaikilla **279** status-2-pyörällä on tapa 1, ja `liab_settled_at` on tyhjä ([löydös](findings/2026-10-03-maksulinkki-ylimaaraiset-viestit.md)).
+Tarkista samalla `custrecord_sta_end_red_so_created`: se oli F kaikilla 215:llä vielä 2.10. klo 10. Onko paylink-post-processor ajanut?
+**Valmis kun** kysely palauttaa 0.
 
 ---
 
@@ -341,6 +510,11 @@ on T4:n kysely, kun status on 2/3 ja maksu 1.9. jälkeen, ja tavat 6 ja 8 on raj
 
 ### [ ] T5 — S3: täydentävä IC-CSV
 
+> [!NOTE]
+> **6.10.2026: [ADR 0011](docs/adr/0011-ic-paiva-velvoitteista.md) muuttaa tämän säännön.** Joukkoehto on nyt *velvoitteet
+> hoidettu, ei done*, ei *status 2/3, IC-myyty*. Tehtävä korvautuu status-sync 2.0:n ensimmäisellä ajolla (T41). Aja CSV
+> enää vain, jos taloustiimi tarvitsee päiviä ennen sitä, ja silloin uudella ehdolla.
+
 Sama sääntö ja sama joukkoehto kuin T2:ssa. Mukaan tulevat pyörät, jotka ovat kääntyneet T2:n
 jälkeen (CR:t, maksut, T1:n kääntymättömät). **Valmis kun** sama kysely palauttaa 0 ennen
 kuunvaihdetta.
@@ -441,6 +615,93 @@ päätös ei riipu T11:n ajoituksesta. Pyörät ovat jumissa, kunnes päätös o
 ### [ ] T13 — Handlerin vaatimukset H1–H6
 
 [Vaatimuslista](docs/keskenkauden-lunastus-vaatimukset.md). Toteutetaan `netsuite-subscrption-cr-scripts`:ssä.
+
+---
+
+## Lokakuu 2026 — IC-lunastuksen tavoitetila ([ADR 0011](docs/adr/0011-ic-paiva-velvoitteista.md))
+
+Määritelty 6.10.2026. Sanasto on `CONTEXT.md` § *IC-käsitteet*. Korjaukset tehdään omistavissa repoissa erillisessä istunnossa.
+
+### [ ] T39 — Haun 797 ehdot (taloustiimi tai NetSuite-ylläpito)
+
+Listalle tulevat täsmälleen IC-lunastettavissa olevat pyörät: velvoitteet hoidettu (selvitystapa asetettu), `ic_redemption_dt`
+asetettu, `ic_redemption_pr` asetettu (myös `-1`) ja `ic_redemption_done` ≠ T. Näkyviin hinta, IC-päivä ja done. IC-myynti,
+status ja IC-päivän kuukausi eivät rajaa. **Valmis kun** haun rivimäärä = vastaava SuiteQL-määrä.
+
+### [ ] T40 — Status-sync 2.0: IC-vaihe ADR 0011:n mukaan (`netsuite-bike-redemption-status-sync`)
+
+[Suunnitelman vaihe 3](docs/status-sync-2-tasmaytysajo.md#vaihe-3--ic-lista): kirjoitus, kun velvoitteet on hoidettu (myös status 1),
+korjaus poikkeavaan päivään + hinnan tyhjennys, tyhjennys kun velvoitteet eivät enää ole hoidettu, `done` = T jäädyttää.
+`summarize` käynnistää IC-laskurin (D4). Laskuriin ei tarvita muutosta (`-1` puuttuvalle kustannuslähteelle on jo koodissa).
+
+### [ ] T41 — Käyttöönoton esiajo ja ensimmäinen ajo
+
+Ensimmäinen ajo käsittelee kaikki kerralla (ADR 0011 kohta 8). **Avoin, käyttäjä ei päättänyt 6.10.:** toimitetaanko
+taloustiimille esiajon CSV (uudet listalle tulijat + muuttuvat IC-päivät ja tyhjennettävät hinnat) ennen ajoa.
+**Valmis kun** kysely *velvoitteet hoidettu, ei done, IC-päivä ≠ `LAST_DAY(päättymisajankohta)` tai tyhjä* palauttaa 0.
+
+### [ ] T42 — Päätettävä: laskurin varmistusajastus
+
+`customdeploy_gbb_ic_redemption_pr` on Not Scheduled. Jos status-sync 2.0:n `N/task`-käynnistys epäonnistuu, hinta jää
+laskematta eikä pyörä näy listalla (T39:n ehto). Ehdotus: päivittäinen ajo status-syncin jälkeen. Ei päätetty 6.10.
+
+---
+
+## Lokakuu 2026 — loppulunastushinta ja kattavuus ([ADR 0012](docs/adr/0012-loppulunastushinta-ja-kattavuus.md))
+
+Määritelty 6.10.2026. Säännöt: [kenttäsäännöt § 11](docs/lunastuksen-kenttasaannot.md#11-loppulunastushinnan-määräytyminen-ja-kattavuus).
+Korjaukset tehdään omistavissa repoissa erillisessä istunnossa.
+
+### [ ] T43 — 1479: ADR 0012:n lisäykset T37:ään (ennen 31.10.)
+
+T37:n K-a, K-b ja K-c pysyvät ennallaan. Lisäksi:
+- ohitus 4: tyypin 2 tai 10 CR tilassa Pending tai Done. Nykyinen `getInputData` ei katso CR:iä lainkaan.
+- K-h ratkaistu: negatiivinen summa hyvitetään kokonaan, ja hyvitys > 1 porras nostetaan digestiin tiedoksi.
+- S9/S10 eivät estä linkkiä, ja ne raportoidaan eheyslistalla.
+- `days_before` 30 → 60 (tavoite). Ei ennen kuin L1–L3 ovat tuotannossa.
+
+**Valmis kun** dry run ei valitse yhtään pyörää, jolla on tyypin 2 tai 10 CR (Pending/Done).
+
+### [ ] T44 — Status-sync 2.0: tavan 2 kattavuus ADR 0012:n mukaan (K2)
+
+Laskutetut, hyvittämättömät *pidennys*-CR-laskut × 63,75 € ≥ hinta − huoltohyvitys (kaava, sama kirjasto kuin 1479).
+`liab_settled_at` = rajan ylittävän laskun luontipäivä. Korvaa ADR 0009 k. 5:n ja K2-ehdotuksen 29.09.
+**Valmis kun** testijoukossa jokainen tapa 2 -pyörä täyttää ehdon ja yksikään täyttävä ei jää ilman tapaa.
+
+### [ ] T45 — Avoimet loppulunastustilaukset tavoilla 2–4 perutaan
+
+Tunnetut: B002668 (330899), B003264 (330894) ja B006941 (331083), tapa 3 ja avoin käsin tehty tilaus (5.10.). Peruminen tehdään käsin,
+kunnes se automatisoidaan. Kysely: tapa 2, 3 tai 4 ja `customrecord_payment_requests` loppulunastustuote, `ns_status` ≠ 3 ja ei peruttu.
+
+### [ ] T46 — Tuleva: asiakaspalvelun raporttiskripti jälkiveloituspyörien avoimista tilauksista
+
+Ei määritelty. Erillinen skripti, joka käyttää samaa hintakirjastoa kuin 1479. Näyttää jokaiselle pyörälle maksettavan netto, laskutetut
+*pidennys*-kuukaudet, jäljellä olevan netto ja avoimen tilauksen nykyisen netto.
+
+---
+
+## Lokakuu 2026 — kauppakirjan lähetys ([ADR 0013](docs/adr/0013-kauppakirjan-lahetys.md))
+
+Määritelty 6.10.2026 tavoitetilana. Nykytila ja poikkeamat N1–N8: [löydös](findings/2026-10-06-kauppakirja-nykytila.md).
+Skriptimuutoksista päätetään erikseen.
+
+### [ ] T47 — Virheellisesti lähetetyt asiakaspalvelulle
+
+B045683 (status 3) ja B004255 (kieltolippu T), sekä tapa 7 -pyörä (N3). Lähetettyä ei voi perua, vaan asiakaspalvelu päättää jatkosta.
+**Valmis kun** asiakaspalvelu on kuitannut kaikki kolme.
+
+### [ ] T48 — Haun 793 ehdot käyttöliittymästä
+
+SuiteQL ei näe tallennettuja hakuja. Kirjaa ehdot ja hintasarakkeen liitos löydökseen ja vahvista tai kumoa päätelty ketju.
+
+### [ ] T49 — Sokea piste: 176 ei-OOMI- ja 120 OOMI-pyörää ilman kauppakirjaa (N1, N5)
+
+Ei-OOMI: tavoitetilan mukaan nämä saavat kauppakirjan, kun vuokrat on maksettu. OOMI: vain jos työntekijän maksu löytyy.
+Lisäksi 601 lähetettyä OOMI-pyörää: tarkista, onko niillä työntekijän maksu.
+
+### [ ] T50 — Kieltolippujen syyt (N7) ja tapa 8 -pyörät (N4)
+
+15 kieltolipulle syy asiakaspalvelulta. 96 tapa 8 -OOMI-pyörää: asiakaspalvelu korjaa selvitystavan, jos se on 5–7.
 
 ---
 
@@ -568,13 +829,25 @@ todennettu NetSuitessa 28.09., syyt ovat päätelmiä ellei toisin sanota.
 
 ## Auki, ei päivää
 
-- **D1** (taloustiimi): IC-päivä IC-myymättömille lunastetuille pyörille? Vaikuttaa T2:een ja T5:een.
-  **30.09.:** 29.09. käsin tehdyssä täytössä noin 65 IC-myymätöntä sai IC-päivän. Kirjaa päätös, jos sellainen tehtiin.
+- **B023403 (löydetty 3.10., [löydös](findings/2026-10-03-maksulinkki-ylimaaraiset-viestit.md)):** `custrecord_sta_redemption_date` 27.11.2025 ja hyvitys CRMGBF0000552
+  (−116,22 €). Pyörällä ei ole tyypin 2 CR:ää, laskutus jatkui, ja loppulunastus maksettiin 1.10. Selvitä, miksi Staria-kenttä on asetettu (CLAUDE.md:n kahden kirjoittajan varoitus).
+- **Jälkiveloitusketju kirjoitetaan uudelleen maksulinkin kanssa symmetriseksi (tuoteomistaja 2.10.).** *"Jos lunastushinta on 0 €,
+  silloin ei tarvitse pidentää mitään."* Repon `netsuite-subscription-extension` skripti (tarkennettu 2.10.) luodaan kokonaan uudelleen, niin että se tukee maksulinkin
+  (`netstuite-send-end-redemption-payment-link`) tarkoitusta. Molempien on luettava samat säännöt: hinta − huoltohyvitys (summasta), tapa
+  asetettu = ei pidennystä, hinta 0 = ei pidennystä, ja kattavuus M1. Lähtökohta: [käsittelyloki](findings/2026-10-02-maksulinkki-kasittelyloki.md)
+  R5–R6 ja B046508 (ainoa nykyinen tapaus).
+
+- **Alihanke: OOMI-vuokrahintojen korjaus** (aloitettu 1.10.2026, [`projects/2026-10-oomi-vuokrahinnat/`](projects/2026-10-oomi-vuokrahinnat/README.md)).
+  46 pyörän sopimusrivien hinnat väärin (Fleet tuplaraportoi sopimukset), syys- ja lokakuun RI-rivit väärillä hinnoilla,
+  osavuokrat laskettava. Tehtävät V1–V8 alihankkeen omassa TASKS.md:ssä. **Kiire: V6 ennen lokakuun palkka-CSV:tä.**
+- ~~**D1** (taloustiimi): IC-päivä IC-myymättömille lunastetuille pyörille?~~ **Ratkaistu 6.10.2026
+  ([ADR 0011](docs/adr/0011-ic-paiva-velvoitteista.md)):** kyllä, IC-myynti ei ole ehto. Laskuri antaa `-1`, ja taloustiimi päättää.
 - **Vaatimus status-sync 2.0:lle (käyttäjä 30.09.):** skriptin on huolehdittava, että
   `custrecord_gbb_ic_redemption_dt` on **aina täytetty, kun vastuut on hoidettu**. Kirjattu
   [suunnitelmaan](docs/status-sync-2-tasmaytysajo.md#vaihe-3--ic-lista) (D7). Tarkennettavat: ehto on
   "vastuut hoidettu" eikä "status 2/3", ja kirjasto pitää tapaa 8 hoidettuna. Silloin 280 T5:n
-  tavan 8 OOMI-pyörää saisivat IC-päivän automaattisesti.
+  tavan 8 OOMI-pyörää saisivat IC-päivän automaattisesti. **Ratkaistu 6.10.2026 (ADR 0011):** ehto on velvoitteet
+  hoidettu, ja tapa 8 on mukana.
 - **Vaatimukset S1–S3** (status-sync 2.0, [ADR 0010](docs/adr/0010-keskenkauden-lunastus.md)): Needs Review -jono, maksu ilman CR:ää, tyyppi 10 yli 30 pv.
 - **Ehdotus K2:lle (29.09., vahvistettava):** jälkiveloituksen kattavuuteen (ADR 0009 kohta 5)
   lasketaan vain laskurivit, joiden kausi on alkuperäisen loppupäivän (`subsc_org_end_date`) jälkeen.

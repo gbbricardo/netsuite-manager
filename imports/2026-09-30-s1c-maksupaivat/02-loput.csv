@@ -45,4 +45,4 @@ internal_id;pyora_id;maksupaiva;lahde;peruste;tapa_ennen;loppuvastuut_hoidettu_e
 37963;B037963;24.09.2026;Paylink 18107;ei tyypin 2/10 CR:aa, paattymiskuu ei alkanut (ADR 0009 k4) - vain paid_at;;;06.03.2029
 40757;B040757;24.09.2026;Paylink 18109;ei tyypin 2/10 CR:aa, paattymiskuu ei alkanut (ADR 0009 k4) - vain paid_at;;;04.12.2027
 42721;B042721;24.09.2026;Paylink 18118;ei tyypin 2/10 CR:aa, paattymiskuu ei alkanut (ADR 0009 k4) - vain paid_at;;;27.10.2028
-3488;B003488;10.09.2026;Paylink 16636;Done-tyypin 2 CR 6572, tapa ja liab_settled_at CR:lta (ADR 0008) - vain paid_at;1;17.09.2026;31.10.2026
+3488;B003488;10.09.2026;Paylink 16636;Done-tyypin 2 CR 6572, tapa ja liab_settled_at CR:lta (ADR 0008) - vain paid_at;1;17.09.2026;31.10.2026	

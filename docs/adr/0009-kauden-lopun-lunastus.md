@@ -3,6 +3,9 @@
 - **Päivämäärä:** 2026-09-24
 - **Tila:** Hyväksytty (tuoteomistaja, grilling-sessio 24.09.2026)
 - **Osittain muutettu:** [ADR 0010](0010-keskenkauden-lunastus.md) kohta 8. `oomi_exceptional_end_date` ei ole lokakuusta 2026 alkaen päättymisajankohdan lähde. Kohdan 1 *"15 Active-pyörää käsitellään vanhalla tavalla"* on ADR 0010:n avoin D9.
+- **Osittain muutettu:** [ADR 0012](0012-loppulunastushinta-ja-kattavuus.md) (6.10.2026). Kohdan 5 kattavuusehto
+  on nyt *laskutetut pidennys-kuukaudet × 63,75 € ≥ hinta − huoltohyvitys*, eikä maksu ole ehto. Kohdan 3 tavan 2
+  päivä on laskun luontipäivä.
 - **Koskee:** vain **kauden lopun lunastusta** ([CONTEXT.md](../../CONTEXT.md)). Keskenkauden
   lunastus jatkuu ADR 0008:n mukaan.
 - **Tarkentaa:** [ADR 0004](0004-paatospaivan-kirjoittaa-ue.md) (ei koske kauden loppua),

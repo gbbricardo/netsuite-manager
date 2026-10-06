@@ -45,7 +45,7 @@ All fields below are filterable in SuiteQL/REST except `refName`.
 | `custrecord_sta_redemption_pr_calc_date` | REDEMPTION PRICE CALCULATED | date |
 | `custrecord_sta_end_red_so_created` | End Redemption Sales Order Created | checkbox |
 | `custrecord_sta_mid_red_so_created` | Mid Redemption Sales Order Created | checkbox |
-| `custrecord_gbb_eredem_link_sent` | END REDEMPTION PAYLINK SENT | checkbox |
+| `custrecord_gbb_eredem_link_sent` | END REDEMPTION PAYLINK SENT | checkbox — *written only by `netstuite-send-end-redemption-payment-link` (1479) after a Paylink order exists; 748 T after the first run on 1.10.2026. Never cleared automatically, and an unpaid link is not re-sent* |
 | `custrecord_gbb_liab_settled_at` | Loppuvastuut hoidettu | date |
 | `custrecord_gbb_liab_settle_method` | (settlement method) | select → `customlist_gbb_liab_settle_method` |
 | `custrecord_gbb_redemption_decided_at` | LUNASTUS SOVITTU | date |

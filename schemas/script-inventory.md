@@ -99,6 +99,21 @@ and intended (decision 2026-09-07).
 The backfill still being on a live schedule is worth a look — the repo scopes backfill as a
 one-off, and `Bike-Status-History-Backfill-Design.md` treats it as a finite job.
 
+## netstuite-send-end-redemption-payment-link
+
+*Added by hand 2.10.2026 (not from an export run). Verified with SuiteQL `script` ⋈ `scriptdeployment`, id 1479.*
+
+| Script ID | Name | Type | Deployment |
+|---|---|---|---|
+| `customscript_gbb_mr_eredem_paylink` (internal id **1479**) | GBB Send end redemption payment link | MAPREDUCE | `customdeploy_gbb_eredem_test` **Scheduled**, log level Audit, deployed |
+
+The deployment id ends in `_test`, but it is the **production** deployment. Its first live run on
+1.10.2026 used Paylink PRODUCTION and sent 748 links. The repo records the schedule as daily at 08:00. As of
+2.10.2026 10:09 Helsinki, no unattended run had been logged, so confirm the recurrence from `scriptnote`.
+Files: folder id 40451 `[GBB] Send end redemption payment link`. The script depends on
+`/SuiteScripts/Brevo/lib_brevo_api.js`, which is shared with `customscript_gbb_bike_email_send` and its bill-of-sale
+variant. First run: [`../findings/2026-10-02-maksulinkki-ensimmainen-ajo.md`](../findings/2026-10-02-maksulinkki-ensimmainen-ajo.md).
+
 ## netsuite-subscription-extension
 
 | Script ID | Name | Type | Deployment |
