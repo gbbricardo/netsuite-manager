@@ -2,3 +2,4 @@ node_modules/
 .DS_Store
 *.log
 *.csv
+!import-templates/*.csv
