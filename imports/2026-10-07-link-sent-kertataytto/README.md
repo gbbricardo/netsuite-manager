@@ -1,5 +1,9 @@
 # `link_sent` = T aiemmin linkin saaneille — CSV-import 7.10.2026
 
+> [!NOTE]
+> **Ajettu 7.10.2026 ja todennettu:** 61/61 pyörällä `link_sent` = T (`SUM(id)` 980 821), ehdokaskysely palauttaa 0,
+> eikä yhdenkään pyörän status tai selvitystapa muuttunut.
+
 TASKS T37 K-b0, [ADR 0014](../../docs/adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k. 12,
 [muutosmäärittely](../../docs/maksulinkki-1479-muutosspeksi.md) A6. Tehdään ennen 1479:n julkaisun A ensimmäistä tuotantoajoa.
 
