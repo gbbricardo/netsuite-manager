@@ -80,6 +80,8 @@ Tämä ADR päättää, miten skripti muutetaan niiden mukaiseksi, ja samalla, m
 
 18. **Raportointi** tehdään erillisenä skriptinä, joka kattaa kaikki lunastukset (Q22). Sen syöte on k. 11:n lokimuoto.
     T46 (jälkiveloituspyörien avoimet tilaukset) voi sisältyä siihen.
+    *Muutettu 7.10.2026 (tuoteomistaja):* raportointi lukee **rekisterin ja muiden tietueiden tilaa**, ei lokia. K. 11:n
+    lokimuoto on ihmisen luettavaksi. Sama linja koskee status-syncia 2.0 ([ADR 0015](0015-status-sync-2-tarkennukset.md) k. 1).
 19. **Hintakirjasto** `lib_gbb_redemption_price.js` pysyy 1479:n repossa. Status-sync 2.0 ja raportointi lataavat sen
     File Cabinet -polusta. Siirto ADR 0003:n jaettuun kirjastoon päätetään erikseen. (Q9)
 

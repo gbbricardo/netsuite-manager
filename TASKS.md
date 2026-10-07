@@ -757,8 +757,8 @@ Päätetty 7.10.2026. Toteutus T37:n mukaan omistavassa repossa: [muutosmäärit
 
 ### [ ] T51 — Lunastusten raportointiskriptin määrittely
 
-Erillinen skripti raportoi kaiken lunastuksiin liittyvän (ADR 0014 k. 18). Se korvaa 1479:n digestin. Syötteenä on 1479:n lokimuoto
-(muutosmäärittely A5), ja se voi sisältää T46:n. Ei määritelty: omistava repo, kanavat, rytmi ja lokin 30 päivän säilytysaika.
+Erillinen skripti raportoi kaiken lunastuksiin liittyvän (ADR 0014 k. 18). Se korvaa 1479:n digestin. **Syötteenä on rekisterin
+ja muiden tietueiden tila, ei skriptien loki** (tuoteomistaja 7.10.), ja se voi sisältää T46:n. Ei määritelty: omistava repo, kanavat ja rytmi.
 Vaatimukset tähän mennessä: (1) Active, ei OOMI, sopimus päättynyt, ei linkkiä, ei tapaa eikä jälkiveloitusta (ADR 0014 k. 17b; 7.10. neljä pyörää, kaikki keskenkauden lunastuksia: B023198, B024587, B024908, B020053). (2) Jälkiveloituspyörät, joilla ei ole lainkaan loppulunastustilausta (7.10. 14 pyörää, ks. T53).
 (3) Status-sync 2.0:n jättämät ryhmät R1–R13 ja keskenkauden S1–S5: [`docs/raportointiskripti-vaatimukset.md`](docs/raportointiskripti-vaatimukset.md) ([ADR 0015](docs/adr/0015-status-sync-2-tarkennukset.md) k. 1).
 **Valmis kun** määrittely on hyväksytty.
