@@ -268,8 +268,9 @@ päättymisajankohtanaan eikä sitä jatketa hoitamattomien velvoitteiden vuoksi
 Kauden lopun lunastuksessa OOMI-pyörän velvoitteet katsotaan hoidetuiksi tunnistuspäivänä, vaikka
 lunastusmaksua ei olisi maksettu: Oomi vastaa sopimuksen perusteella maksamattomista
 lunastusmaksuista. Pyörä merkitään lunastetuksi päättymiskuun ensimmäisenä päivänä, tai
-ensimmäisenä onnistuneena ajona sen jälkeen. Myöhässä saapuva lunastusmaksu ei laukaise mitään
-toimenpidettä, toisin kuin muilla pyörillä.
+ensimmäisenä onnistuneena ajona sen jälkeen. Myöhässä saapuva lunastusmaksu ei muuta selvitystapaa
+eikä velvoitteiden hoitopäivää, toisin kuin muilla pyörillä. Maksupäivä kirjataan silti, koska se on
+maksun fakta ja ratkaisee kauppakirjan.
 
 Riittävän monta sääntöä poikkeaa, että OOMI on rinnakkainen prosessi eikä yksittäinen poikkeus.
 
@@ -287,9 +288,10 @@ jatketaan kuukausi kerrallaan työnantajalle laskutettavana vuokrana. Jokainen j
 päättymisajankohtaa kuukaudella, joten pyörä on joka kuukausi uudelleen kauden lopun lunastus.
 
 Jatkaminen päättyy **automaattisesti** silloin kun laskutetut jälkiveloituskuukaudet kattavat
-maksettavan loppulunastussumman, tai kun lunastusmaksu maksetaan. Jokainen laskutettu, hyvittämätön
+maksettavan loppulunastussumman, tai kun lunastusmaksu maksetaan. Jokainen laskutettu
 jälkiveloituskuukausi kattaa kiinteästi 80,00 € brutto (63,75 € netto), laskun summasta
-riippumatta. Laskun maksaminen ei ole ehto: perintä on taloustiimin asia. Sopimus päättyy sinä
+riippumatta. Laskutettu kuukausi tunnistetaan käsitellystä jälkiveloituksen muutospyynnöstä: yksi
+muutospyyntö on yksi kuukausi. Jälkiveloituskuukausia ei hyvitetä tavallisessa työnkulussa. Laskun maksaminen ei ole ehto: perintä on taloustiimin asia. Sopimus päättyy sinä
 kuukautena, jona velvoitteet hoidettiin. OOMI-pyörää ei jälkiveloiteta.
 
 Työntekijän avoin lunastusmaksupyyntö päivitetään käsin vastaamaan jäljellä olevaa summaa.

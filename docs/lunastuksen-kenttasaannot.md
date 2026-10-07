@@ -166,10 +166,16 @@ turhaa uudelleenkirjoitusta samalla arvolla on vältettävä.
 | **Arvo** | lunastusmaksun todellinen maksupäivä |
 | **Milloin** | kun maksu havaitaan, riippumatta pyörän tilasta |
 | **Write-once** | kyllä (automaatiossa) |
-| **Omistaja** | maksuvetoinen automaatio |
+| **Omistaja** | status-sync 2.0 (vaihe *Maksu*) |
 
-Kenttä on olemassa **vain** selvitystavalla `redemption_paid`. Kaikilla muilla tavoilla se on tyhjä
-eikä sitä saa täyttää: mitattuna `redemption_extra_rent` 68/68 tyhjä, `redemption_maint_budget`
+> [!IMPORTANT]
+> **Muutettu 7.10.2026 ([ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k. 4).** `paid_at` on maksun fakta, ei
+> vastuukirjaus. Se kirjoitetaan tyhjään kenttään aina, kun lunastuksen maksutodiste on olemassa, selvitystavasta,
+> statuksesta ja OOMI:sta riippumatta. Poikkeus on tapa 5 (maksu voi olla vahingonkorvaus). Alla oleva sääntö
+> *"vain tavalla `redemption_paid`"* ei enää päde. Se säilytetään historiana.
+
+~~Kenttä on olemassa **vain** selvitystavalla `redemption_paid`. Kaikilla muilla tavoilla se on tyhjä
+eikä sitä saa täyttää:~~ mitattuna 2026-09: `redemption_extra_rent` 68/68 tyhjä, `redemption_maint_budget`
 4/4, `bike_sold_to_competitor` 16/16, `bike_stolen_or_destroyed` 121/122.
 
 Kentän täyttäminen **ei saa vaihtaa statusta.** Maksun saapuminen on päivämäärä 3, ei päivämäärä 1.
@@ -841,6 +847,12 @@ Pyörällä on täsmälleen yksi selvitystapa: ensimmäinen, joka yksin kattaa. 
 | 3 `redemption_maint_budget` | huoltohyvitys kattaa hinnan (ohitus 11), todetaan lähetyshetkellä | ajopäivä |
 | 1 `redemption_paid` | pyörällä on maksettu (`custrecord_pl_ns_status` = 3) loppulunastustilaus. Summaa ei verrata: Paylink-tilausta ei voi maksaa vajaana | maksupäivä |
 | 2 `redemption_extra_rent` | laskutetut jälkiveloituskuukaudet × 63,75 € ≥ maksettava netto | rajan ylittävän laskun **luontipäivä** |
+
+> [!NOTE]
+> **Toteutus muutospyyntötasolla (7.10.2026, [ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k. 5).** Status-sync 2.0
+> laskee kuukaudet Done-tilaisista tyypin 7 CR:istä, joiden nimessä on *pidennys* (ei *2a*), eikä etsi laskuja.
+> `handler_jalki` ei linkitä laskua CR:ään. `liab_settled_at` = rajan ylittäneen CR:n `custrecord_cr_closed_date`
+> Helsingin päivänä (= laskun luontipäivä). Hyvityksiä ei huomioida. Maksettava netto tulee 1479:n kirjastosta.
 
 **Tavan 2 laskenta:**
 

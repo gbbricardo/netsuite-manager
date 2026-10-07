@@ -1,354 +1,298 @@
-# Status-sync 2.0 — lunastusten päivittäinen täsmäytysajo
+# Status-sync 2.0 — rakennusohje
 
-**Päivitetty:** 2026-09-23 · **Kohde:** `netsuite-bike-redemption-status-sync` (korvaa
-`gbb_ss_bike_redemption_status_sync.js`:n) · **Tila:** rakenne hyväksytty
-([ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md)), käyttöönotto lokakuussa 2026 yhdellä kertaa,
-päätös D5 auki (D1 ja D7 ratkaistu [ADR 0011](adr/0011-ic-paiva-velvoitteista.md):llä 6.10.2026)
-**Sisältää:** [`status-sync-maksuhavainto-muutosspeksi.md`](status-sync-maksuhavainto-muutosspeksi.md)
-(= vaihe *Maksu* alla) · **Säännöt:** [`lunastuksen-kenttasaannot.md`](lunastuksen-kenttasaannot.md)
+**Päivitetty:** 2026-10-07 · **Kohde:** `netsuite-bike-redemption-status-sync` (korvaa script 1440:n,
+`gbb_ss_bike_redemption_status_sync.js`) · **Tila:** määritelty (grilling 6.–7.10.2026), ei rakennettu
+**Päätökset:** [ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md) (rakenne) ·
+[ADR 0015](adr/0015-status-sync-2-tarkennukset.md) (tämän ohjeen tarkennukset, ohittaa ADR 0007:n ristiriidoissa) ·
+[ADR 0008](adr/0008-keskenkauden-lunastuksessa-cr-voittaa-maksun.md), [0009](adr/0009-kauden-lopun-lunastus.md),
+[0010](adr/0010-keskenkauden-lunastus.md), [0011](adr/0011-ic-paiva-velvoitteista.md),
+[0012](adr/0012-loppulunastushinta-ja-kattavuus.md), [0014](adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md)
+**Säännöt:** [`lunastuksen-kenttasaannot.md`](lunastuksen-kenttasaannot.md) · **Sanasto:** [`../CONTEXT.md`](../CONTEXT.md)
+**Raportointi:** ei tässä skriptissä → [`raportointiskripti-vaatimukset.md`](raportointiskripti-vaatimukset.md)
+
+> [!NOTE]
+> Tämä dokumentti korvaa 23.09. version. Vanha versio on gitin historiassa (`git log -- docs/status-sync-2-tasmaytysajo.md`).
+> Poistuneet osat: vaihe 4 (poikkeamaraportti), sähköposti, IC-laskurin varmistusajastus, `date_to_non_active`,
+> poikkeuskenttien luku ja syyskuun CSV-suunnitelma (S1–S4, toteutettu).
 
 ## Tehtävä yhdellä lauseella
 
-> **Joka yö koko pyörärekisteri on lunastusten osalta oikeassa tilassa, ja jokainen pyörä, jonka
-> velvoitteet on hoidettu, on hinnoiteltuna taloustiimin IC-listalla — ja se mikä ei korjaudu automaattisesti, on nimeltä
-> jonkun listalla.**
+> **Joka yö jokainen pyörä on lunastuskenttiensä osalta siinä tilassa, jonka säännöt määräävät:
+> maksu kirjattu, vastuut kirjattu kun ne kuuluu kirjata, status käännetty kun tunnistuspäivä on koittanut,
+> ja IC-päivä oikein kunnes taloustiimi on IC-käsitellyt pyörän.**
 
-Nykyinen skripti tekee tästä kolmanneksen: se kääntää statuksen 1 → 2/3 (osa B) ja havaitsee osan
-maksuista (osa A, ±5 vrk ikkuna). IC-päivää se ei kirjoita lainkaan, eikä kukaan muukaan koodissa
-([kenttäsäännöt](lunastuksen-kenttasaannot.md) § `ic_redemption_dt`: *"Omistaja: CSV-import (ei
-yhtään kirjoittajaa koodissa)"*).
+Skripti on puhtaasti toiminnallinen. Se ei raportoi, ei lähetä sähköpostia, ei koske CR:iin eikä Paylinkiin.
 
-## Nykytila, mitattu 23.09.2026
+## Takarajat
 
-### Status
+1440:n ajastus poistettiin 6.10.2026. Siitä asti kukaan ei kirjaa maksuja, käännä statuksia eikä kirjoita
+IC-päiviä.
 
-| Poikkeama kirjaston sääntöihin nähden | kpl | Kuka korjaa nyt |
-|---|---|---|
-| Maksettu Active-pyörä, jolla ei ole selvitystapaa → ei pääty koskaan | **24** | ei kukaan ([löydös](../findings/2026-09-23-status-sync-maksuikkuna-hukkaa-myohaiset-maksut.md)) |
-| Status 1, selvitystapa ja todiste kunnossa, tunnistuspäivä ohi | 5 | osa B tänä yönä |
-| Status 3, mutta selvitystapa ei ole 5 | 3 | ei kukaan |
-| Status 1, ei selvitystapaa, kausi päättyi yli 2 kk sitten | 6 | ei kukaan (jatkolaskutussilmukka tai unohtunut) |
-| Status 1, mutta IC-lunastus on tehty | 1 | ei kukaan |
-| Status tyhjä, sopimus alkanut | 6 | ei kukaan |
-| Status tyhjä, tilaus kesken (*In Progress / Deliverable / Delivered*) | 131 | ei kuulu lunastuksille, status asetetaan aktivoinnissa |
-| Status 2/3, mutta päättyminen vasta tulevassa kuussa (ennenaikainen) | **0** | — |
-| Status 2/3 ilman selvitystapaa | **0** | — |
+| Päivä | Miksi |
+|---|---|
+| **to 29.10.2026** | Taloustiimi IC-lunastaa kuun toiseksi viimeisenä arkipäivänä. Lokakuussa hoidettujen IC-päivien ja hintojen on oltava valmiina |
+| **su 1.11.2026 klo 03:00** | Extension ajaa. Jos ajoissa maksaneilla ei ole tapaa 1, ne saavat tyypin 7 CR:n |
+| **varasuunnitelma 28.10.** | Jos 2.0 ei ole tuotannossa: T26:n CSV (maksut + tavat) ja IC-päivät CSV:llä ADR 0011:n ehdolla |
 
-Status on siis **lähes oikein**. Vaiheiden 0–3 työ on tehnyt tehtävänsä. Jäljellä on pieniä
-joukkoja, joista suurinta osaa ei korjaa kukaan eikä kukaan näe.
-
-### IC-lista
-
-Taloustiimin IC-prosessi ([`netsuite-ic-calculators/README.md`](../../netsuite-ic-calculators/README.md)):
-*finance asettaa `custrecord_gbb_ic_redemption_dt` → `customscript_gbb_ic_redemption_pr`
-laskee `custrecord_gbb_ic_redemption_pr`:n → finance vie CSV:nä IC-myyntitilauksiksi → merkitsee
-`custrecord_gbb_ic_redemption_done`*. MR on **Not Scheduled**, eli se ajetaan käsin.
-
-**Lista on saved search 797.** Siitä taloustiimi ottaa kuukausittain, **ennen kuun loppua**, tiedon
-siitä, mitkä pyörät voidaan IC-lunastaa, millä hinnalla ja mille kirjanpitokaudelle
-(`ic_redemption_dt`). Milloin lunastus teknisesti tehdään, ei kiinnosta. Historia on sallittu:
-myöhässä tunnistettu lunastus saa oman, menneen kautensa (tuoteomistaja 23.09.,
-[ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md)). Haun ehtoja ei voi lukea SuiteQL:llä, joten ne
-on todennettava UI:sta.
-
-**IC-päivä on se kenttä, joka nostaa pyörän listalle.** Status 2/3 -pyörät:
-
-| | IC-myyty¹ | ei IC-myyntiä |
-|---|---|---|
-| IC-päivä + done | 9 313 | 281 |
-| IC-päivä, ei done (**listalla nyt**) | 1 095 | 43 |
-| ei IC-päivää, done (vanha, käsin) | 1 000 | 0 |
-| **ei IC-päivää, ei done → puuttuu listalta** | **1 356** | **175** |
-
-¹ `custrecord_gbb_ic_sale_dt` tai `_price` asetettu.
-
-Puuttuvista 1 346 on Redeemed-tilassa. Ne jakautuvat statuksen vaihtumiskuukauden
-(`date_to_non_active`) mukaan näin: 9/2026 **990**, 8/2026 51, 7/2026 115, 6/2026 **189**,
-2/2026 1. Syyskuun erä on normaali kuunvaihteen jono, **mutta kesä–elokuun noin
-350 pyörää on jäänyt kokonaan listalta pois.**
-
-Nykyiset IC-päivät (2026, 7 742 kpl) noudattavat sääntöä `LAST_DAY(päättymisajankohta)` 93 %:ssa
-tapauksista. Muut: 350 = päättymisajankohta sellaisenaan, 42 = edellisen kuun viimeinen päivä,
-173 muu. Ks. D2.
+Käyttöönotto tehdään heti, kun skripti on valmis ja dry run on käyty läpi. Virheet korjataan erillisessä istunnossa.
 
 ## Arkkitehtuuri
 
-### Periaate: täsmäytys, ei tapahtumat
+| | |
+|---|---|
+| Tyyppi | Map/Reduce, SuiteScript 2.1. **Uusi script-tietue ja uusi sisäinen id** (1440 ei näytä uusia ajoja) |
+| Ajastus | joka yö **00:30 Helsingin aikaa**. Riippuvuus: Paylink-synkka (noin 23:30) → **2.0** → extension (**siirretään 03:00:aan**, nyt 01:00) |
+| Tilat | **dry run** ja **live**. Lisäksi `test_bike_id`. Ei muita tiloja (sama linja kuin ADR 0014 k. 7) |
+| Periaate | joukkoerotus: valitaan pyörät, joiden kentät voivat poiketa säännöistä, ja päätetään mapissa. Kun kanta on kunnossa, ajo ei kirjoita mitään. Väliin jäänyt ajo ei hukkaa mitään |
+| Kirjoitus | **yksi `record.submitFields` per pyörä**, kaikki muuttuneet kentät kerralla (UE:t laukeavat kerran) |
+| Säännöt | `/SuiteScripts/gbb-lib/gbb_lunastus_lib.js` (tunnistuspäivä, statusportti, kohdestatus, Helsingin päivä) ja `/SuiteScripts/[GBB] Send end redemption payment link/lib_gbb_redemption_price.js` (maksettava netto, ADR 0012) |
 
-Jokainen vaihe on **joukkoerotus**: *mitkä pyörät eivät ole siinä tilassa, jossa kirjaston
-mukaan pitäisi olla*. Kun kanta on kunnossa, joukot ovat tyhjiä ja ajo ei kirjoita mitään.
-Väliin jäänyt ajo ei hukkaa mitään, koska seuraava näkee saman eron. Sama ominaisuus teki
-kalenterisweepistä turvallisen (`:634`: *"the sweep has no window to fall out of"*), ja nyt se
-laajennetaan koko skriptiin.
+### Kentät, joita skripti ei lue
 
-### Map/Reduce eikä Scheduled Script
+`custrecord_gbb_exceptional_end_date` ja `custrecord_gbb_oomi_exceptional_end_date` eivät tarkoita tälle skriptille
+mitään (ADR 0015 k. 3). **Päättymisajankohta = `custrecord_sta_subsc_end_date`.** Kirjastolle annettava pyöräolio
+sisältää vain sen, jolloin kirjaston nykyinen `COALESCE` (versio 1.1.0) palauttaa aina `subsc_end_date`:n. Kun K1 (T11)
+on tuotannossa, mitään ei tarvitse muuttaa.
 
-| | Scheduled (nyt) | **Map/Reduce (ehdotus)** |
+### Kentät, joita skripti kirjoittaa
+
+| Kenttä | Vaihe |
+|---|---|
+| `custrecord_gbb_redemption_paid_at` | 1 Maksu |
+| `custrecord_gbb_liab_settle_method` | 2 Vastuut |
+| `custrecord_gbb_liab_settled_at` | 2 Vastuut |
+| `custrecord_sta_bike_status` | 3 Status |
+| `custrecord_gbb_ic_redemption_dt` | 4 IC |
+| `custrecord_gbb_ic_redemption_pr` (vain tyhjennys) | 4 IC |
+
+**Ei koskaan:** `custrecord_sta_redemption_date` (Staria-hyvitys), `custrecord_gbb_date_to_non_active` (1458),
+`custrecord_gbb_redemption_decided_at` (UE / handler), `custrecord_gbb_ic_redemption_done` (taloustiimi),
+poikkeuskentät, CR-tietueet, Paylink-tietueet.
+
+## getInputData
+
+Yksi SuiteQL, `UNION` alla olevista joukoista. Palauttaa vain pyörä-id:t. Duplikaatit poistetaan JS:ssä ennen
+emittointia. Sivutus `runSuiteQLPaged`, 1 000 riviä. Testipyörä B017530 rajataan pois. `test_bike_id` rajaa
+kyselyn yhteen pyörään.
+
+| Joukko | Ehto (SuiteQL) | Miksi |
 |---|---|---|
-| Governance | 10 000 yksikköä koko ajolle, oma vahti | per map-kutsu, NetSuite jakaa itse |
-| Kuunvaihde (noin 1 000 kääntöä + 1 000 IC-päivää) | reunoilla | ei ongelma |
-| Virhe yhdessä pyörässä | try/catch per rivi | eristetty, `summarize` listaa |
-| Rinnakkaisuus | ei | kyllä |
+| **M** maksu | `paid_at IS NULL` ∧ `NVL(method,0) <> 5` ∧ maksutodiste on olemassa (ks. *Maksutodiste*) | `paid_at` puuttuu |
+| **V** vastuut, maksettu | `paid_at IS NOT NULL` ∧ (`method IS NULL` ∨ (`method = 1` ∧ `liab_settled_at IS NULL`)) | etukäteen maksettu: tapa odottaa päättymiskuuta |
+| **O** OOMI | `order_type = 3` ∧ `status = 1` ∧ `method IS NULL` ∧ `subsc_end_date < ADD_MONTHS(TRUNC(CURRENT_DATE,'MM'),1)` | kauden lopun OOMI ilman tapaa |
+| **J** jälkiveloitus | `status = 1` ∧ `method IS NULL` ∧ `NVL(order_type,0) <> 3` ∧ on Done-tilainen tyypin 7 CR, jonka `LOWER(altname)` sisältää `pidennys` eikä `2a` | tapa 2 voi täyttyä |
+| **S** status | `status = 1` ∧ `method IS NOT NULL` | tila *lunastus sovittu*, odottaa tunnistuspäivää |
+| **I** IC | `NVL(ic_redemption_done,'F') = 'F'` ∧ (`method IS NOT NULL` ∨ `ic_redemption_dt IS NOT NULL`) | IC-päivä kirjoitetaan, korjataan tai tyhjennetään |
 
-Script-tyyppiä ei voi vaihtaa, joten syntyy **uusi script-tietue ja uusi sisäinen id**.
-`scriptnote.scripttype = 1440` ei enää näytä uusia ajoja. Päivitä `CLAUDE.md`, muisti
-[[gbb-script-internal-ids]] ja `schemas/script-inventory.md`. Nimi voi pysyä samana.
+Kyselyn `CURRENT_DATE` on palvelimen päivä. Joukot vain **valitsevat**. Jokainen päätös tehdään mapissa
+`tanaanHelsinki()`:lla, joten yhden päivän ero rajalla ei aiheuta väärää kirjoitusta.
 
-### Vaiheet yhdessä map-kutsussa, yksi kirjoitus per pyörä
+Mittakaava: I on suurin joukko (kaikki tavalliset, IC-käsittelemättömät pyörät, joilla on tapa). Ensimmäinen ajo
+käsittelee sen kokonaan (ADR 0011 k. 8). Sen jälkeen suurin osa I:n pyöristä ei tuota kirjoitusta.
 
-```
-getInputData   SuiteQL: UNION kaikista poikkeamajoukoista → bikeId + syy
-map(bike)      lue pyörän kentät (lookupFields) → aja vaiheet järjestyksessä muistissa
-                 1 Maksu    → paid_at, selvitystapa 1, liab_settled_at
-                 2 Status   → saakoMerkitaPaattyneeksi ? kohdestatus(tapa)
-                 3 IC       → ic_redemption_dt = icLunastuspaiva(bike)
-                 4 Poikkeamat, joita ei korjata → emit('poikkeama', …)
-               → YKSI submitFields kaikille muuttuneille kentille
-reduce         kokoa poikkeamat syittäin
-summarize      yhteenvetoloki + raportti (D5) + valinnainen IC-MR:n käynnistys (D4)
-```
+### Maksutodiste
 
-Vaiheet ajetaan **muistissa peräkkäin samalle pyörälle**. Tänä yönä havaittu maksu voi siksi
-kääntää statuksen ja nostaa pyörän IC-listalle samassa kirjoituksessa. Yksi `submitFields`
-laukaisee UE:t kerran eikä kolmesti.
+Sama kuin [maksuhavainnon speksin](status-sync-maksuhavainto-muutosspeksi.md) M1–M3, ilman ikkunaa:
+
+| Lähde | Ehto | Päivä |
+|---|---|---|
+| Paylink | `customrecord_payment_requests`, `custrecord_pl_ns_status = 3`, `custrecord_pl_ns_bike_id` = pyörä, SO (`custrecord_pl_ns_so_id`) `custbody_sta_is_so_type IN (3, 4)` | `custrecord_pl_paid_at`, **muunnettuna Helsingin päiväksi** |
+| Lasku | `CustInvc`, `status = 'B'`, `custbody_sta_bike_id` = pyörä, rivillä item 46, ja `custbody_sta_is_so_type IN (3, 4)` tai (tyhjä ja täsmälleen yksi rivi). **Ei** kokonaan hyvitetty (`NextTransactionLineLink`, `CustCred`, `-cm.foreigntotal >= t.foreigntotal`) | `closedate` |
+
+Maksupäivä = aikaisin todiste (`onkoVelvoitteetHoidettu(bike, {lunastuslaskuMaksettu, paylinkValmis}).todistepaiva`
+tai suora minimi, sama tulos).
+
+> [!WARNING]
+> **Aikaleimat.** `custrecord_pl_paid_at` ja `custrecord_cr_closed_date` ovat aikaleimoja, ja ajoympäristön kello on
+> noin 10 h Helsingistä jäljessä. Muunna Helsingin päiväksi JS:ssä (`tanaanHelsinki(instant)`), älä `TO_CHAR`:lla.
+> Todenna yhdellä tunnetulla Paylink-pyynnöllä ja yhdellä CR:llä UI:ta vasten dry runissa.
+
+## map — päätös yhdelle pyörälle
+
+Lue pyörän kentät (yksi SuiteQL tai `lookupFields`) ja pyöräkohtaiset faktat:
+
+| Fakta | Lähde |
+|---|---|
+| `tanaan` | `lunastus.tanaanHelsinki()` |
+| `loppu` | `custrecord_sta_subsc_end_date` |
+| `paattymiskuuAlkanut` | `loppu` ≠ tyhjä ∧ `loppu`:n kuun 1. päivä ≤ `tanaan` |
+| `ennenaikainen` | pyörällä on tyypin 2 tai 10 CR tilassa 1 Pending tai 2 Done |
+| `kaudenLoppu` | `paattymiskuuAlkanut` ∧ ¬`ennenaikainen` |
+| `oomi` | `custrecord_sta_bike_order_type = 3` |
+| `maksupaiva` | aikaisin maksutodiste (yllä), tai tyhjä |
+| `pidennykset` | Done-tilaiset tyypin 7 CR:t, `LOWER(altname)` sisältää `pidennys` eikä `2a`, `closed_date`n (Helsinki) mukaan nousevasti. Vain J-joukon pyörille |
+
+Vaiheet ajetaan **muistissa peräkkäin**, ja jokainen vaihe näkee edellisten muutokset.
 
 ### Vaihe 1 — Maksu
 
-> [!IMPORTANT]
-> **Täydennetty 24.09.2026 ([ADR 0009](adr/0009-kauden-lopun-lunastus.md)).** Kolme lisäsääntöä:
->
-> 1. **Kuukausiehto (ratkaisee ADR 0008 D7).** `paid_at` kirjoitetaan heti, mutta tapa 1 ja
->    `liab_settled_at` vasta kun päättymiskuu on alkanut **ja** pyörällä ei ole tyypin 2 tai 10 CR:ää
->    tilassa Pending/Done. Muuten vain `paid_at`.
-> 2. **Jälkiveloituksen kattavuus.** Σ veroton (item 30 + 31) maksetuilla, hyvittämättömillä,
->    tämän pyörän tyypin 7 CR:istä syntyneillä laskuilla ≥ `custrecord_sta_end_redemption_price` →
->    tapa 2, `liab_settled_at` = rajan ylittävän laskun maksupäivä.
-> 3. **OOMI-haara.** OOMI-pyörä (`order_type = 3`), kauden lopun lunastus, tunnistuspäivä koittanut,
->    ei tapaa → tapa 1, `liab_settled_at` = tunnistuspäivä, `paid_at` ei kosketa. Myöhässä saapuva
->    OOMI-maksu ei kirjoita mitään.
->
-> Kaikki kolme ovat sääntöjä, joten ne kuuluvat kirjastoon (`gbb_lunastus_lib`), eivät skriptiin.
-
-Kuten [muutosspeksi](status-sync-maksuhavainto-muutosspeksi.md) M1–M6: joukkoerotus ikkunan sijaan,
-`closedate` `trandate`:n sijaan, hyvitetyt laskut pois, `liab_settled_at` = maksupäivä tyhjään
-kenttään ja §5-ristiriita lokiin eikä kirjoitukseen.
-
-### Vaihe 2 — Status
-
-| Havainto | Toiminto |
+| Ehto | Kirjoitus |
 |---|---|
-| Status 1, `saakoMerkitaPaattyneeksi` = tosi | **kirjoita** `kohdestatus(tapa)` (nykyinen osa B) |
-| Status 2/3, `saakoMerkitaPaattyneeksi` = epätosi | **raportoi**. Kenttäsäännöt: *"3 → 1 vain korjauksena, käsin"* |
-| Status ≠ `kohdestatus(tapa)` (2 ↔ 3) | **raportoi** (D6: automaattinen korjaus mahdollinen) |
-| Status tyhjä, sopimus alkanut | **raportoi**. Aktivointi ei kuulu tälle skriptille |
-| Status tyhjä, tilaus kesken | ohita hiljaa, sillä tämä on normaali tila |
-| Status 1, ei tapaa, kausi päättynyt yli 2 kk sitten | **raportoi** |
+| `paid_at` tyhjä ∧ `maksupaiva` ∧ tapa ≠ 5 | `paid_at` = `maksupaiva` |
+| muu | ei mitään |
 
-Automaatio kulkee **vain eteenpäin** (1 → 2/3). Taaksepäin menevä siirtymä on aina ihmisen päätös,
-koska `gbb_webhook_ue_status_changed` ja kuukausiraportointi reagoivat jokaiseen muutokseen.
+`paid_at` on maksun fakta (ADR 0015 k. 4). Se kirjoitetaan selvitystavasta, statuksesta, OOMI:sta ja CR:istä
+riippumatta, eikä sitä koskaan ylikirjoiteta. Tapa 5 jätetään pois, koska palautetun pyörän maksu voi olla
+vahingonkorvaus.
 
-`handler_lunastus` saa kirjoittaa statuksen edelleen. Molemmat kysyvät kirjastolta, joten
-kirjoittajia voi olla useita, mutta **tämä skripti on se, joka takaa lopputuloksen**.
+### Vaihe 2 — Vastuut (tapa ja `liab_settled_at`)
 
-### Vaihe 3 — IC-lista
+Ajetaan vain, kun `kaudenLoppu` on tosi. Keskenkauden lunastuksessa (tyypin 2/10 CR) vastuut tulevat CR:ltä, eikä
+tämä vaihe kirjoita mitään (ADR 0008).
 
-> [!IMPORTANT]
-> **Säännöt: [ADR 0011](adr/0011-ic-paiva-velvoitteista.md) (6.10.2026).** Laukaisija on *velvoitteet
-> hoidettu* (`onkoVelvoitteetHoidettu`), ei status 2/3. IC-päivä seuraa lähtötietoja, kunnes taloustiimi
-> merkitsee `ic_redemption_done` = T. Tapa 8 saa IC-päivän. IC-myynti ei ole ehto. Testipyörä B017530
-> rajataan pois (käyttäjä 30.09.).
+| # | Tilanne | Kirjoitus |
+|---|---|---|
+| 2a | `oomi` ∧ tapa tyhjä | tapa 1, `liab_settled_at` = `tanaan` (= tunnistuspäivä, koska päättymiskuu on alkanut) |
+| 2b | `oomi` ∧ tapa 1 ∧ `liab_settled_at` tyhjä | `liab_settled_at` = `tanaan` |
+| 2c | ¬`oomi` ∧ tapa 1 ∧ `liab_settled_at` tyhjä ∧ `paid_at` | `liab_settled_at` = `paid_at` |
+| 2d | ¬`oomi` ∧ tapa tyhjä | ehdokkaat alla, aikaisin päivä voittaa |
+| — | tapa jo asetettu ja `liab_settled_at` asetettu | ei mitään. Tapaa ei koskaan vaihdeta |
 
-**Kirjoita** `custrecord_gbb_ic_redemption_dt` = `icLunastuspaiva(bike)`, kun **kaikki** täyttyvät:
+**2d:n ehdokkaat:**
 
-- velvoitteet on hoidettu (vaiheiden 1–2 jälkeen, muistissa), vaikka status olisi yhä 1
-- `ic_redemption_done` ≠ T
-- `ic_redemption_dt` on tyhjä **tai poikkeaa** arvosta `icLunastuspaiva(bike)`. Poikkeava arvo
-  korvataan, ja `ic_redemption_pr` tyhjennetään samassa kirjoituksessa, jotta laskuri hinnoittelee
-  pyörän uudelleen
-- `paattymisajankohta(bike)` on olemassa. Jos ei ole, pyörä raportoidaan
+| Tapa | Täyttyy kun | Päivä |
+|---|---|---|
+| 1 | `paid_at` (vaiheen 1 jälkeen) on asetettu | `paid_at` |
+| 2 | `netto` > 0 ∧ `pidennykset`-määrä × 63,75 ≥ `netto` | `pidennykset[N − 1].closed_date`, kun N = `ceil(netto / 63,75)` |
 
-**Tyhjennä** `ic_redemption_dt` ja `ic_redemption_pr`, kun velvoitteet **eivät** ole hoidettu,
-`ic_redemption_done` ≠ T ja IC-päivä on asetettu. Pyörä poistuu silloin listalta ja palaa, kun
-ehdot täyttyvät uudelleen.
+`netto` = `pricing.calculate({endRedemptionPriceNet, maintenanceSumNet, brackets, vatPct: 25.5}).finalPriceNet`.
+Jos `calculate` palauttaa `error`in, hinta on tyhjä tai ≤ 0, tai `finalPriceNet` = 0, tapaa 2 ei kirjoiteta (tavat 3 ja
+4 kuuluvat 1479:lle). Lokiriville `eheys`-kenttään syy.
 
-**Kun `ic_redemption_done` = T, IC-kenttiin ei kosketa koskaan.** Jos lähtötiedot eivät enää täsmää,
-pyörä menee poikkeamaraporttiin (vaihe 4), eikä sitä korjata.
+Jos molemmat täyttyvät, **aikaisempi päivä voittaa, ja tasapelissä tapa 1**. Ei yhdistelyä (ADR 0012 k. 6). Hyvityksiä
+ei huomioida (ADR 0015 k. 5). Skripti ei peru avoimia Paylink-tilauksia.
 
-Arvo tulee kirjastosta, ei skriptistä. **Kirjastoon lisätään uusi funktio** (omistaja
-`netsuite-subscrption-cr-scripts`, `VERSION` → 1.2.0, yksikkötestit):
+Huoltoportaat luetaan kerran `getInputData`ssa tai mapin moduulitasolla samalla kyselyllä kuin 1479
+(`customrecord_sta_maint_extending_months`: `custrecord_sta_me_max_rate_excl_vat`, `_max_amt_incl_vat`, `_vat`,
+`_prolong_months`) ja syötetään `pricing.prepareBrackets`:lle. `extensionMonths`-argumenttia ei anneta (vain eheys).
 
-```js
-/** IC-lunastuspäivä — sopimusankkuri (ADR 0002), ei tunnistuspäivä. Saa osoittaa menneeseen. */
-function icLunastuspaiva(bike) {
-    var loppu = paattymisajankohta(bike);
-    return loppu ? kuunViimeinenPaiva(loppu) : null;
-}
-```
+### Vaihe 3 — Status
 
-Kirjaston otsikko mainitsee jo `ic_redemption_dt`:n sopimusankkurin lukijana (`:19`). Tämä vain
-toteuttaa sen, ja sääntö pysyy yhdessä paikassa.
+| Ehto | Kirjoitus |
+|---|---|
+| status 1 ∧ `lunastus.saakoMerkitaPaattyneeksi(bike, tanaan)` | status = `lunastus.kohdestatus(tapa)` |
+| muu | ei mitään |
 
-IC-päivä kuuluu **sopimusankkuriin**, ei tunnistuspäivään: takautuvassa lunastuksessa se osoittaa
-menneeseen kauteen, ja niin kuuluukin ([kenttäsäännöt §1](lunastuksen-kenttasaannot.md), esimerkki
-30.04. vs. 18.09.).
+Vain eteenpäin. 2/3 → 1 ja 2 ↔ 3 ovat ihmisen päätöksiä (ADR 0007 k. 5). Tyhjää statusta ei aseteta.
 
-**Valinnainen (D4):** jos yksikin IC-päivä kirjoitettiin, `summarize` käynnistää
-`customdeploy_gbb_ic_redemption_pr`:n `N/task`-moduulilla. Silloin hinta on laskettu jo aamulla,
-kun finance avaa listan. Laskuri suodattaa itse `ic_redemption_pr IS NULL`, joten käynnistäminen
-on idempotenttia.
+### Vaihe 4 — IC
 
-### Vaihe 4 — Poikkeamaraportti
+**Velvoitteet hoidettu = selvitystapa on asetettu** (tavat 1–8, ADR 0015 k. 6). Pelkkä `paid_at` ei riitä, koska
+keskenkauden maksu ilman CR:ää ei hoida mitään (ADR 0008 sääntö 3).
 
-`log.audit` ei riitä, koska [talon tyyli on hiljainen epäonnistuminen](../CLAUDE.md) eikä lokia
-lue kukaan. `summarize` kokoaa poikkeamat syittäin ja lähettää ne (D5). Esimerkki:
+| Ehto | Kirjoitus |
+|---|---|
+| `ic_redemption_done` = T | **ei mitään koskaan** |
+| tapa asetettu ∧ `loppu` tyhjä | ei mitään, `log.error` |
+| tapa asetettu ∧ `ic_redemption_dt` ≠ `LAST_DAY(loppu)` | `ic_redemption_dt` = `LAST_DAY(loppu)`, `ic_redemption_pr` = tyhjä |
+| tapa tyhjä ∧ (`ic_redemption_dt` ∨ `ic_redemption_pr` asetettu) | molemmat tyhjiksi |
+| muu | ei mitään |
 
-```
-Lunastusten täsmäytys 24.09.2026 — kirjoitettu: 27 maksua, 31 statusta, 1 012 IC-päivää.
-Vaatii ihmisen (12):
-  3  status 3 mutta selvitystapa ei ole 5 ............ B00xxxx, B00xxxx, B00xxxx
-  6  Active, kausi päättynyt yli 2 kk, ei selvitystapaa  B00xxxx …
-  2  §5-ristiriita: liab_settled_at ≠ maksupäivä ........ B018311, B031476
-  1  status 1 mutta IC-lunastus tehty ................... B00xxxx
-Ylävirran viive: 21 maksua näkyi yli 5 vrk myöhässä (vanhin 01.07.2026).
-```
+Jälkiveloituksessa `loppu` siirtyy kuukausittain, joten IC-päivä seuraa sitä. Ohimenevä väärä IC-päivä yhden yön ajan
+(maksu ennen Pending tyypin 7 CR:n käsittelyä) on hyväksytty (ADR 0015 k. 8).
 
-Jos kaikki on kunnossa, raportti on yksi rivi. Rivi lähtee silti, koska raportin puuttuminen on
-ainoa merkki siitä, että ajo ei käynnistynyt.
+### Kirjoitus ja loki
 
-### getInputData — kaikki poikkeamajoukot yhdellä kyselyllä
+Jos yksikin kenttä muuttui: `record.submitFields({type: 'customrecord_sta_bike_register', id, values,
+options: {enableSourcing: false, ignoreMandatoryFields: true}})`. Dry runissa kutsu ohitetaan.
 
-```sql
-SELECT id, 'maksu'  AS syy FROM ( … muutosspeksin kandidaattikysely … )
-UNION ALL
-SELECT id, 'status' FROM customrecord_sta_bike_register
- WHERE custrecord_sta_bike_status = 1 AND custrecord_gbb_liab_settle_method IS NOT NULL
-UNION ALL
-SELECT id, 'ic'     FROM customrecord_sta_bike_register   -- ADR 0011: velvoitteet arvioi map, ei kysely
- WHERE NVL(custrecord_gbb_ic_redemption_done,'F') = 'F'
-   AND (custrecord_gbb_liab_settle_method IS NOT NULL OR custrecord_gbb_ic_redemption_dt IS NOT NULL)
-UNION ALL
-SELECT id, 'tarkistus' FROM customrecord_sta_bike_register
- WHERE (custrecord_sta_bike_status = 3 AND NVL(custrecord_gbb_liab_settle_method,0) <> 5)
-    OR (custrecord_sta_bike_status = 2 AND custrecord_gbb_liab_settle_method = 5)
-    OR (custrecord_sta_bike_status IN (2,3) AND COALESCE(…päättymisajankohta…) >= ADD_MONTHS(TRUNC(CURRENT_DATE,'MM'),1))
-    OR (custrecord_sta_bike_status = 1 AND custrecord_gbb_ic_redemption_done = 'T')   -- ADR 0011: status 1 + IC-päivä on sallittu
-    OR (custrecord_sta_bike_status IS NULL AND custrecord_sta_subsc_start_date <= CURRENT_DATE)
-    OR (custrecord_sta_bike_status = 1 AND custrecord_gbb_liab_settle_method IS NULL
-        AND COALESCE(…) < ADD_MONTHS(TRUNC(CURRENT_DATE,'MM'),-2))
-```
+Jokaisesta pyörästä, jolle kirjoitettiin tai jossa tapahtui virhe, kirjoitetaan **yksi lokirivi** (ADR 0014 k. 11:n
+malli):
 
-`status`-haara palauttaa noin 170 pyörää (tila 2 *lunastus sovittu*), joista suurin osa odottaa.
-Se on oikein: SQL ei tiedä tunnistuspäivää, vaan kirjasto päättää sen mapissa. `CURRENT_DATE`
-SQL:ssä on palvelimen päivä, joten `tarkistus`-haaran rajat voivat erota yhdellä päivällä. Ne vain
-**valitsevat** tarkastettavat. Päätös tehdään mapissa `tanaanHelsinki()`:lla.
+- otsikko `<TULOS> <pyörän nimi>`, dry runissa etuliite `DRY RUN`. Tulokset: `KIRJOITETTU`, `VIRHE`
+- detail on kiinteä `avain=arvo`-lista samassa järjestyksessä: `joukot`, `paid_at`, `tapa`, `liab_settled_at`,
+  `status`, `ic_dt`, `ic_pr_tyhjennetty`, `maksupaiva`, `pidennykset`, `netto`, `eheys`. Muuttunut arvo muodossa
+  `vanha→uusi`
+- `log.error` tulokselle `VIRHE`, muuten `log.audit`
 
-Kun kanta on kunnossa, kysely palauttaa noin 170 odottavaa + 0 muuta. Kuunvaihteessa se palauttaa
-noin 1 000 × 2.
+Pyöriä, joille ei kirjoiteta mitään, ei lokiteta yksitellen (I-joukossa niitä on joka yö tuhansia). Ne näkyvät
+yhteenvedon luvuissa.
+
+`context.write({key: <tulos>, value: 1})` ja IC-muutos omalla avaimellaan, jotta summarize voi laskea.
+
+## reduce
+
+Ei tarvita. Summarize lukee mapin tulosteen.
+
+## summarize
+
+1. Yhteenvetorivi `run complete`: `tila=live|dry_run`, `valittu=…` joukoittain, `kirjoitettu=…`, kirjoitukset
+   kentittäin (`paid_at`, tapa 1 / 2 / OOMI, `liab_settled_at`, status 2 / 3, IC asetettu / korjattu / tyhjennetty),
+   `virheet=…`, `tanaan=…`.
+2. Jokainen epäonnistunut map (`mapSummary.errors`) omana `log.error`-rivinään pyörä-id:n kanssa.
+3. **IC-laskurin käynnistys** live-ajossa, jos yksikin IC-päivä kirjoitettiin tai hinta tyhjennettiin:
+   `task.create({taskType: task.TaskType.MAP_REDUCE, scriptId: 'customscript_gbb_ic_redemption_pr',
+   deploymentId: 'customdeploy_gbb_ic_redemption_pr'}).submit()`. Epäonnistuminen (esim. laskuri jo käynnissä) →
+   `log.error`. Varmistusajastusta ei ole. Taloustiimi ajaa laskurin käsin tarvittaessa (ADR 0015 k. 7).
+
+## Parametrit ja vakiot
+
+| Parametri | Tyyppi | Oletus |
+|---|---|---|
+| `custscript_gbb_rss2_dry_run` | checkbox | **T** (deployment luodaan dry runina) |
+| `custscript_gbb_rss2_test_bike_id` | integer | tyhjä |
+
+Kaikki muu on vakiota koodissa: CR-tyypit (2, 7, 10) ja -tilat (1, 2), SO-tyypit 3 ja 4, item 46, Paylink-tila 3,
+OOMI 3, testipyörä B017530, ALV 25,5, jälkiveloituskuukauden kattavuus 63,75, kirjastojen polut ja IC-laskurin
+script- ja deployment-id. Ei ikkunaparametreja, ei sähköpostiparametreja.
+
+## Testattavuus
+
+Vaiheiden 1–4 päätös kirjoitetaan **puhtaaksi funktioksi** omaan moduuliinsa (esim. `gbb_rss2_paatos.js`:
+syöte = pyörä + faktat + `tanaan`, tulos = muutettavat kentät + lokin avaimet). Se testataan Nodella samaan tapaan kuin
+1479:n `test/run_tests.js`. Vähimmäistapaukset:
+
+| # | Tapaus | Odotus |
+|---|---|---|
+| T1 | kauden loppu, maksu 20.09., kausi päättyy 31.10., tänään 25.09. | vain `paid_at` |
+| T2 | sama, tänään 1.10. | tapa 1, `liab_settled_at` 20.09., status 2, IC 31.10. |
+| T3 | maksu, tyypin 2 CR Pending | vain `paid_at`, ei IC:tä |
+| T4 | OOMI, kausi 15.10., ei maksua, tänään 1.10. | tapa 1, `liab_settled_at` 1.10., status 2, IC 31.10. |
+| T5 | OOMI, tapa 1 jo, myöhäinen maksu | vain `paid_at` |
+| T6 | jälkiveloitus, netto 120, 1 pidennys-CR | ei tapaa |
+| T7 | sama, 2 pidennys-CR:ää | tapa 2, `liab_settled_at` = toisen CR:n `closed_date` |
+| T8 | 2 pidennys-CR:ää (2. suljettu 2.11.) ja Paylink maksettu 1.11. | tapa 1, `liab_settled_at` 1.11. |
+| T9 | tapa 5, maksu | ei `paid_at`:ia |
+| T10 | done = T, `loppu` muuttunut | ei IC-muutosta |
+| T11 | IC 30.09., `loppu` 31.10., hinta asetettu | IC 31.10., hinta tyhjä |
+| T12 | tapa tyhjennetty käsin, IC asetettu | IC ja hinta tyhjiksi |
+| T13 | status 2, tapa 1, ei `paid_at`:ia, maksu löytyy | vain `paid_at`, status ennallaan |
+| T14 | tapa 1, `liab_settled_at` tyhjä, päättymiskuu ei alkanut | ei mitään |
+| T15 | hinta 0 € | ei tapaa 2 (1479:n tapa 4) |
 
 ## Käyttöönotto
 
-Päätetty 23.09. ([ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md) kohta 4): **syyskuu hoidetaan
-CSV-importeilla, ja uusi skripti otetaan lokakuussa käyttöön kokonaisena yhdellä kertaa. Lokakuu on
-testikuukausi.**
+> [!NOTE]
+> Repo `netsuite-bike-redemption-status-sync` on haarassa `feat/kalenterisweep`, jossa on commitoimattomia poistoja
+> (agentin havainto 6.10.). Selvitä ne ennen kuin teet uuden haaran `master`ista.
 
-### Syyskuu — CSV:t, vanha skripti ajaa
+1. **Rakennus** omistavassa repossa: puhdas päätösmoduuli + Node-testit (T1–T15), MR-skripti, README.
+2. **Lataus** File Cabinetiin, script-tietue ja deployment tilassa *Not Scheduled*, `dry_run` = T.
+3. **Dry run `test_bike_id`:llä** kolmelle tunnetulle pyörälle (yksi OOMI, yksi jälkiveloitus, yksi maksettu kauden
+   loppu). Tarkista Helsingin päivämuunnokset (Paylink, CR `closed_date`) UI:ta vasten.
+4. **Dry run koko kannalle.** Vertaa yhteenvedon lukuja *Todennus*-kyselyihin (*Ennen*-sarake). Lue `VIRHE`-rivit.
+5. **Live:** `dry_run` = F, ajastus 00:30 joka päivä. Siirrä extensionin (`customdeploy_gbb_sub_extension`) ajo
+   klo 03:00:aan samana päivänä.
+6. **Ensimmäisen live-ajon jälkeen:** *Todennus*-kyselyt, `scriptnote` (ei `ERROR`-rivejä), IC-laskuri ajoi.
+7. **Päivitä** `CLAUDE.md` (script-id, open item 3), muisti *GoByBike script internal ids*,
+   `schemas/script-inventory.md` ja `docs/lunastus-tilanne.md`. 1440:n deployment poistetaan tililtä vasta, kun 2.0 on
+   ajanut kuukauden vaihteen 1.11. ilman korjattavaa.
 
-| # | Mitä | Milloin | Valmis kun |
-|---|---|---|---|
-| S1 | Maksujen korjauslista, 27 pyörää ([CSV](../findings/2026-09-23-status-sync-maksuikkuna-korjauslista.csv)) | **ennen** kuin 4 × 2C -CR:ää käsitellään | ✔ **ajettu 23.09. klo 17:21**, 27/27 oikein, ja 2C-CR:t olivat yhä Pending. [Tila](../findings/2026-09-23-status-sync-maksuikkuna-hukkaa-myohaiset-maksut.md#s1n-tila--tarkistettu-23092026-illalla) |
-| S1b | Täydennys ADR 0008:n mukaan: B003280 ja B003403 (kauden loppu 30.09.) kuten S1. B006299, B042663 ja B044934 (keskenkauden) **vain `paid_at`**, ja B044934:n `liab_settled_at` 17.09. jätetään | ennen 30.09. Kaksi päättyy syyskuussa | poimintakysely → 0 |
-| S1-korjaus | ADR 0008: **B018311 ja B031476 `liab_settled_at` takaisin 17.09.2026** (CR:n päivä, jonka S1 ylikirjoitti). B007933, B010316, B024003 ja B026700 → 23.09.2026, kun niiden 2C-CR:t on käsitelty | heti / CR:ien jälkeen | arvo = CR:n `custrecord_cr_created_date` |
-| S1c | Poimintakysely uudelleen ja tarvittaessa uusi täydennys | 30.09., ennen S3:a | poimintakysely → 0 |
-| S2 | IC-päivät CSV:llä: status 2/3, IC-piirissä, `ic_redemption_dt` tyhjä, ei done, ei hintaa → `LAST_DAY(päättymisajankohta)`. 23.09. noin 1 356 kpl, joista noin 350 kesä–elokuulta | niin aikaisin, että finance ehtii ajaa laskurin ja haun 797 ennen 30.09. | `Status 2/3, ei IC-päivää …` → 0; laskuri ajettu, `-1`-rivit käyty läpi |
-| S4 | 34 jumissa olevaa OOMI-pyörää: tapa 1 + `liab_settled_at` ([import](../imports/2026-09-24-oomi-kauden-loppu/README.md), ADR 0009) | ennen S3:a | sweep kääntää, S3 antaa IC-päivän |
-| S3 | Täydentävä IC-CSV samalla säännöllä niille, jotka ovat kääntyneet S2:n jälkeen (CR:t, maksut) | 30.09. | sama kysely → 0 ennen kuunvaihdetta |
-
-S2:n ja S3:n rajaus riippuu päätöksestä D1. Jos siihen ei ole vastausta ennen S2:ta, ajetaan vain
-IC-myydyt, koska niille laskurilla on kustannuslähde varmasti.
-
-### Rakentaminen syyskuussa — ei tuotantokirjoituksia
-
-| # | Mitä | Repo |
-|---|---|---|
-| R1 | `icLunastuspaiva` + yksikkötestit, kirjasto 1.2.0. Voidaan ladata File Cabinetiin jo syyskuussa: lisäys ei muuta olemassa olevia funktioita, ja nykyiset kutsujat lokittavat uuden `VERSION`in | `netsuite-subscrption-cr-scripts` |
-| R2 | Uusi Map/Reduce-skripti ja deployment tilassa *Not Scheduled*. Parametrit `dry_run` ja `test_bike_id` säilyvät | `netsuite-bike-redemption-status-sync` |
-| R3 | Raportin vastaanottaja (D5) ja IC-laskurin käynnistys (D4) konfiguroitu parametreina | sama |
-
-Yksi `dry_run`-ajo tuotantodataa vasten ennen 1.10. on sallittu, koska se vain lukee, eikä se ole
-käyttöönotto. Sen yhteenvedon pitää olla linjassa syyskuun CSV:iden jälkeisen tilan kanssa, eli
-lähes tyhjä.
-
-### Lokakuu — käyttöönotto kerralla
-
-| Hetki | Mitä |
-|---|---|
-| 30.09. ilta | S3 ajettu. ~~Vanha `customdeploy_gbb_redemption_sync` → *Not Scheduled*~~ **Muutettu 30.09. (E6):** vanha pysyy *Scheduled*-tilassa, kunnes uusi otetaan käyttöön, koska se on sama deployment kuin sweep. Vaihto tehdään samana päivänä. |
-| 1.10. yö | uusi deployment → *Scheduled*, kaikki neljä vaihetta päällä. Ensimmäinen ajo on kuunvaihde: noin 1 000 statuskääntöä ja saman verran IC-päiviä lokakuun kaudelle |
-| 1.10. aamu | ensimmäinen raportti. Päivitä `CLAUDE.md`:n ja muistin script-id, sillä `scriptnote.scripttype` ≠ 1440 |
-
-**Paluu vanhaan:** uusi → *Not Scheduled*, vanha → *Scheduled*. Uuden kirjoittamat kentät jäävät
-paikalleen. Ne ovat write-once-kenttiä ja sääntöjen mukaisia, joten niitä ei tarvitse perua.
-
-### Lokakuu — testi
-
-**Joka aamu** (kyselyt § *Todennus*):
-
-- raportti saapui, ja sen luvut selittyvät edellisen päivän tapahtumilla
-- statusporttikvadrantti *2/3 + tulevaisuudessa* = 0
-- §5-rikkomukset eivät kasva
-- maksettu Active ilman selvitystapaa = 0
-- status 2/3 IC-piirissä ilman IC-päivää = 0
-- uusista IC-päivistä 100 % = `LAST_DAY(päättymisajankohta)`
-- IC-laskurin `-1`-rivit eivät kasva (jos D4 on päällä)
-- `scriptnote`: ei `ERROR`-rivejä, `summarize` listaa 0 epäonnistunutta mapia
-
-**Viikoittain:** otos 10 pyörästä, joille ajo kirjoitti jotain. Tarkista käsin, että kirjoitettu
-arvo on sama kuin kenttäsääntö antaa.
-
-**Kuun lopussa, ennen financen ajoa:** taloustiimi käy haun 797 lokakuun kauden läpi. Pyörien
-määrän on vastattava lokakuussa päättyviä lunastuksia ja lisäksi myöhässä tunnistettuja
-aiemmille kausille. Hintojen on oltava laskettuja.
-
-**Hyväksytty kun** lokakuu on mennyt ilman yhtään selittämätöntä poikkeamaa ja haku 797 on
-taloustiimin mielestä oikein. Vasta sitten vanha skripti poistetaan tililtä ja sen README
-arkistoidaan.
+**Paluu vanhaan** ei ole tarpeen eikä suositeltava: 1440:n osa A rikkoo ADR 0008:aa ja 0009:ää. Jos 2.0 on
+rikki, se pysäytetään ja korjataan, ja välipäivät hoidetaan CSV:llä.
 
 ## Todennus
 
-| Kysely | Ennen | Jälkeen |
-|---|---|---|
-| Maksettu Active ilman selvitystapaa | 24 | 0 |
-| Status 1, tunnistuspäivä ohi | 5 | 0 |
-| Status 2/3, ei IC-päivää, ei done, IC-piirissä | 1 356 (+175) | 0 |
-| CLAUDE.md:n statusporttikvadrantti *2/3 + tulevaisuudessa* | 0 | **0** |
-| §5-rikkomukset | 54 | ei kasva |
-| IC-päivä ≠ `LAST_DAY(päättymisajankohta)` uusissa kirjoituksissa | — | 0 |
-| Raportti saapui | — | joka aamu |
+| Kysely | Odotus live-ajon jälkeen |
+|---|---|
+| Lunastustodiste olemassa, `paid_at` tyhjä, tapa ≠ 5 | 0 |
+| Kauden loppu, päättymiskuu alkanut, `paid_at` asetettu, tapa tyhjä tai `liab_settled_at` tyhjä (ei tyypin 2/10 CR:ää) | 0 |
+| OOMI, status 1, tapa tyhjä, päättymiskuu alkanut, ei tyypin 2/10 CR:ää | 0 |
+| Status 1, tapa asetettu, tunnistuspäivä koittanut | 0 |
+| CLAUDE.md:n statusporttikvadrantti *2/3 + tulevaisuudessa* | **0** |
+| Tapa asetettu, done ≠ T, `ic_redemption_dt` ≠ `LAST_DAY(subsc_end_date)` tai tyhjä | 0 |
+| Tapa tyhjä, done ≠ T, IC-päivä tai hinta asetettu | 0 |
+| IC-päivä asetettu, done ≠ T, hinta tyhjä | 0 IC-laskurin ajon jälkeen |
+| Done-tilaisten pidennys-CR:ien × 63,75 ≥ netto, tapa tyhjä, ei-OOMI | 0 |
 
-## Päätökset
-
-| # | Kysymys | Suositus | Peruste |
-|---|---|---|---|
-| **D1** | Kirjoitetaanko IC-päivä vain IC-myydyille pyörille vai kaikille lunastetuille? | **Ratkaistu 6.10. ([ADR 0011](adr/0011-ic-paiva-velvoitteista.md)):** kaikille, joiden velvoitteet on hoidettu. IC-myymätön saa hinnan `-1`, ja taloustiimi päättää | 281 ei-IC-myytyä on IC-päivällä ja done-merkinnällä, joten finance on käsitellyt niitäkin. Laskuri tarvitsee kustannuslähteen (FAM tai `ic_sale_price`) ja merkitsee muut `-1`:ksi |
-| **D2** | `LAST_DAY(päättymisajankohta)` kaikille? | **Ratkaistu 23.09.:** kyllä | IC-päivä on kirjanpitokausi (ADR 0007). ~~Nykyisiä 7 % poikkeamia ei muuteta (write-once)~~ **6.10.: write-once kumottu (ADR 0011), poikkeamat korjataan, ellei done = T** |
-| **D3** | Kirjoitetaanko IC-päivä heti tilaan 3 tultaessa? | **Ratkaistu 23.09.:** kyllä. **Tarkennettu 6.10. (ADR 0011):** jo kun velvoitteet on hoidettu, ennen tilaa 3 | Taloustiimi tarvitsee tiedon ennen kuun loppua, ja tunnistuspäivä on kuun ensimmäinen. Historia on sallittu |
-| **D4** | Käynnistetäänkö IC-laskuri automaattisesti? | **Päätetty 6.10. (ADR 0011):** kyllä, `summarize` käynnistää sen. Laskurin päivittäinen varmistusajastus on auki | idempotentti, ja hinta on valmiina aamulla. Muuten haussa 797 on rivejä ilman hintaa, kunnes joku ajaa laskurin käsin |
-| **D5** | Kenelle raportti menee? | financen vastaava + lunastusten omistaja, sähköposti `N/email` | [Vastuurekisteri](../../Second%20brain/35-Systems/Vastuurekisteri.md) nimeää financen vastaavan. Automaatiolle ei ole omistajaa |
-| **D6** | Korjataanko 2 ↔ 3 -ristiriita automaattisesti? | ei aluksi, vain raportti | 3 tapausta. Katso ne ensin käsin: onko vika statuksessa vai selvitystavassa |
-| **D7** | Kuka takaa IC-päivän? | **Päätetty 30.09. (käyttäjä):** status-sync 2.0. IC-päivän on aina oltava täytetty, kun vastuut on hoidettu | Käsin tehdyt täytöt 29.–30.09. jättivät 325 pyörää ilman päivää. **6.10.:** ehto = velvoitteet hoidettu, tapa 8 mukana ([ADR 0011](adr/0011-ic-paiva-velvoitteista.md)) |
-
-## Mitä tämä ei tee
-
-- **Ei aktivoi pyöriä.** Status tyhjä → 1 kuuluu tilausketjulle (131 keskeneräistä tilausta)
-- **Ei kirjoita `custrecord_sta_redemption_date`:a** (`sta_mr_mid_life_redemption`:n hyvityslasku)
-- **Ei kirjoita `custrecord_gbb_date_to_non_active`:a.** Sen täyttää `customscript1458` (*Bike status
-  date backfill*, samassa repossa `gbb-bike-status-history/`) System Noteista noin vuorokauden
-  viiveellä ([löydös](../findings/2026-09-23-b038677-redeemed-ja-ended-ilman-cr.md)). **Päätettävä
-  ennen lokakuuta:** jätetäänkö 1458 erilleen vai kirjoittaako 2.0 kentän itse samassa
-  `submitFields`-kutsussa kuin statuksen, koska kirjoittaja tietää päivän varmasti. 1458:n kysely
-  on sivuttamaton, ja sen 5 000 rivin rajan riski on dokumentoitu mutta korjaamatta. Raportoi joka
-  tapauksessa, jos kenttä on tyhjä yli vuorokauden statuksen vaihdon jälkeen
-- **Ei kirjoita `custrecord_gbb_redemption_status`:ta** (`finalised`, `waiting_for_payment` …).
-  Kentän kirjoittaja ja käyttäjä on selvitettävä erikseen. Jos se on financen oma tila, se voi
-  myöhemmin kuulua tänne
-- **Ei korjaa 134 `historical_unknown`-pyörää**, joilla on maksu. Se on dataratkaisu
+Kyselyt kirjoitetaan `queries/`-kirjastoon (`suiteql-rakentaja`), ja raportointiskripti käyttää samoja.

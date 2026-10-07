@@ -9,6 +9,9 @@
   säilyy vaiheena 2), [kenttäsäännöt](../lunastuksen-kenttasaannot.md) § `ic_redemption_dt`
   (omistaja muuttuu: CSV-import → tämä skripti)
 - **Suunnitelma:** [`../status-sync-2-tasmaytysajo.md`](../status-sync-2-tasmaytysajo.md)
+- **Osittain muutettu:** [ADR 0015](0015-status-sync-2-tarkennukset.md) (7.10.2026). Vaihe 4 (raportti) ja D5 poistuvat,
+  raportointi on erillinen skripti. Käyttöönotto tehdään heti valmistuttua, ei kuunvaihteessa. Vaiheen 3 laukaisija ja
+  write-once on muutettu jo ADR 0011:llä. Ristiriidassa ADR 0015 voittaa.
 
 ## Konteksti
 

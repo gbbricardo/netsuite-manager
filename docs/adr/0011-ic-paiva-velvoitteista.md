@@ -5,6 +5,8 @@
 - **Koskee:** [`lunastuksen-kenttasaannot.md`](../lunastuksen-kenttasaannot.md) § 4 ja § `ic_redemption_dt`,
   [`status-sync-2-tasmaytysajo.md`](../status-sync-2-tasmaytysajo.md) vaihe 3, haku 797, `netsuite-ic-calculators`
 - **Ratkaisee:** status-sync 2.0:n D1 sekä D7:n kaksi avointa kohtaa (ehto ja tapa 8)
+- **Tarkennettu:** [ADR 0015](0015-status-sync-2-tarkennukset.md) (7.10.2026). *Velvoitteet hoidettu* = selvitystapa
+  asetettu. Pelkkä `paid_at` ei riitä. IC-laskurille ei tehdä varmistusajastusta (T42).
 
 ## Konteksti
 

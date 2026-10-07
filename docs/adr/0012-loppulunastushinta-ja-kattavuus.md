@@ -6,6 +6,9 @@
   status-sync 2.0, `netsuite-subscription-extension` (uudelleenkirjoitus)
 - **Muuttaa:** [ADR 0009](0009-kauden-lopun-lunastus.md) kohdat 3 (tavan 2 päivä) ja 5 (kattavuusehto)
 - **Kumoaa:** maksulinkkirepon 14.9.2026 päätöksen, jossa huoltohyvitys ankkuroitiin sopimuksen pidennykseen
+- **Tarkennettu:** [ADR 0015](0015-status-sync-2-tarkennukset.md) (7.10.2026). Kohta 5 lasketaan muutospyyntötasolla:
+  kuukausi = Done-tilainen pidennys-CR, `liab_settled_at` = rajan ylittäneen CR:n sulkemispäivä (sama kuin laskun
+  luontipäivä), hyvityksiä ei huomioida.
 - **Kenttätaso:** [kenttäsäännöt § 11](../lunastuksen-kenttasaannot.md#11-loppulunastushinnan-määräytyminen-ja-kattavuus)
 
 ## Konteksti

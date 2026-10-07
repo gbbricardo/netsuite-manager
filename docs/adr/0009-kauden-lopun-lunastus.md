@@ -6,6 +6,9 @@
 - **Osittain muutettu:** [ADR 0012](0012-loppulunastushinta-ja-kattavuus.md) (6.10.2026). Kohdan 5 kattavuusehto
   on nyt *laskutetut pidennys-kuukaudet × 63,75 € ≥ hinta − huoltohyvitys*, eikä maksu ole ehto. Kohdan 3 tavan 2
   päivä on laskun luontipäivä.
+- **Osittain muutettu:** [ADR 0015](0015-status-sync-2-tarkennukset.md) (7.10.2026). Kohta 6: myöhässä saapuva OOMI-maksu
+  kirjoittaa `paid_at`:n (maksun fakta, ADR 0013 k. 8), mutta ei muuta tapaa eikä `liab_settled_at`:ia. Kohdan 5
+  kuukaudet lasketaan Done-tilaisista pidennys-CR:istä, ja päivä on rajan ylittäneen CR:n sulkemispäivä.
 - **Koskee:** vain **kauden lopun lunastusta** ([CONTEXT.md](../../CONTEXT.md)). Keskenkauden
   lunastus jatkuu ADR 0008:n mukaan.
 - **Tarkentaa:** [ADR 0004](0004-paatospaivan-kirjoittaa-ue.md) (ei koske kauden loppua),

@@ -533,7 +533,12 @@ kuunvaihdetta.
 > tavalla 8, 38 OOMI-pyörää tavalla 1 (14 S4-pyörää, 23 kesä–heinäkuussa kääntynyttä ja uusi B044026) ja 7 muuta.
 > Tavan 8 ryhmä odottaa päätöstä (ks. *Auki*: status-sync 2.0 ja IC-päivä).
 
-### [ ] T6 — Vanha status-sync pois ajastuksesta — siirretty status-sync 2.0:n käyttöönottoon
+### [x] T6 — Vanha status-sync pois ajastuksesta — **tehty 6.10.2026 (käyttäjä)**
+
+> [!WARNING]
+> **6.10.2026: käyttäjä poisti 1440:n ajastuksen ennen kuin 2.0 on valmis** (päätös E6 kumottu, [ADR 0015](docs/adr/0015-status-sync-2-tarkennukset.md)).
+> Siitä asti kukaan ei kirjaa maksuja, käännä statuksia eikä kirjoita IC-päiviä. 1440 ajoi viimeksi yöllä 5.→6.10.
+> (`scriptnote`). Takarajat: T54.
 
 > [!IMPORTANT]
 > **Päätös E6, tuoteomistaja 30.09.2026: vanhaa ajastusta ei pysäytetä ennen kuin 2.0 on valmis.**
@@ -559,6 +564,11 @@ Joka maanantai (5.10., 12.10., 19.10., 26.10.) ja 30.10.:
    (T1/K4). Löydöksistä päättää tuoteomistaja.
 
 **Valmis kun** 2.0 on käytössä tai 30.10. poiminnat palauttavat 0, jolloin 1.11. extension ei näe maksettuja Active-pyöriä.
+
+> [!IMPORTANT]
+> **7.10.: koska 1440 on pois päältä (T6), tämä on ainoa varasuunnitelma.** Jos 2.0 (T54) ei ole tuotannossa
+> **28.10.**, aja kohta 1 kaikille lokakuun maksuille (ei vain myöhästyneille) sekä IC-päivät CSV:llä ADR 0011:n ehdolla
+> (tapa asetettu, ei done) ennen taloustiimin IC-lunastusta 29.10.
 
 ---
 
@@ -625,6 +635,26 @@ päätös ei riipu T11:n ajoituksesta. Pyörät ovat jumissa, kunnes päätös o
 
 ---
 
+## Lokakuu 2026 — status-sync 2.0:n rakennus ([ADR 0015](docs/adr/0015-status-sync-2-tarkennukset.md))
+
+### [ ] T54 — Rakenna ja ota käyttöön status-sync 2.0 (`netsuite-bike-redemption-status-sync`), **viimeistään 28.10.**
+
+Rakennusohje: [`docs/status-sync-2-tasmaytysajo.md`](docs/status-sync-2-tasmaytysajo.md). Määritelty grilling-istunnossa
+6.–7.10. Toteutetaan omistavassa repossa erillisessä istunnossa. Sisältää T40:n, T41:n ja T44:n.
+
+Takarajat (1440 on pois päältä 6.10. alkaen):
+- **to 29.10.**: taloustiimin IC-lunastus. Lokakuussa hoidettujen IC-päivien ja hintojen on oltava valmiina.
+- **1.11. klo 03:00**: extension. Ajoissa maksaneilla on oltava tapa 1. Siirrä extensionin ajastus 01:00 → 03:00
+  samana päivänä, kun 2.0 ajastetaan klo 00:30.
+- Jos 2.0 ei ole tuotannossa 28.10., aja varasuunnitelma T26.
+
+**Valmis kun** ohjeen § *Todennus* -kyselyt palauttavat ensimmäisen live-ajon jälkeen 0, `scriptnote` ei näytä
+`ERROR`-rivejä, IC-laskuri on ajanut, ja `CLAUDE.md`, muisti ja `schemas/script-inventory.md` kertovat uuden script-id:n.
+
+Raportointi: status-sync 2.0:n jättämät ryhmät on lisätty T51:een (raportointiskriptin määrittely).
+
+---
+
 ## Lokakuu 2026 — IC-lunastuksen tavoitetila ([ADR 0011](docs/adr/0011-ic-paiva-velvoitteista.md))
 
 Määritelty 6.10.2026. Sanasto on `CONTEXT.md` § *IC-käsitteet*. Korjaukset tehdään omistavissa repoissa erillisessä istunnossa.
@@ -635,7 +665,7 @@ Listalle tulevat täsmälleen IC-lunastettavissa olevat pyörät: velvoitteet ho
 asetettu, `ic_redemption_pr` asetettu (myös `-1`) ja `ic_redemption_done` ≠ T. Näkyviin hinta, IC-päivä ja done. IC-myynti,
 status ja IC-päivän kuukausi eivät rajaa. **Valmis kun** haun rivimäärä = vastaava SuiteQL-määrä.
 
-### [ ] T40 — Status-sync 2.0: IC-vaihe ADR 0011:n mukaan (`netsuite-bike-redemption-status-sync`)
+### [ ] T40 — Status-sync 2.0: IC-vaihe ADR 0011:n mukaan — **yhdistetty T54:ään 7.10.**
 
 [Suunnitelman vaihe 3](docs/status-sync-2-tasmaytysajo.md#vaihe-3--ic-lista): kirjoitus, kun velvoitteet on hoidettu (myös status 1),
 korjaus poikkeavaan päivään + hinnan tyhjennys, tyhjennys kun velvoitteet eivät enää ole hoidettu, `done` = T jäädyttää.
@@ -643,11 +673,14 @@ korjaus poikkeavaan päivään + hinnan tyhjennys, tyhjennys kun velvoitteet eiv
 
 ### [ ] T41 — Käyttöönoton esiajo ja ensimmäinen ajo
 
-Ensimmäinen ajo käsittelee kaikki kerralla (ADR 0011 kohta 8). **Avoin, käyttäjä ei päättänyt 6.10.:** toimitetaanko
-taloustiimille esiajon CSV (uudet listalle tulijat + muuttuvat IC-päivät ja tyhjennettävät hinnat) ennen ajoa.
+Ensimmäinen ajo käsittelee kaikki kerralla (ADR 0011 kohta 8). **Päätetty 7.10. (ADR 0015 k. 10):** esiajon CSV:tä ei
+tehdä. Dry run lokittaa suunnitellut kirjoitukset, eikä se tuota tiedostoja. Osa T54:ää.
 **Valmis kun** kysely *velvoitteet hoidettu, ei done, IC-päivä ≠ `LAST_DAY(päättymisajankohta)` tai tyhjä* palauttaa 0.
 
-### [ ] T42 — Päätettävä: laskurin varmistusajastus
+### [x] T42 — Päätettävä: laskurin varmistusajastus — **päätetty 7.10.2026: ei ajastusta**
+
+ADR 0015 k. 7: 2.0:n `summarize` käynnistää laskurin. Jos käynnistys epäonnistuu, taloustiimi ajaa laskurin käsin.
+Raportointiskripti nostaa esiin pyörät, joilla on IC-päivä ilman hintaa (vaatimus R12).
 
 `customdeploy_gbb_ic_redemption_pr` on Not Scheduled. Jos status-sync 2.0:n `N/task`-käynnistys epäonnistuu, hinta jää
 laskematta eikä pyörä näy listalla (T39:n ehto). Ehdotus: päivittäinen ajo status-syncin jälkeen. Ei päätetty 6.10.
@@ -672,7 +705,10 @@ T37:n K-a, K-b ja K-c pysyvät ennallaan. Lisäksi:
 
 **Valmis kun** dry run ei valitse yhtään pyörää, jolla on tyypin 2 tai 10 CR (Pending/Done).
 
-### [ ] T44 — Status-sync 2.0: tavan 2 kattavuus ADR 0012:n mukaan (K2)
+### [ ] T44 — Status-sync 2.0: tavan 2 kattavuus ADR 0012:n mukaan (K2) — **yhdistetty T54:ään 7.10.**
+
+> 7.10.: ADR 0015 k. 5 muuttaa laskennan muutospyyntötasolle (Done-tilaiset pidennys-CR:t, CR:n sulkemispäivä). Alla
+> alkuperäinen muotoilu.
 
 Laskutetut, hyvittämättömät *pidennys*-CR-laskut × 63,75 € ≥ hinta − huoltohyvitys (kaava, sama kirjasto kuin 1479).
 `liab_settled_at` = rajan ylittävän laskun luontipäivä. Korvaa ADR 0009 k. 5:n ja K2-ehdotuksen 29.09.
@@ -724,6 +760,7 @@ Päätetty 7.10.2026. Toteutus T37:n mukaan omistavassa repossa: [muutosmäärit
 Erillinen skripti raportoi kaiken lunastuksiin liittyvän (ADR 0014 k. 18). Se korvaa 1479:n digestin. Syötteenä on 1479:n lokimuoto
 (muutosmäärittely A5), ja se voi sisältää T46:n. Ei määritelty: omistava repo, kanavat, rytmi ja lokin 30 päivän säilytysaika.
 Vaatimukset tähän mennessä: (1) Active, ei OOMI, sopimus päättynyt, ei linkkiä, ei tapaa eikä jälkiveloitusta (ADR 0014 k. 17b; 7.10. neljä pyörää, kaikki keskenkauden lunastuksia: B023198, B024587, B024908, B020053). (2) Jälkiveloituspyörät, joilla ei ole lainkaan loppulunastustilausta (7.10. 14 pyörää, ks. T53).
+(3) Status-sync 2.0:n jättämät ryhmät R1–R13 ja keskenkauden S1–S5: [`docs/raportointiskripti-vaatimukset.md`](docs/raportointiskripti-vaatimukset.md) ([ADR 0015](docs/adr/0015-status-sync-2-tarkennukset.md) k. 1).
 **Valmis kun** määrittely on hyväksytty.
 
 ### [ ] T53 — 14 jälkiveloituspyörää ilman loppulunastustilausta
