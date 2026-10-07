@@ -22,6 +22,8 @@ Tämä ADR päättää, miten skripti muutetaan niiden mukaiseksi, ja samalla, m
 
 1. **Kaksi julkaisua.** **A** on tuotannossa ja dry runilla todennettu ennen 31.10.2026 kohorttiajoa (tavoite noin 24.10.).
    **B** tulee sen jälkeen. (Q1)
+   *Muutettu 7.10.2026 (tuoteomistaja):* B otettiin käyttöön ennen ensimmäistä live-ajoa, koska A oli jo todennettu koko 30.11.
+   kohortin dry runilla (816 pyörää, 0 poikkeamaa). B:n dry runit B1–B3 menivät läpi samana päivänä (PR #1 ja #2 yhdistetty).
 
 ### Julkaisu A — korjaukset
 
