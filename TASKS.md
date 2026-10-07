@@ -261,8 +261,6 @@ B026345, B029068, B029828, B030349, B030615, B030725, B033147, B033376, B033546,
 
 **7.10.: A ja B yhdistetty (PR #1, #2) ja ladattu. Dry runit läpi:** yksittäiset pyörät (L2, S5, leima), koko 30.11. kohortti (816 pyörää: hinta, ohitukset ja lokimuoto 0 poikkeamaa) sekä B1–B3 (`months_before` 3 → keskeytys, 1 → 2 pyörää, 2 → 816 pyörää ja eräpäivä = päättymispäivä). **Jäljellä:** live-ajo ja tuplatilauskysely (T52).
 
-**7.10.: A ja B yhdistetty (PR #1, #2) ja ladattu. Dry runit läpi:** yksittäiset pyörät (L2, S5, leima), koko 30.11. kohortti (816 pyörää: hinta, ohitukset ja lokimuoto 0 poikkeamaa) sekä B1–B3 (`months_before` 3 → keskeytys, 1 → 2 pyörää, 2 → 816 pyörää ja eräpäivä = päättymispäivä). **Jäljellä:** live-ajo ja tuplatilauskysely (T52).
-
 Tehdään repon omassa istunnossa sen sääntöjen mukaan. Tuoteomistaja päättää jokaisesta kohdasta. Testaus: dry run ja `test_bike_id`.
 
 **Päätetty 7.10.: [ADR 0014](docs/adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md), toteutusmäärittely
