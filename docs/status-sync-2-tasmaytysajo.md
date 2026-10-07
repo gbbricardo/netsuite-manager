@@ -72,17 +72,18 @@ poikkeuskentät, CR-tietueet, Paylink-tietueet.
 ## getInputData
 
 Yksi SuiteQL, `UNION` alla olevista joukoista. Palauttaa vain pyörä-id:t. Duplikaatit poistetaan JS:ssä ennen
-emittointia. Sivutus `runSuiteQLPaged`, 1 000 riviä. Testipyörä B017530 rajataan pois. `test_bike_id` rajaa
+emittointia. Sivutus `runSuiteQLPaged`, 1 000 riviä. Testipyörä B017530 ja inaktiiviset tietueet (`isinactive` = T)
+rajataan pois (ADR 0015 k. 13). `test_bike_id` rajaa
 kyselyn yhteen pyörään.
 
 | Joukko | Ehto (SuiteQL) | Miksi |
 |---|---|---|
 | **M** maksu | `paid_at IS NULL` ∧ `NVL(method,0) <> 5` ∧ maksutodiste on olemassa (ks. *Maksutodiste*) | `paid_at` puuttuu |
-| **V** vastuut, maksettu | `paid_at IS NOT NULL` ∧ (`method IS NULL` ∨ (`method = 1` ∧ `liab_settled_at IS NULL`)) | etukäteen maksettu: tapa odottaa päättymiskuuta |
+| **V** vastuut, maksettu | `status = 1` ∧ `paid_at IS NOT NULL` ∧ (`method IS NULL` ∨ (`method = 1` ∧ `liab_settled_at IS NULL`)) | etukäteen maksettu: tapa odottaa päättymiskuuta |
 | **O** OOMI | `order_type = 3` ∧ `status = 1` ∧ `method IS NULL` ∧ `subsc_end_date < ADD_MONTHS(TRUNC(CURRENT_DATE,'MM'),1)` | kauden lopun OOMI ilman tapaa |
 | **J** jälkiveloitus | `status = 1` ∧ `method IS NULL` ∧ `NVL(order_type,0) <> 3` ∧ on Done-tilainen tyypin 7 CR, jonka `LOWER(altname)` sisältää `pidennys` eikä `2a` | tapa 2 voi täyttyä |
 | **S** status | `status = 1` ∧ `method IS NOT NULL` | tila *lunastus sovittu*, odottaa tunnistuspäivää |
-| **I** IC | `NVL(ic_redemption_done,'F') = 'F'` ∧ (`method IS NOT NULL` ∨ `ic_redemption_dt IS NOT NULL`) | IC-päivä kirjoitetaan, korjataan tai tyhjennetään |
+| **I** IC | `NVL(ic_redemption_done,'F') = 'F'` ∧ (`method IS NOT NULL` ∨ `ic_redemption_dt IS NOT NULL` ∨ `ic_redemption_pr IS NOT NULL`) | IC-päivä kirjoitetaan, korjataan tai tyhjennetään |
 
 Kyselyn `CURRENT_DATE` on palvelimen päivä. Joukot vain **valitsevat**. Jokainen päätös tehdään mapissa
 `tanaanHelsinki()`:lla, joten yhden päivän ero rajalla ei aiheuta väärää kirjoitusta.
@@ -137,7 +138,8 @@ vahingonkorvaus.
 
 ### Vaihe 2 — Vastuut (tapa ja `liab_settled_at`)
 
-Ajetaan vain, kun `kaudenLoppu` on tosi. Keskenkauden lunastuksessa (tyypin 2/10 CR) vastuut tulevat CR:ltä, eikä
+Ajetaan vain, kun **status on 1** (ADR 0015 k. 12) ja `kaudenLoppu` on tosi. Status 2/3 tai tyhjä ilman tapaa on
+poikkeama raportointiskriptille (R3, R4), ei automaation paikattava. Keskenkauden lunastuksessa (tyypin 2/10 CR) vastuut tulevat CR:ltä, eikä
 tämä vaihe kirjoita mitään (ADR 0008).
 
 | # | Tilanne | Kirjoitus |

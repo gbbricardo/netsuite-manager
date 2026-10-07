@@ -1,7 +1,7 @@
 # ADR 0015 — Status-sync 2.0: toiminnallinen skripti, `subsc_end_date` ja tapa 2 muutospyyntötasolla
 
 - **Päivämäärä:** 2026-10-07
-- **Tila:** Hyväksytty (tuoteomistaja, grilling-istunto 6.–7.10.2026, kysymykset Q1–Q27)
+- **Tila:** Hyväksytty (tuoteomistaja, grilling-istunto 6.–7.10.2026, kysymykset Q1–Q29)
 - **Koskee:** `netsuite-bike-redemption-status-sync` (status-sync 2.0)
 - **Muuttaa:** [ADR 0007](0007-status-sync-2-tasmaytysajo.md) (vaihe 4, käyttöönotto, D4–D5),
   [ADR 0009](0009-kauden-lopun-lunastus.md) k. 6 (`paid_at` OOMI:lla),
@@ -48,6 +48,9 @@ Tuoteomistajan linja (ADR 0014) on yksinkertainen skripti: yksi tehtävä, ei ra
 10. **Tilat ovat dry run ja live, lisäksi `test_bike_id`.** Dry run ajaa kaiken ja lokittaa, mutta ei kirjoita eikä
     tuota tiedostoja. (Q11, Q21)
 11. **Ajojärjestys:** Paylink-synkka → 2.0 (00:30) → extension (siirretään 03:00:aan). (Q19)
+12. **Vastuut kirjataan vain Active-pyörälle (status 1).** Status 2/3 tai tyhjä ilman tapaa on poikkeama, jonka
+    raportointi nostaa esiin. Muuten esimerkiksi palautettu pyörä saisi tavan 1 lunastusmaksusta. (Q28)
+13. **Inaktiiviset rekisteritietueet rajataan pois**, kuten 1479:ssä. (Q29)
 
 ## Hylätyt vaihtoehdot
 
@@ -72,7 +75,7 @@ Tuoteomistajan linja (ADR 0014) on yksinkertainen skripti: yksi tehtävä, ei ra
 
 ## Todennettu vs. päätelty
 
-**Tuoteomistajalta 6.–7.10.2026:** päätökset 1–11.
+**Tuoteomistajalta 6.–7.10.2026:** päätökset 1–13 (12 ja 13 PR #4:n tarkistuksen jälkeen).
 **Todennettu NetSuitesta 6.–7.10.2026:**
 - 1440 ajoi joka yö 25.9.–6.10. (`scriptnote`)
 - maksettuja lunastuslaskuja ilman maksettua Paylinkiä 26–59 kuussa (esim. B024083, INVGBB1014083)
