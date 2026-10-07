@@ -71,6 +71,11 @@ Tämä ADR päättää, miten skripti muutetaan niiden mukaiseksi, ja samalla, m
 17. **Eräpäivä = `subsc_end_date`**, ja se annetaan vain Paylinkille. Loppukäyttäjälle eräpäivää ei näytetä. Brevo-pohja 65 on kunnossa
     sellaisenaan. `due_days` poistetaan. (Q8)
 
+### Päättyneet sopimukset (lisätty 7.10.2026)
+
+17b. **1479 ei käsittele päättyneitä sopimuksia millään parametrilla**, eikä `test_bike_id`-ajokaan tee poikkeusta. (Q28, Q29)
+    Pyörät, joilla on päättynyt sopimus mutta ei linkkiä, ei tapaa eikä jälkiveloitusta, listaa erillinen raportointiskripti (T51). (Q30)
+
 ### Rajattu pois
 
 18. **Raportointi** tehdään erillisenä skriptinä, joka kattaa kaikki lunastukset (Q22). Sen syöte on k. 11:n lokimuoto.

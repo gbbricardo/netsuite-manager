@@ -723,7 +723,13 @@ Päätetty 7.10.2026. Toteutus T37:n mukaan omistavassa repossa: [muutosmäärit
 
 Erillinen skripti raportoi kaiken lunastuksiin liittyvän (ADR 0014 k. 18). Se korvaa 1479:n digestin. Syötteenä on 1479:n lokimuoto
 (muutosmäärittely A5), ja se voi sisältää T46:n. Ei määritelty: omistava repo, kanavat, rytmi ja lokin 30 päivän säilytysaika.
+Vaatimukset tähän mennessä: (1) Active, ei OOMI, sopimus päättynyt, ei linkkiä, ei tapaa eikä jälkiveloitusta (ADR 0014 k. 17b; 7.10. neljä pyörää, kaikki keskenkauden lunastuksia: B023198, B024587, B024908, B020053). (2) Jälkiveloituspyörät, joilla ei ole lainkaan loppulunastustilausta (7.10. 14 pyörää, ks. T53).
 **Valmis kun** määrittely on hyväksytty.
+
+### [ ] T53 — 14 jälkiveloituspyörää ilman loppulunastustilausta
+
+Löydetty 7.10.: Active, ei OOMI, ei tapaa, Done-tilainen *pidennys – jälkiveloitus* -CR, päättyy 31.10.2026, eikä yhtään Paylink-tilausta tuotteella *Työsuhdepyörän loppulunastus*. 1479 ei lähetä niille linkkiä (S5), ja ADR 0012 k. 9 olettaa avoimen tilauksen, jota asiakaspalvelu päivittää. Ilman tilausta asiakas ei voi maksaa, ja pyörä voi päättyä vain kattavuudella (tapa 2). Päätettävä: luodaanko tilaus käsin vai odotetaanko tapaa 2.
+B001876, B003230, B003531, B003679, B003698, B003714, B006432, B010533, B010817, B016555, B019460, B029420, B036396, B046667 (osa on T34:n ja T35:n pyöriä).
 
 ### [ ] T52 — 1479:n loki käsin jokaisen ajon jälkeen (kunnes T51 on tuotannossa)
 
