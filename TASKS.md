@@ -261,6 +261,11 @@ B026345, B029068, B029828, B030349, B030615, B030725, B033147, B033376, B033546,
 
 Tehdään repon omassa istunnossa sen sääntöjen mukaan. Tuoteomistaja päättää jokaisesta kohdasta. Testaus: dry run ja `test_bike_id`.
 
+**Päätetty 7.10.: [ADR 0014](docs/adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md), toteutusmäärittely
+[`docs/maksulinkki-1479-muutosspeksi.md`](docs/maksulinkki-1479-muutosspeksi.md) (julkaisut A ja B, rivitason muutokset, hyväksymiskriteerit).**
+Se ratkaisee: K-a = A1, K-b = A2 (S4, S5 ja ohitus 4 valinnassa), K-c = A3 (`SKIP_EXTENSION_RUNNING`), K-d = digesti poistetaan (A5),
+K-e = testiympäristöä ei käytetä (A4), K-f = ei muutosta (T35 käsin), K-g = tuotenimi vakio (A4), K-h = ADR 0012. K-b0 tehdään ennen A:ta (A6).
+
 **Määrittely 5.10.: [logiikkavirheet ja tavoitetila](findings/2026-10-05-maksulinkki-logiikkavirheet-ja-tavoitetila.md)**: tavoitekaava, skenaariot S1–S13,
 korjauskohdat L1–L8 ja hyväksymiskriteerit. Korjaukset toteutetaan tämän mukaan.
 
@@ -660,6 +665,9 @@ T37:n K-a, K-b ja K-c pysyvät ennallaan. Lisäksi:
 - S9/S10 eivät estä linkkiä, ja ne raportoidaan eheyslistalla.
 - `days_before` 30 → 60 (tavoite). Ei ennen kuin L1–L3 ovat tuotannossa.
 
+**7.10.: [ADR 0014](docs/adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md) tarkentaa.** Ohitus 4 koskee kaikkia tiloja paitsi Cancelled, ja se tehdään valinnassa.
+60 päivän ikkunan tilalle tulee julkaisussa B parametri `months_before` (1 tai 2), ja eräpäivä = `subsc_end_date`.
+
 **Valmis kun** dry run ei valitse yhtään pyörää, jolla on tyypin 2 tai 10 CR (Pending/Done).
 
 ### [ ] T44 — Status-sync 2.0: tavan 2 kattavuus ADR 0012:n mukaan (K2)
@@ -702,6 +710,24 @@ Lisäksi 601 lähetettyä OOMI-pyörää: tarkista, onko niillä työntekijän m
 ### [ ] T50 — Kieltolippujen syyt (N7) ja tapa 8 -pyörät (N4)
 
 15 kieltolipulle syy asiakaspalvelulta. 96 tapa 8 -OOMI-pyörää: asiakaspalvelu korjaa selvitystavan, jos se on 5–7.
+
+---
+
+## Lokakuu 2026 — maksulinkin korjaus ja yksinkertaistus ([ADR 0014](docs/adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md))
+
+Päätetty 7.10.2026. Toteutus T37:n mukaan omistavassa repossa: [muutosmäärittely](docs/maksulinkki-1479-muutosspeksi.md).
+
+### [ ] T51 — Lunastusten raportointiskriptin määrittely
+
+Erillinen skripti raportoi kaiken lunastuksiin liittyvän (ADR 0014 k. 18). Se korvaa 1479:n digestin. Syötteenä on 1479:n lokimuoto
+(muutosmäärittely A5), ja se voi sisältää T46:n. Ei määritelty: omistava repo, kanavat, rytmi ja lokin 30 päivän säilytysaika.
+**Valmis kun** määrittely on hyväksytty.
+
+### [ ] T52 — 1479:n loki käsin jokaisen ajon jälkeen (kunnes T51 on tuotannossa)
+
+A-julkaisu poistaa digestin. Lue jokaisen ajon jälkeen `scriptnote` (`scripttype = 1479`): `log.error`-rivit (`ERROR`, `STAMP_FAILED`, `EMAIL_FAILED`),
+`NOT_PRICED`, `SKIP_*`, sekä rivit, joilla `eheys` ei ole tyhjä. Lokin säilytys on noin 30 päivää. Rakenna kysely `queries/`-kansioon A:n ensimmäisen ajon jälkeen.
+**Valmis kun** T51 on tuotannossa.
 
 ---
 
