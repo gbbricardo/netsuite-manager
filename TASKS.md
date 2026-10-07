@@ -259,7 +259,7 @@ B026345, B029068, B029828, B030349, B030615, B030725, B033147, B033376, B033546,
 
 ### [ ] T37 — Skriptikorjaukset ennen 31.10. (omistava repo `netstuite-send-end-redemption-payment-link`)
 
-**7.10.: A ja B yhdistetty (PR #1, #2) ja ladattu. Dry runit läpi:** yksittäiset pyörät (L2, S5, leima), koko 30.11. kohortti (816 pyörää: hinta, ohitukset ja lokimuoto 0 poikkeamaa) sekä B1–B3 (`months_before` 3 → keskeytys, 1 → 2 pyörää, 2 → 816 pyörää ja eräpäivä = päättymispäivä). **Jäljellä:** live-ajo ja tuplatilauskysely (T52).
+**7.10.: A ja B yhdistetty (PR #1, #2) ja ladattu. Dry runit läpi:** yksittäiset pyörät (L2, S5, leima), koko 30.11. kohortti (816 pyörää: hinta, ohitukset ja lokimuoto 0 poikkeamaa) sekä B1–B3 (`months_before` 3 → keskeytys, 1 → 2 pyörää, 2 → 816 pyörää ja eräpäivä = päättymispäivä). **Live 7.10. arvolla `months_before` = 1** (tuoteomistaja). Ensimmäiset ajot: odotus 0 linkkiä ja 2 `SKIP_IN_PROGRESS` (B011223, B031422). Marraskuun kohortti (noin 813 linkkiä ja B046661 tapa 4) lähtee **30.10.**, joulukuun kohortti (776) 30.11. **Jäljellä:** ensimmäisen ajastetun ajon todennus ja 30.10. ajon tarkistus ja tuplatilauskysely (T52).
 
 Tehdään repon omassa istunnossa sen sääntöjen mukaan. Tuoteomistaja päättää jokaisesta kohdasta. Testaus: dry run ja `test_bike_id`.
 
