@@ -642,6 +642,15 @@ päätös ei riipu T11:n ajoituksesta. Pyörät ovat jumissa, kunnes päätös o
 Rakennusohje: [`docs/status-sync-2-tasmaytysajo.md`](docs/status-sync-2-tasmaytysajo.md). Määritelty grilling-istunnossa
 6.–7.10. Toteutetaan omistavassa repossa erillisessä istunnossa. Sisältää T40:n, T41:n ja T44:n.
 
+> [!NOTE]
+> **7.10.: koodi valmis, [PR #4](https://github.com/GobybikeFinland/netsuite-bike-redemption-status-sync/pull/4)**
+> (haara `feat/status-sync-2`, kansio `gbb-redemption-sync-2/`, 61 Node-testiä läpi). Kaksi riippumatonta tarkistusta:
+> APPROVE. Ehdotetut id:t `customscript_gbb_mr_redemption_sync2` / `customdeploy_gbb_mr_redemption_sync2`. Joukot 7.10.:
+> M 452, V 94, O 168, J 72, S 94, I 3 150. Ensimmäinen live-ajo kirjoittaa arviolta noin 1 266 IC-päivää.
+> **Jäljellä (käyttäjä):** PR:n yhdistäminen, lataus File Cabinetiin, script- ja deployment-tietueet, ohjeen § Käyttöönotto
+> askeleet 3–7. Dry runissa tarkistetaan `hintakirjasto=ok` (polku, jossa on välilyöntejä ja hakasulkeita),
+> `istunnon_aikavyohyke` ja yhden iltamaksun `paid_at` UI:ta vasten.
+
 Takarajat (1440 on pois päältä 6.10. alkaen):
 - **to 29.10.**: taloustiimin IC-lunastus. Lokakuussa hoidettujen IC-päivien ja hintojen on oltava valmiina.
 - **1.11. klo 03:00**: extension. Ajoissa maksaneilla on oltava tapa 1. Siirrä extensionin ajastus 01:00 → 03:00
