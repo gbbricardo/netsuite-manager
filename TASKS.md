@@ -789,6 +789,26 @@ Lisäksi 601 lähetettyä OOMI-pyörää: tarkista, onko niillä työntekijän m
 
 15 kieltolipulle syy asiakaspalvelulta. 96 tapa 8 -OOMI-pyörää: asiakaspalvelu korjaa selvitystavan, jos se on 5–7.
 
+### [ ] T58 — Oomin toukokuun 2026 laskujen tuloutuskausi (taloustiimi, ennen T59:n käyttöönottoa)
+
+[ADR 0016](docs/adr/0016-kaikki-vuokrat-maksettu.md) § Seuraukset. 331 Oomi-laskulla (päivätty 01.05. ja 07.05.2026)
+`custcol_sta_so_revrec_start/end` on 2025-05, vaikka muistiossa lukee 1.5.2026–31.5.2026. Avoimia on 13. Tee lista
+(lasku, asiakas, tila) ja anna se taloustiimille. **Valmis kun** yhdelläkään tuotteen 30/31/33 rivillä ei ole kautta 2025-05
+laskulla, jonka päiväys on 2026.
+
+### [ ] T59 — Lease fees check ADR 0016:n mukaan (omistava repo `netsuite-br-lease-fees-check`, erillinen istunto)
+
+Vuokralaskun haku vuokrakuukaudella (`revrec_start`), viimeisin laskutettava asiakas, koko kausi `subsc_end_date`:en asti.
+Ei Oomi Part A/B:tä, ei luokkaa 2 (jälkiveloitus), ei vaatimusta laskusta jokaiselle kuukaudelle. Haku 796: SO-ehto pois.
+Sisarrepon §7 *Manual Override* ja dokumenttien eräpäiväväite korjataan. Varmista ensin, että `custcol_sta_so_revrec_start`
+toimii `N/search`-suodattimena (tai käytä `N/query`:a). **Valmis kun** muutos on tuotannossa ja T60 on todennettu.
+
+### [ ] T60 — Ensimmäisen ajon todennus T59:n jälkeen
+
+Odotus löydöksen 8.10. lukujen perusteella: 131 Oomi-pyörää ja B006141 sekä B034775 saavat lipun T. Tarkista lisäksi, ettei
+yksikään lippu T -pyörä ole asiakkaalla, jolla on avoin vuokralasku pyörän tarkistettavalla kaudella. Lähetysskripti (793) ei saa
+lähettää ennen päättymisajankohtaa: nyt kun lippu voi tulla T:ksi jo statuksen 2 hetkellä, tarkista se ennen käyttöönottoa (ADR 0013).
+
 ---
 
 ## Lokakuu 2026 — maksulinkin korjaus ja yksinkertaistus ([ADR 0014](docs/adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md))

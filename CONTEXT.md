@@ -328,8 +328,8 @@ jälkeen normaalit säännöt pätevät.
 
 ### Omistuksen siirtymispäivä
 
-Päivä, jona kaikki kolme pätevät: velvoitteet on hoidettu, päättymisajankohta on mennyt ja pyörän
-kaikki vuokralaskut on maksettu. Kauppakirjan voi lähettää aikaisintaan tänä päivänä.
+Päivä, jona kaikki kolme pätevät: velvoitteet on hoidettu, päättymisajankohta on mennyt ja
+**kaikki vuokrat on maksettu**. Kauppakirjan voi lähettää aikaisintaan tänä päivänä.
 
 Lunastettu pyörä ei vielä ole omistettu pyörä: tunnistuspäivän ja päättymisajankohdan välillä
 sopimus on yhä voimassa.
@@ -346,13 +346,51 @@ takautuvasti.
 ### Kauppakirja odottaa
 
 Pyörä kuuluu kauppakirjan piiriin, mutta omistuksen siirtymispäivä ei ole koittanut. Yksikin
-maksamaton vuokralasku pitää kauppakirjan odottamassa, myös erääntymätön.
+maksamaton **vuokralasku**, joka kuuluu pyörän tarkistettaviin vuokrakuukausiin, pitää kauppakirjan
+odottamassa, myös erääntymätön (ks. **kaikki vuokrat maksettu**).
 
 Vuokralaskun tila luetaan NetSuiten laskusaldosta hyvitysten kohdistamisen jälkeen. Kohdistukset
 tekee taloustiimi, ja kohdistamaton hyvitys pitää kauppakirjan odottamassa.
 
 Odottaminen on automaattinen tila, jota kukaan ei aseta eikä poista: se päättyy itsestään, kun
 kaikki ehdot täyttyvät.
+
+### Vuokrakuukausi
+
+Kuukausi, jolle pyörän sopimuksen kuukausivuokra kuuluu kirjanpidossa, eli kuukausi, jolle vuokra
+tuloutetaan. Vuokrakuukausi on eri asia kuin laskun päiväys, eräpäivä tai laskun kirjanpitokausi:
+vuokra laskutetaan tavallisesti kuukautta etukäteen, ja eräpäivä riippuu asiakkaan maksuehdosta.
+
+_Vältä_: laskutuskuukausi, eräkuukausi
+
+### Vuokralasku
+
+Lasku, jolla pyörien kuukausivuokraa laskutetaan asiakkaalle: siinä on vuokraa, ylläpitomaksua tai
+leasingmaksua, eikä se kohdistu yksittäiseen pyörään. Yksi vuokralasku kattaa tavallisesti
+asiakkaan kaikki pyörät samalta vuokrakuukaudelta, joten se on joko maksettu kokonaan tai ei ole
+maksettu; pyörän osuutta laskusta ei seurata.
+
+Vuokralasku ei ole jälkiveloituslasku, eikä mikään muu yksittäiseen pyörään kohdistettu lasku
+(esimerkiksi käsin tehty jälkiveloitus), eikä toisen yhtiön lasku loppukäyttäjälle.
+
+### Viimeisin laskutettava asiakas
+
+Asiakas, jolle pyörän vuokra on viimeksi laskutettu. Siirrossa asiakas vaihtuu siitä
+vuokrakuukaudesta, jonka uusi asiakas maksaa ensimmäisenä; aiemman asiakkaan laskut eivät enää
+kuulu pyörälle.
+
+### Kaikki vuokrat maksettu
+
+Pyörän viimeisimmällä laskutettavalla asiakkaalla ei ole yhtään maksamatonta vuokralaskua niiltä
+vuokrakuukausilta, jotka alkavat sen sopimuskaudella päättymisajankohtaan mennessä. Myös muiden
+pyörien vuokrat samalla laskulla tai samalta kaudelta estävät, ja erääntymätön lasku estää.
+Laskuttamatta jäänyt vuokrakuukausi ei estä: laskutuksen kattavuus ei ole kauppakirjan asia.
+
+Arvioidaan siitä alkaen, kun pyörä on merkitty lunastetuksi. Kerran todettu on lopullinen:
+myöhemmin syntyvä maksamaton lasku on perintää. Jälkiveloituslaskut ja lunastusmaksu eivät kuulu
+tähän, vaan velvoitteisiin.
+
+_Vältä_: vuokrasaatavat maksettu (epäselvää, kenen saatavat)
 
 ### Kauppakirjan esto
 

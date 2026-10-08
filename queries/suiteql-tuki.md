@@ -30,6 +30,7 @@ päivämäärä — älä korjaa taulukkoa päättelemällä.
 | `SUBSTR`, `INSTR`, `LENGTH`, `UPPER`, `REPLACE` | | toimivat |
 | `LIKE … ESCAPE '\'` | `name LIKE 'WARNING\_CR%' ESCAPE '\'` | toimii — `_` on muuten jokerimerkki |
 | `REGEXP_LIKE(x, '^Siirto')` | customlist_cr_type_list | 5 |
+| `REGEXP_SUBSTR(x, 'pat (grp)', 1, 1, NULL, 1)` alalausekkeella, myös liitosehdossa | `t.tranid = REGEXP_SUBSTR(cr.custrecord_cr_automation_logs, 'Invoice ([A-Z0-9]+) created', 1, 1, NULL, 1)` (2026-10-08) | 884 laskua 907 type-7 CR:stä — **toimii** |
 | `EXISTS (SELECT 1 …)` | sopimusrivit joiden pyörä on OOMI | 35 342 riviä / 9 142 pyörää |
 | `IN (SELECT id FROM …)` select-kentällä | RI-rivit joiden pyörä on OOMI, kausi 10/2026 | 51 |
 | `COUNT(DISTINCT x)` | | toimii |
@@ -63,6 +64,7 @@ päivämäärä — älä korjaa taulukkoa päättelemällä.
 | Taulu `CustomField` | `Record 'CustomField' was not found` | `ns_getRecordTypeMetadata(recordType)` → `x-ns-filterable`-lista ja kenttätyypit |
 | `SELECT *` `UNION ALL`:in kanssa | (dokumentoitu CLAUDE.md) | nimeä sarakkeet |
 | Taulu `accountingPeriod` | ei käytettävissä (lunastusauditoija) | älä päättele avoimia kausia kyselyllä |
+| Sisäkkäinen näkymä `(… GROUP BY … ORDER BY 2 DESC FETCH FIRST 10 ROWS ONLY)` + korreloidut skalaarialikyselyt `transaction`-tauluun SELECT-osassa (2026-10-08) | `Invalid or unsupported search` | **ei eristetty** kumpi osa kaataa; kierto: aja top-N erikseen ja syötä id:t `IN (…)`-listana; `MIN((SELECT MIN(…) FROM transactionline …))` GROUP BY:n sisällä toimi |
 
 ## Työkalujen käyttäytyminen
 
