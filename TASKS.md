@@ -662,6 +662,37 @@ Takarajat (1440 on pois päältä 6.10. alkaen):
 
 Raportointi: status-sync 2.0:n jättämät ryhmät on lisätty T51:een (raportointiskriptin määrittely).
 
+> [!NOTE]
+> **8.10.: käytössä.** Script `customscript_gbb_mr_redemption_sync2` = **1480** (`scriptnote.scripttype`).
+> Testit 8.10.: dry run 6 testipyörälle; koko kannan dry run 1 908 kirjoitusta, 0 virhettä, noin 4 min.
+> Live-testit B018463 ja B037914: oikein, IC-laskuri käynnistyi, idempotenssi ok.
+> Päätökset ennen ajastusta:
+> - Taloustiimi hyväksyi elokuun erän 85 IC-korjausta (done = F).
+> - B023943:n lunastus peruttiin (varastettu pyörä löytyi). IC-tyhjennys hyväksytty, FAM säilyttää tiedot.
+> - Työnantajan maksama item 46 -käsilasku on maksutodiste (B000022, B001927; 332 pyörää).
+>
+> **Ajastettu 8.10., ajo joka yö klo 00:30.** Täyttä live-ajoa ei ajettu käsin, joten **yön 8.→9.10. ensimmäinen ajastettu ajo on
+> täysi ajo** (noin 1 906 kirjoitusta). Tarkistus T55.
+
+### [ ] T55 — Status-sync 2.0:n ensimmäisen ajastetun ajon tarkistus (pe 9.10.)
+
+Lue `scriptnote` (`scripttype = 1480`, lokipäivä 8.10. noin klo 14:30 eli Helsingissä 9.10. klo 00:30).
+**Huom.** MCP:n tuloksesta puuttuu viimeinen rivi, kun `totalResults` > `resultCount`. Hae `run complete` -rivi erikseen.
+
+1. `selection` ja `run complete`: `tila=live`, `tanaan=2026-10-09`, `istunnon_aikavyohyke=UTC+3 (Europe/Helsinki)`,
+   `hintakirjasto=ok`, `virheet=0`. Kirjoituksia noin 1 906 (8.10. dry run: `paid_at` 488, tapa 1 45, tapa 2 28,
+   OOMI 167, status 2 242, IC asetettu 1 420, korjattu 85, tyhjennetty 2), lisäksi 8.10. tulleet maksut.
+2. Kesto `selection` → `run complete` ≪ 2,5 h, eli valmis ennen extensionia (03:00).
+3. IC-laskuri (`customscript_gbb_ic_redemption_pr`): ajo käynnistyi, `Run Complete` ja `Errors: 0`. Hinnoiteltavia noin 1 500.
+4. Todennuskyselyt ([ohje § Todennus](docs/status-sync-2-tasmaytysajo.md#todennus)) palauttavat 0. Poikkeus: kvadrantti *2/3 + tuleva* voi olla 0.
+5. Pistokokeet: B036864 (status tyhjä, IC 31.10.2025), B020053 ja B023943 (IC tyhjä), yksi tapa 2 (B001876,
+   `liab_settled_at` 16.9.) ja yksi syyskuun OOMI (B037453, IC 30.9.).
+6. Extensionin ajastus on siirretty 03:00:aan (`scriptnote` lokiaika noin 17:00 ja myöhemmin).
+7. La 10.10.: 1458 on täyttänyt `date_to_non_active`:n 9.10. käännetyille.
+
+**Valmis kun** kohdat 1–6 ovat kunnossa. Merkitse sitten T54 tehdyksi ja päivitä `CLAUDE.md` (open item 3, script-id), `schemas/script-inventory.md`
+ja `docs/lunastus-tilanne.md`. Seuraavien öiden ajojen pitää olla pieniä (idempotenssi).
+
 ---
 
 ## Lokakuu 2026 — IC-lunastuksen tavoitetila ([ADR 0011](docs/adr/0011-ic-paiva-velvoitteista.md))
