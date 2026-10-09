@@ -44,6 +44,16 @@ ADR 0014 k. 10 (digesti poistettu) sekä T46 (jälkiveloituspyörien avoimet til
 ADR 0013 k. 13: virheellisesti lähetetyt, tapa 8 -pyörät, estetyt, omistuksen siirtymispäivä ei koittanut yli 30 pv
 päättymisestä. Ryhmät määritellään erikseen.
 
+## Extension 2.0 (T61, tuoteomistaja 9.10.2026)
+
+- Active-tilaiset ei-OOMI-pyörät, joiden sopimus on päättynyt ja joille ei ole lähetetty maksulinkkiä eikä ole jälkiveloitusketjua. Extension ohittaa ne, ja ihminen ratkaisee.
+- Pyörät, joiden lunastushinta on 0 € ja joille ei ole kirjattu tapaa 4. Extension ohittaa ne, ja ihminen kirjaa tavan.
+
+## Kuukausiraportoinnin ennakkovaroitukset (T23, T24, tuoteomistaja 9.10.2026)
+
+- **T23, Ended voittaa:** kun samalla pyörällä on samassa kuussa sekä pidennys (tyypin 7 CR) että ennenaikainen päättyminen tai lunastus, **Ended-rivin on aina voitettava**. Raportti listaa ennen kuukausiajoa pyörät, joilla tällainen yhdistelmä on (Done-tilaiset tyypin 7 ja 2 CR:t samassa kuussa, vrt. 8893), jotta tuplarivi estetään ennen kuin se syntyy.
+- **T24, saman pyörän useampi CR:** kun samalla pyörällä on useampi käsittelemätön tai samaan kuuhun osuva siirto-CR (tyypit 1 ja 9), raportti nostaa sen esiin **etukäteen**, ennen CR-käsittelijää (1196). 1196 käsittelee CR:t ilman järjestystä, joten lopputulos voi olla väärä työnantaja. Tämä on vahinko, joka pitää havaita ennen kuin se tapahtuu. Koodikorjausta ei tehdä.
+
 ## Avoinna
 
 - toteuttaja ja ajotapa (sähköposti, saved search, dashboard)

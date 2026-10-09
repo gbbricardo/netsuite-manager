@@ -1,6 +1,6 @@
 # Script and deployment inventory
 
-**Exported from live NetSuite:** 2026-09-17
+**Exported from live NetSuite:** 2026-10-09 (deployment statuses re-verified; hand-written sections kept, facts updated. The raw export is `script-inventory.json`.)
 Regenerate with `node tools/export-schemas.mjs scripts`.
 
 The **live** answer to "what is actually deployed". Query used: all `script` records whose name
@@ -53,7 +53,7 @@ and intended (decision 2026-09-07).
 
 | Script ID | Name | Type | Deployment |
 |---|---|---|---|
-| `customscript1199` | Change request handler | SCHEDULED | `customdeploy_gbb_change_request_hdl_2` **Scheduled** *and* `customdeploy1` Testing |
+| `customscript1199` | Change request handler | SCHEDULED | `customdeploy1` **Scheduled** (every 6 h, Helsinki 04, 10, 16, 22) *and* `customdeploy_gbb_change_request_hdl_2` **Scheduled** (MONTHLY: the 1st at 01:33, the month-turn run before monthly reporting). Both verified 9.10.2026 |
 | `customscript1196` | Change request update BR | SCHEDULED | `customdeploy1` **Scheduled** |
 | `customscript1191` | Siirto TA handler | SCHEDULED | `customdeploy1` Testing |
 | `customscript1192` | Hyvitys handler | SCHEDULED | `customdeploy1` Testing |
@@ -71,8 +71,8 @@ and intended (decision 2026-09-07).
 1. The scheduler is `customscript1199` — an **auto-generated ID**, not `customscript_cr_scheduler`.
    `cr_bike_register_updater.js` is `customscript1196`. Neither ID appears in the repo docs, so
    nothing in the repo tells you which NetSuite record to look at.
-2. `customscript1199` carries **two deployments** — one `Scheduled`, one `Testing`, both deployed.
-   Whether the Testing one also fires on the daily cadence decides whether CRs are processed twice.
+2. `customscript1199` carries **two deployments**, both `Scheduled` as of 9.10.2026 (it was `Scheduled` + `Testing` on 17.09.):
+   `customdeploy1` every 6 h and `customdeploy_gbb_change_request_hdl_2` (MONTHLY) on the 1st at 01:33.
 3. Every type handler has its **own SCHEDULED script record**, while the repo documents them as
    SS Libraries invoked only through `cr_dispatcher`. A library file can legitimately also have a
    wrapper script record, but as it stands each handler is independently runnable, and nine of them
@@ -82,8 +82,12 @@ and intended (decision 2026-09-07).
 
 | Script ID | Name | Type | Deployment |
 |---|---|---|---|
-| `customscript_gbb_bike_redemption_status` | Bike redemption status sync | SCHEDULED | `customdeploy_gbb_redemption_sync` **Scheduled** (vaihdettu Testing → Scheduled 22.09.2026) |
+| `customscript_gbb_bike_redemption_status` (internal id **1440**) | Bike redemption status sync (old) | SCHEDULED | `customdeploy_gbb_redemption_sync` **Not Scheduled** (pois ajastuksesta 6.10.2026; was Scheduled 22.09.–6.10.) |
+| `customscript_gbb_mr_redemption_sync2` (internal id **1480**) | Redemption status sync 2.0 | MAPREDUCE | `customdeploy_gbb_mr_redemption_sync2` **Scheduled**, nightly 00:30 Helsinki. Dry run switched off 9.10.2026; first live run 10.10.2026. Replaces 1440 ([ADR 0007](../docs/adr/0007-status-sync-2-tasmaytysajo.md), [ADR 0015](../docs/adr/0015-status-sync-2-tarkennukset.md)) |
 | `customscript1458` | Bike status date backfill | SCHEDULED | `customdeploy_gbb_ss_bike_status_backfill` **Scheduled** |
+
+> [!NOTE]
+> **9.10.2026: the old sweep 1440 is `Not Scheduled` (since 6.10.); status-sync 2.0 (1480) took over.** The warning below is history.
 
 > [!WARNING]
 > **Ratkennut 22.09.2026: deployment on nyt `Scheduled` ja sweep on ajanut** (171 kandidaattia,
@@ -101,15 +105,14 @@ one-off, and `Bike-Status-History-Backfill-Design.md` treats it as a finite job.
 
 ## netstuite-send-end-redemption-payment-link
 
-*Added by hand 2.10.2026 (not from an export run). Verified with SuiteQL `script` ⋈ `scriptdeployment`, id 1479.*
+*Added by hand 2.10.2026 (not from an export run); ids corrected 9.10.2026 (earlier text said `customscript_gbb_mr_eredem_paylink` / `customdeploy_gbb_eredem_test`, which do not exist). Verified with SuiteQL `script` ⋈ `scriptdeployment`, id 1479.*
 
 | Script ID | Name | Type | Deployment |
 |---|---|---|---|
-| `customscript_gbb_mr_eredem_paylink` (internal id **1479**) | GBB Send end redemption payment link | MAPREDUCE | `customdeploy_gbb_eredem_test` **Scheduled**, log level Audit, deployed |
+| `customscript_send_redemption_link` (internal id **1479**) | GBB Send end redemption payment link | MAPREDUCE | `customdeploy_send_redemption_link` (deployment internal id 2188) **Scheduled**, log level Audit, deployed. Daily 08:00; `custscript_gbb_eredem_months_before` = 1; dry run off (owner, 9.10.2026) |
 
-The deployment id ends in `_test`, but it is the **production** deployment. Its first live run on
-1.10.2026 used Paylink PRODUCTION and sent 748 links. The repo records the schedule as daily at 08:00. As of
-2.10.2026 10:09 Helsinki, no unattended run had been logged, so confirm the recurrence from `scriptnote`.
+Its first live run on 1.10.2026 used Paylink PRODUCTION and sent 748 links. Schedule confirmed by the owner
+9.10.2026: daily at 08:00, `custscript_gbb_eredem_months_before` = 1, dry run off. Confirm a given day's run from `scriptnote`.
 Files: folder id 40451 `[GBB] Send end redemption payment link`. The script depends on
 `/SuiteScripts/Brevo/lib_brevo_api.js`, which is shared with `customscript_gbb_bike_email_send` and its bill-of-sale
 variant. First run: [`../findings/2026-10-02-maksulinkki-ensimmainen-ajo.md`](../findings/2026-10-02-maksulinkki-ensimmainen-ajo.md).
@@ -118,7 +121,9 @@ variant. First run: [`../findings/2026-10-02-maksulinkki-ensimmainen-ajo.md`](..
 
 | Script ID | Name | Type | Deployment |
 |---|---|---|---|
-| `customscript_gbb_bike_sub_extension` | Bike subscription extension | MAPREDUCE | `customdeploy_gbb_sub_extension` **Scheduled** |
+| `customscript_gbb_bike_sub_extension` (internal id **1437**) | Bike subscription extension | MAPREDUCE | `customdeploy_gbb_sub_extension` **Not Scheduled** (deliberately, by the owner 9.10.2026) |
+
+Extension is being rewritten as extension 2.0 (TASKS T61, [`../docs/extension-2-vaatimukset.md`](../docs/extension-2-vaatimukset.md)): run on the 10th of the month at 03:00, first run 10.11.2026.
 
 ## netsuite-paylink-order-tracking
 
@@ -158,9 +163,11 @@ Same account, same records — changes here can still reach the seven.
 
 | Script ID | Name | Type | Deployment |
 |---|---|---|---|
-| `customscript_sta_mr_mid_life_redemption` | [STA] MR - Mid Life Redemption | MAPREDUCE | `customdeploy_sta_mr_mid_life_redemption` **Scheduled** (+ one Not Scheduled) |
+| `customscript_sta_mr_mid_life_redemption` (internal id **966**) | [STA] MR - Mid Life Redemption | MAPREDUCE | `customdeploy_sta_mr_mid_life_redemption` **Not Scheduled** and `customdeploy_sta_mr_mid_life_redemp_on` **Not Scheduled** (both off 9.10.2026) |
 | `customscript_gbb_lease_fee_check` | Bike Register lease fee check | MAPREDUCE | **Scheduled** |
 | `customscript_gbb_mr_send_email_2` | Bike email send - Kauppakirja pdf | MAPREDUCE | **Scheduled** |
+| `customscript_gbb_set_redemption_decide_a` (internal id **1469**) | Set redemption decided at | USEREVENT | **Released** *(new vs. 17.09.)* |
+| `customscript_gbb_mr_fix_br_prolongation` (internal id **1478**) | MR Fix bike register prolongation | MAPREDUCE | Not Scheduled *(new vs. 17.09.)* |
 | `customscript_gbb_ss_fix_next_invoice_dt` | Fix agreement next invoice date | SCHEDULED | **Scheduled** |
 | `customscript_gbb_wh_status_changed` | Webhook - Status Changed | USEREVENT | **Released** |
 | `customscript_gbb_wh_subsc_dates` | Webhook - Subscription Dates Changed | USEREVENT | **Released** |
@@ -180,8 +187,8 @@ Same account, same records — changes here can still reach the seven.
 | `customscript_gbb_ue_po_helkama` | UE PO Helkama Correction | USEREVENT | Testing, **not deployed** |
 | `customscript_gbb_ss_po_helkama` | SS PO Helkama Correction | SCHEDULED | **NO DEPLOYMENT** |
 
-`customscript_sta_mr_mid_life_redemption` is the one that matters most: it is **live on a schedule**
-and generates a credit memo for any bike register record where `custrecord_sta_redemption_date` is
+`customscript_sta_mr_mid_life_redemption` is the one that matters most: it was **live on a schedule** until
+9.10.2026 (both deployments are now Not Scheduled, so it fires only if someone runs it by hand) and generates a credit memo for any bike register record where `custrecord_sta_redemption_date` is
 set and `custrecord_sta_redemption_cm_processed` is false. That is exactly why
 `netsuite-bike-redemption-status-sync` writes `custrecord_gbb_redemption_paid_at` instead.
 

@@ -179,3 +179,32 @@ Lisäksi:
 - `systemnote`: 1 735 muutosriviä kenttään `custrecord_gbb_redemption_decided_at`, `name = -5`
   (CSV-import). Muista, että `systemnote`-suodatin custom recordeilla on epäluotettava (MEMORY).
   Tyhjä tulos ei todista mitään.
+
+## Päivitys 9.10.2026: uusi CSV `01-decided-at-2026-10-09.csv`
+
+> [!IMPORTANT]
+> **Ajojärjestys: P2-CSV ensin** (`../2026-10-09-p2-cr-luontipaivat/`), **sitten tämä**. Korvaa `01-decided-at.csv`
+> (vanhaa ei ajeta). Tarkistussumma kohdasta *Esitarkistus* nyt NetSuitessa (9.10.2026, ennen P2:ta):
+
+| | Uusi CSV | NetSuite |
+|---|---|---|
+| Rivejä | **1 750** | 1 750 |
+| `SUM(id)` | **37 171 556** | 37 171 556 |
+| `MIN(id)` / `MAX(id)` | 114 / 46 560 | 114 / 46 560 |
+| Rivejä, joilla `decided_at_nyt` täytetty | 36 | |
+
+Muutokset 24.09. versioon: 15 uutta pyörää (uusia Done-tyypin 2 CR:iä), `decided_at_nyt`/`uusi` päivitetty niille
+pyörille, joilla UE on leimannut arvon tai CR on muuttunut, ja neljän pyörän päivä **korjattu todelliseen
+luontipäivään** (P2):
+
+| Pyörä | CR | Päivä ennen | Päivä nyt (= `created`) |
+|---|---|---|---|
+| B040467 | 4637 | 25.02.2026 | 24.07.2026 |
+| B040468 | 4634 | 25.02.2026 | 24.07.2026 |
+| B040469 | 4542 | 25.02.2026 | 20.07.2026 |
+| B012845 | 4545 | 15.06.2026 | 20.07.2026 |
+
+Koska CSV:n arvot vastaavat P2:n jälkeistä tilaa, jälkitarkistuskyselyn odotus 0 pätee vasta P2:n **jälkeen**.
+Esitarkistuskysely palauttaa 1 750 / 37 171 556 / 114 / 46 560 myös ennen P2:ta (kysely lukee vanhat CR-päivät).
+Päivittäinen CR-ajo lisää uusia rivejä: jos luvut eroavat, tee poiminta uudelleen. Muut ohjeet (muoto, mappaus,
+poikkeamat 1–6) pätevät sellaisenaan.

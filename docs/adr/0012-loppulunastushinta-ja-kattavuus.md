@@ -40,7 +40,7 @@ pyytää kuitenkin hintaa, josta huoltohyvitys on vähennetty. Kaksi sääntöä
 8. **Aikaikkuna** on tavoitteena 60 päivää ennen päättymisajankohtaa – päättymisajankohta. Järjestelmän
    raja on päättymiskuun loppu (ADR 0009 k. 2 ennallaan).
 9. **Avoimet pyynnöt.** Jälkiveloituksen aikana asiakaspalvelu päivittää avoimen tilauksen summan käsin.
-   Kun velvoite hoidetaan tavalla 2, 3 tai 4, avoimet tilaukset perutaan. Raporttiskripti on erillinen,
+   ~~Kun velvoite hoidetaan tavalla 2, 3 tai 4, avoimet tilaukset perutaan.~~ **Muutettu 9.10.2026 (tuoteomistaja, TASKS T45): avoimia tilauksia ei peruta. Jos asiakas maksaa tilauksen, vaikka velvoite on jo hoidettu, ylimääräinen maksu palautetaan tapauskohtaisesti.** Raporttiskripti on erillinen,
    myöhemmin määriteltävä, ja se käyttää samaa hintakirjastoa kuin maksulinkki.
 
 ## Vaihtoehdot, joita ei valittu

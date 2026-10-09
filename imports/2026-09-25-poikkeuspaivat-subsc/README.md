@@ -104,3 +104,19 @@ WHERE COALESCE(custrecord_gbb_exceptional_end_date, custrecord_gbb_oomi_exceptio
   AND (custrecord_sta_subsc_end_date IS NULL
        OR COALESCE(custrecord_gbb_exceptional_end_date, custrecord_gbb_oomi_exceptional_end_date) <> custrecord_sta_subsc_end_date)
 ```
+
+## Päivitys 9.10.2026: uusi CSV `01-subsc-end-date-2026-10-09.csv` (15 riviä)
+
+Korvaa `01-subsc-end-date.csv`:n (18 riviä). Poistetut rivit:
+
+| Pyörä | Syy |
+|---|---|
+| B046739, B046740 | inaktivoidaan T19:ssä |
+| B040468 | esitarkistus ei enää palauta sitä: `subsc_end_date` = 30.06.2026 = poikkeuspäivä (todennettu 9.10.). Joku on jo korjannut |
+
+Esitarkistuskysely ajettu uudelleen 9.10.2026: palauttaa 17 riviä, eli 15 tämän CSV:n pyörää + B046739 + B046740.
+Kaikilla 15:llä `subsc_end_date` ≠ CSV:n arvo ja nykyinen arvo vastaa `subsc_end_date_nyt`-saraketta.
+Uusi CSV: 15 riviä, `SUM(id)` 624 545, `MIN` / `MAX` 37 520 / 46 675. Odotus esitarkistukselle T19:n jälkeen:
+15 / 624 545 / 37 520 / 46 675. Jälkitarkistuksen odotus 0.
+
+Huom: tehtävänannossa odotettiin 16 riviä. Tulos on 15, koska B040468 oli jo kunnossa.
