@@ -3,3 +3,4 @@ node_modules/
 *.log
 *.csv
 !import-templates/*.csv
+.skillopt-sleep/
