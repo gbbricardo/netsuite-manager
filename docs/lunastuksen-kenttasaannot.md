@@ -28,7 +28,7 @@ koko olemassaolon syy.
 
 | | Käsite | Kenttä | Saa olla menneisyydessä |
 |---|---|---|---|
-| 1 | Päättymisajankohta | `custrecord_sta_subsc_end_date`, override `custrecord_gbb_exceptional_end_date` | kyllä |
+| 1 | Päättymisajankohta | `custrecord_sta_subsc_end_date` ([ADR 0010](adr/0010-keskenkauden-lunastus.md) k8) | kyllä |
 | 2 | Päätöspäivä | `custrecord_gbb_redemption_decided_at` *(uusi, ks. [ADR 0001](adr/0001-uusi-paatospaiva-kentta.md))* | ei (on aina "nyt") |
 | 3 | Velvoitteet hoidettu | `custrecord_gbb_liab_settled_at`, `custrecord_gbb_redemption_paid_at` | kyllä |
 
@@ -53,21 +53,21 @@ Se on tarkoituksellista, ks. [ADR 0002](adr/0002-kaksi-ankkuria.md).
 ## 2. Päättymisajankohta
 
 ```
-päättymisajankohta = COALESCE(
-    custrecord_gbb_exceptional_end_date,
-    custrecord_gbb_oomi_exceptional_end_date,
-    custrecord_sta_subsc_end_date
-)
+päättymisajankohta = custrecord_sta_subsc_end_date
 ```
 
 > [!IMPORTANT]
-> **Tavoitetila lokakuusta 2026 ([ADR 0010](adr/0010-keskenkauden-lunastus.md) kohta 8):**
-> `päättymisajankohta = custrecord_sta_subsc_end_date`, eikä muuta. Poikkeuskentistä luovutaan.
-> `exceptional_end_date` jää historiaksi, ja `oomi_exceptional_end_date` on vain Fleet-raportin
-> näkyvyyskenttä, jota Fleet-CSV päivittää ja jota yksikään skripti ei lue. Kaikki päättymisen
-> muutokset tulevat CR:n kautta. Yllä oleva `COALESCE` on voimassa, kunnes kirjasto muutetaan, ja
-> muutos tehdään vasta [`imports/2026-09-25-poikkeuspaivat-subsc/`](../imports/2026-09-25-poikkeuspaivat-subsc/README.md)
-> -importin jälkeen. Sama koskee § 8:n kyselyitä.
+> **Muutettu lokakuussa 2026 ([ADR 0010](adr/0010-keskenkauden-lunastus.md) k8,
+> [ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k3).** Poikkeuskentistä on luovuttu.
+> `custrecord_gbb_exceptional_end_date` on historiaa, ja `custrecord_gbb_oomi_exceptional_end_date` on
+> vain Fleet-raportin näkyvyyskenttä, jota Fleet-CSV päivittää ja jota yksikään sääntö ei lue.
+> Kaikki päättymisen muutokset tulevat CR:n kautta. Status-sync 2.0 (1480) antaa kirjastolle vain
+> `subsc_end_date`:n. Kirjaston oma `COALESCE` poistuu T11:ssä; siihen asti se vaikuttaa vain
+> lukijoihin, jotka kutsuvat kirjastoa raakatietueella.
+>
+> Aiempi sääntö oli `COALESCE(exceptional_end_date, oomi_exceptional_end_date, subsc_end_date)`.
+> Poikkeuskenttä, joka eroaa `subsc_end_date`:sta, on havainto (Fleet-CSV voi kirjoittaa sen
+> takaisin, ADR 0010 D9), ei päättymisajankohta.
 
 **Ei fallbackia.** Jos mikään kolmesta ei ole asetettu, päättymisajankohtaa ei ole ja pyörä ei saa
 päättyä. Se on havaittava tila (`status = 1`, selvitystapa täytetty, ei päättymisajankohtaa) josta
@@ -76,7 +76,8 @@ kuuluu saada hälytys — ei syy käyttää jotain muuta päivämäärää.
 Erityisesti: **maksupäivä ei ole päättymisajankohta.** Lunastusmaksun saapuminen kertoo että
 velvoitteet on hoidettu (päivämäärä 3), ei milloin sopimus päättyy (päivämäärä 1).
 
-> Nykyinen toteutus `gbb_ss_bike_redemption_status_sync.js:245` päättyy juuri tuohon fallbackiin:
+> *Historia:* vanha status-sync (1440, ajastuksesta pois 6.10.2026) päättyi juuri tuohon
+> fallbackiin `gbb_ss_bike_redemption_status_sync.js:245`:ssä:
 > `COALESCE(sub.overridedate, sub.subscenddate, sub.eventdate)`. Koska `subscenddate` populoidaan
 > vain kauden lopun lunastuksille (`:256`, `:330`), keskenkauden lunastus putoaa aina maksupäivään.
 > Tämä on sääntörikkomus, ks. [Nykytilan poikkeamat](#nykytilan-poikkeamat).
@@ -140,8 +141,9 @@ kirjoittajat päätyvät samaan lopputulokseen eikä ajojärjestyksellä ole mer
 > saapuminen), mutta tunnistuspäivä on **kalenteripäivä** joka koittaa ilman tapahtumaa. Mitattuna
 > 20.09.2026: 1 599/1 668 (**96 %**) Type 2 -CR:istä on käsittelyhetkellään tunnistuspäivä tulevassa
 > kuukaudessa, eli ilman erillistä kalenterihakua ne jäisivät pysyvästi Activeksi.
-> [ADR 0005](adr/0005-tilasiirtyman-2-3-tekee-kalenterisweep.md) antaa tehtävän
-> `gbb_ss_bike_redemption_status_sync.js`:n kalenterisweepille.
+> [ADR 0005](adr/0005-tilasiirtyman-2-3-tekee-kalenterisweep.md) antoi tehtävän
+> `gbb_ss_bike_redemption_status_sync.js`:n kalenterisweepille (1440). 10.10.2026 alkaen sen tekee
+> status-sync 2.0 (1480) joka yö ([ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md)).
 
 ---
 
@@ -190,8 +192,11 @@ Kentän täyttäminen **ei saa vaihtaa statusta.** Maksun saapuminen on päiväm
 > todiste"* ja *"identtinen `paid_at`:n kanssa"* koskevat **vain kauden lopun lunastusta**.
 >
 > **Kauden lopun lunastuksessa kenttä täytetään kaikilla tavoilla** ([ADR 0009](adr/0009-kauden-lopun-lunastus.md),
-> 24.09.2026). Alla oleva ADR 0004:n sääntö *"maksuttomilla tavoilla kenttä jää tyhjäksi"* ei koske
-> kauden loppua. Päivät tapakohtaisesti: [§ 9](#9-kauden-lopun-lunastus).
+> 24.09.2026). Päivät tapakohtaisesti: [§ 9](#9-kauden-lopun-lunastus) ja [§ 11](#11-loppulunastushinnan-määräytyminen-ja-kattavuus).
+> **Keskenkauden lunastuksessa** kenttä saa CR:n luontipäivän kaikilla päätteillä, myös maksuttomilla
+> ([ADR 0010](adr/0010-keskenkauden-lunastus.md) k1). Alla oleva ADR 0004:n sääntö *"maksuttomilla
+> tavoilla kenttä jää tyhjäksi ja päivä luetaan päätöspäivästä"* ei siis koske kumpaakaan
+> lunastustyyppiä. Se kuvaa enää historiatietueita (esim. tapa 8, [ADR 0006](adr/0006-historical-unknown-selvitystapa.md)).
 
 | | |
 |---|---|
@@ -269,10 +274,13 @@ kolme 11 000:sta. Kohdestatusta ei siis tarvitse päätellä CR:n nimestä.
 Selvitystavan kirjaaminen on se tapahtuma joka siirtää pyörän tilaan 2 — se ei saa yksin vaihtaa
 statusta.
 
-> Tämän kentän kirjoittaa tänään vain CR-käsittely. Maksuvetoinen automaatio ei kirjoita sitä
-> lainkaan, mikä tarkoittaa että sen käsittelemät pyörät eivät ole tunnistettavissa tilaan 2. Tämä
-> on korjattava samalla kun statuksen kirjoitus siirretään tunnistuspäivään — muuten muutos vaihtaa
-> liian aikaisen päättymisen siihen ettei päättymistä tule lainkaan.
+> **Kirjoittajat lokakuusta 2026:** `handler_lunastus` (keskenkauden lunastus CR:n päätteestä),
+> status-sync 2.0 (1480; kauden lopun tapa 1 ja 2 sekä OOMI-haara, vasta päättymiskuussa ja vain
+> Active-pyörälle, [ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k12) ja maksulinkki 1479
+> (tavat 3 ja 4). Käsin ja CSV:llä vain korjauksina.
+>
+> *Historia (18.09.2026):* kentän kirjoitti silloin vain CR-käsittely, eikä maksuvetoinen automaatio
+> kirjoittanut sitä lainkaan.
 
 ### `custrecord_gbb_redemption_decided_at`
 
@@ -311,7 +319,8 @@ selvitystavasta ja statuksesta; tämä kenttä kertoo vain kuinka kauan tila on 
 | **Arvo** | `LAST_DAY(päättymisajankohta)` |
 | **Milloin** | heti kun velvoitteet on hoidettu (myös tilassa 2 ja myös tulevaan kauteen); saa osoittaa menneeseen kauteen ([ADR 0011](adr/0011-ic-paiva-velvoitteista.md)) |
 | **Write-once** | **ei.** Seuraa lähtötietoja, kunnes `ic_redemption_done` = T: jos päättymisajankohta muuttuu tai velvoitteet eivät enää ole hoidettu, IC-päivä ja `ic_redemption_pr` tyhjennetään ja kirjoitetaan uudelleen, kun ehdot täyttyvät. Done-merkinnän jälkeen ei muuteta koskaan |
-| **Omistaja** | status-sync 2.0 lokakuusta 2026 ([ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md)); syyskuu 2026 ja sitä ennen CSV-import |
+| **Omistaja** | status-sync 2.0 (1480) lokakuusta 2026 ([ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md)); syyskuu 2026 ja sitä ennen CSV-import |
+| **Laukaisija** | asetettu selvitystapa (1–8). Pelkkä `redemption_paid_at` ei riitä ([ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k6). IC-myynti ei ole ehto. `custrecord_gbb_ic_redemption_pr` tyhjennetään aina yhdessä IC-päivän kanssa |
 
 Kenttä kuvaa milloin kausi päättyy **rahoittajan näkökulmasta** ja se on IC-lunastushinnan
 amortisaation katkaisukohta. Se seuraa päättymisajankohtaa, ei tunnistuspäivää — takautuvassa
@@ -338,8 +347,9 @@ maksettua pääomaa ja **laskee** lunastushintaa.
 
 > [!WARNING]
 > **Käytöstä luovutaan** ([ADR 0010](adr/0010-keskenkauden-lunastus.md) kohta 8, 24.09.2026).
-> Kenttää ei kirjoiteta, eikä mikään skripti lue sitä lokakuun kirjastomuutoksen jälkeen. Vanhat
-> arvot jäävät historiaksi. Alla oleva kuvaus on voimassa vain siirtymän ajan. Sama koskee
+> Kenttää ei kirjoiteta eikä se ole päättymisajankohta (§ 2). Status-sync 2.0 ei lue sitä, ja
+> kirjaston `COALESCE` poistuu T11:ssä. Vanhat arvot jäävät historiaksi. Alla oleva kuvaus on
+> historiaa. Sama koskee
 > `custrecord_gbb_oomi_exceptional_end_date`:a skriptien osalta, mutta Fleet-raportin CSV-viennit
 > päivittävät sitä edelleen näkyvyyden vuoksi.
 
@@ -364,11 +374,12 @@ sama käsite Oomi-integraation kautta tulleille pyörille ja tulee ketjussa heti
 | **Arvo** | päivä jona status vaihtui pois Activesta |
 | **Milloin** | automaattisesti statuksen vaihtuessa |
 | **Write-once** | kyllä |
-| **Omistaja** | User Event -skripti pyörärekisterillä |
+| **Omistaja** | `customscript1458` *Bike status date backfill* (päivittäin noin klo 02 lokiaikaa, lukee statusmuutoksen päivän System Notesista). Status-sync 2.0 ei kirjoita sitä ([ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k9) |
 
 Koneen kirjausjälki, ei liiketoiminnallinen fakta. Koska statuksen saa vaihtaa mikä tahansa
-kirjoittaja, kirjausjälkeä ei voi jättää yhdenkään kirjoittajan vastuulle — se kuuluu User Event
--skriptille, joka kattaa myös käsin tehdyt muutokset.
+kirjoittaja, kirjausjälkeä ei voi jättää yhdenkään kirjoittajan vastuulle. 1458 kattaa myös käsin
+tehdyt muutokset, koska se lukee System Notesia. Kenttä täyttyy noin vuorokauden viiveellä, eikä
+viive ole virhe.
 
 Oikein toimivassa järjestelmässä `date_to_non_active` on tunnistuspäivä. Sen ero
 `ic_redemption_dt`:stä on takautuvan käsittelyn mittari, ei virhe.
@@ -421,8 +432,8 @@ tulevaisuudessa juuri sellainen asymmetria jota tässä repossa etsitään.
 > Kauden lopun lunastuksessa OOMI-pyörä merkitään lunastetuksi päättymiskuussa ilman maksua
 > ([ADR 0009](adr/0009-kauden-lopun-lunastus.md) kohta 6, [§ 9](#9-kauden-lopun-lunastus)).
 > Lokakuusta 2026 alkaen OOMI-pyörän ennenaikainen päättyminen tehdään muutospyynnöllä, eikä
-> `custrecord_gbb_oomi_exceptional_end_date`:a käytetä enää päätöksiin. Olemassa olevia arvoja
-> luetaan edelleen.
+> `custrecord_gbb_oomi_exceptional_end_date`:a käytetä enää päätöksiin. Myöskään olemassa olevia
+> arvoja ei lueta päättymisajankohdaksi (§ 2, ADR 0010 D9). Alla oleva taulukko on 18.09.2026 tilanne.
 
 OOMI-pyörät ovat rinnakkainen prosessi, eivät yksittäinen poikkeus. Niillä on jo neljä omaa sääntöä:
 
@@ -441,14 +452,17 @@ Kaikki 79 `custrecord_gbb_exceptional_end_date`-arvoa ovat OOMI-pyörillä.
 
 Säännöistä osaa ei voi teknisesti pakottaa. Nämä kyselyt löytävät poikkeamat.
 
+> [!NOTE]
+> **Päivitetty 12.10.2026.** Kyselyt lukevat päättymisajankohdaksi pelkän `subsc_end_date`:n (§ 2).
+> Kauden lopun ja keskenkauden lunastus erotetaan tyypin 2/10 CR:n perusteella (§ 9, § 10), koska
+> niillä on eri säännöt. `lunastusauditoija`-agentti numeroi nämä R1–R19.
+
 **Lunastettu ennen tunnistuspäivää** — tämän dokumentin tärkein mittari:
 
 ```sql
 SELECT COUNT(*) FROM customrecord_sta_bike_register
 WHERE custrecord_sta_bike_status = 2
-  AND TRUNC(COALESCE(custrecord_gbb_exceptional_end_date,
-                     custrecord_gbb_oomi_exceptional_end_date,
-                     custrecord_sta_subsc_end_date), 'MM') > TRUNC(CURRENT_DATE)
+  AND TRUNC(custrecord_sta_subsc_end_date, 'MM') > TRUNC(CURRENT_DATE)
 ```
 
 > [!WARNING]
@@ -460,8 +474,8 @@ WHERE custrecord_sta_bike_status = 2
 >
 > Se mittasi "status 2 ennen päättymis**päivää**", mutta [§3](#3-tunnistuspäivä) sanoo että ankkuri
 > on päättymiskuukauden **ensimmäinen päivä**. Kesken kuuta päättyvä pyörä saa siis olla lunastettu
-> ennen päättymispäiväänsä — se on sääntö, ei poikkeama. Vanha kysely ei myöskään lukenut
-> kumpaakaan poikkeuspäättymispäivää, vaikka §2 sanoo niiden ohittavan `subsc_end_date`:n.
+> ennen päättymispäiväänsä — se on sääntö, ei poikkeama. (21.09. korjaus lisäsi myös poikkeuspäivien
+> `COALESCE`:n, jonka 12.10.2026 päivitys poisti § 2:n mukaisesti.)
 >
 > Ero ei ole teoreettinen. Kalenterisweepin ensimmäisen tuotantoajon jälkeen 21.09.2026 vanha
 > kysely palautti **847** ja korjattu **4** — ja ne neljä olivat kaikki ajoa vanhempia. Vanha
@@ -475,6 +489,11 @@ WHERE custrecord_gbb_redemption_paid_at IS NOT NULL
   AND custrecord_gbb_liab_settled_at IS NULL
 ```
 
+Ei luettavissa suoraan virhemääränä: kauden lopun lunastuksessa tapa ja `liab_settled_at` kirjoitetaan
+vasta päättymiskuussa (ADR 0009 k4), ja keskenkauden maksu odottaa CR:ää (ADR 0008). Virhe on vain
+rivi, jonka päättymiskuu on alkanut eikä tyypin 2/10 CR:ää ole, ja jota 1480 ei ole korjannut
+seuraavassa ajossa.
+
 **Kaksi päivämäärää jotka eivät saa erota (selvitystapa 1):**
 
 ```sql
@@ -483,16 +502,18 @@ FROM customrecord_sta_bike_register
 WHERE custrecord_gbb_liab_settle_method = 1
   AND custrecord_gbb_redemption_paid_at <> custrecord_gbb_liab_settled_at
   AND NVL(custrecord_sta_bike_order_type, 0) <> 3   -- OOMI rajataan pois, ADR 0009
+  AND NOT EXISTS (SELECT 1 FROM customrecord_subscrption_change_request cr   -- keskenkauden pois, ADR 0008
+                  WHERE cr.custrecord_cr_bike_registry = customrecord_sta_bike_register.id
+                    AND cr.custrecord_cr_type = 2 AND cr.custrecord_cr_status IN (1, 2))
 ```
 
-Tulosta ei voi lukea suoraan virhemääränä. Myös ADR 0008 rajaa pois pyörät, joilla on Done-tilainen
-tyypin 2 CR.
-
-**Maksupäivä selvitystavalla jolla ei ole maksua:**
+**Maksupäivä palautuksella** (odotus 0). `paid_at` on maksun fakta kaikilla muilla tavoilla
+([ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k4), joten aiempi kysely *"maksupäivä tavalla jolla
+ei ole maksua"* (`method <> 1 AND paid_at IS NOT NULL`) ei enää mittaa virhettä.
 
 ```sql
 SELECT id, name FROM customrecord_sta_bike_register
-WHERE custrecord_gbb_liab_settle_method <> 1
+WHERE custrecord_gbb_liab_settle_method = 5
   AND custrecord_gbb_redemption_paid_at IS NOT NULL
 ```
 
@@ -503,13 +524,17 @@ SELECT COUNT(*) FROM customrecord_sta_bike_register
 WHERE custrecord_gbb_date_to_non_active > custrecord_gbb_ic_redemption_dt
 ```
 
-**Selvitystapa kirjattu mutta päätöspäivä puuttuu** — ADR 0001:n riskin mittari:
+**Selvitystapa kirjattu mutta päätöspäivä puuttuu** — vain keskenkauden lunastus. Kauden lopun
+lunastuksessa päätöspäivällä ei ole merkitystä (ADR 0009 k3), joten se rajataan pois. Keskenkauden
+päätöspäivän oikea arvo tarkistetaan § 10:n kyselyllä *Päätöspäivä ≠ CR:n luontipäivä*.
 
 ```sql
-SELECT COUNT(*) FROM customrecord_sta_bike_register
-WHERE custrecord_gbb_liab_settle_method IS NOT NULL
-  AND custrecord_gbb_redemption_decided_at IS NULL
-  AND custrecord_gbb_date_to_non_active IS NULL
+SELECT COUNT(*) FROM customrecord_sta_bike_register br
+WHERE br.custrecord_gbb_liab_settle_method IS NOT NULL
+  AND br.custrecord_gbb_redemption_decided_at IS NULL
+  AND EXISTS (SELECT 1 FROM customrecord_subscrption_change_request cr
+              WHERE cr.custrecord_cr_bike_registry = br.id
+                AND cr.custrecord_cr_type = 2 AND cr.custrecord_cr_status = 2)
 ```
 
 **Jumiin jäänyt lunastus sovittu** — tunnistuspäivä ohitettu, status ei vaihtunut:
@@ -518,10 +543,11 @@ WHERE custrecord_gbb_liab_settle_method IS NOT NULL
 SELECT id, name FROM customrecord_sta_bike_register
 WHERE custrecord_gbb_liab_settle_method IS NOT NULL
   AND custrecord_sta_bike_status = 1
-  AND COALESCE(custrecord_gbb_exceptional_end_date,
-               custrecord_gbb_oomi_exceptional_end_date,
-               custrecord_sta_subsc_end_date) < CURRENT_DATE
+  AND custrecord_sta_subsc_end_date < TRUNC(CURRENT_DATE, 'MM')
 ```
+
+Ankkuri on päättymiskuun 1. päivä (§ 3), mutta kyselyssä käytetään kuluvan kuun alkua, jotta
+saman päivän 1480-ajo ehtii kääntää pyörän ennen kuin se näkyy tässä.
 
 **`historical_unknown` Active-pyörällä** — ADR 0006:n väärinkäytön mittari, odotus **0**:
 
@@ -544,9 +570,57 @@ WHERE custrecord_gbb_redemption_decided_at IS NOT NULL
 SELECT id, name FROM customrecord_sta_bike_register
 WHERE custrecord_gbb_liab_settle_method IS NOT NULL
   AND custrecord_sta_bike_status = 1
-  AND COALESCE(custrecord_gbb_exceptional_end_date,
-               custrecord_gbb_oomi_exceptional_end_date,
-               custrecord_sta_subsc_end_date) IS NULL
+  AND custrecord_sta_subsc_end_date IS NULL
+```
+
+**Status 2/3 ilman selvitystapaa** (odotus 0). Vastuut kirjataan vain Active-pyörälle, joten tätä ei
+korjaa mikään automaatio ([ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k12, [ADR 0006](adr/0006-historical-unknown-selvitystapa.md)):
+
+```sql
+SELECT id, name, custrecord_sta_bike_status FROM customrecord_sta_bike_register
+WHERE custrecord_sta_bike_status IN (2, 3)
+  AND custrecord_gbb_liab_settle_method IS NULL
+```
+
+**Status ja palautus eivät täsmää** (odotus 0; ihmisen päätös, [ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md) k5):
+
+```sql
+SELECT id, name, custrecord_sta_bike_status, custrecord_gbb_liab_settle_method
+FROM customrecord_sta_bike_register
+WHERE (custrecord_sta_bike_status = 3 AND NVL(custrecord_gbb_liab_settle_method, 0) <> 5)
+   OR (custrecord_sta_bike_status = 2 AND custrecord_gbb_liab_settle_method = 5)
+```
+
+**IC-päivä ei seuraa lähtötietoja** (odotus 0 1480-ajon jälkeen, [ADR 0011](adr/0011-ic-paiva-velvoitteista.md) k2, k6):
+
+```sql
+SELECT id, name, custrecord_gbb_liab_settle_method, custrecord_sta_subsc_end_date,
+       custrecord_gbb_ic_redemption_dt
+FROM customrecord_sta_bike_register
+WHERE NVL(custrecord_gbb_ic_redemption_done, 'F') = 'F'
+  AND ( (custrecord_gbb_liab_settle_method IS NOT NULL
+         AND (custrecord_gbb_ic_redemption_dt IS NULL
+              OR custrecord_gbb_ic_redemption_dt <> LAST_DAY(custrecord_sta_subsc_end_date)))
+     OR (custrecord_gbb_liab_settle_method IS NULL AND custrecord_gbb_ic_redemption_dt IS NOT NULL) )
+```
+
+**IC-käsitelty mutta Active** (odotus 0, ADR 0011 *Seuraukset*):
+
+```sql
+SELECT id, name FROM customrecord_sta_bike_register
+WHERE custrecord_gbb_ic_redemption_done = 'T' AND custrecord_sta_bike_status = 1
+```
+
+**Tapa 3 tai 4 jälkiveloituspyörällä** (odotus 0, [ADR 0014](adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k4):
+
+```sql
+SELECT br.id, br.name, br.custrecord_gbb_liab_settle_method
+FROM customrecord_sta_bike_register br
+WHERE br.custrecord_gbb_liab_settle_method IN (3, 4)
+  AND EXISTS (SELECT 1 FROM customrecord_subscrption_change_request cr
+              WHERE cr.custrecord_cr_bike_registry = br.id AND cr.custrecord_cr_type = 7
+                AND cr.custrecord_cr_status IN (1, 2)
+                AND LOWER(cr.altname) LIKE '%pidennys%' AND LOWER(cr.altname) NOT LIKE '%2a%')
 ```
 
 ---
@@ -556,8 +630,9 @@ WHERE custrecord_gbb_liab_settle_method IS NOT NULL
 Päätökset: [ADR 0009](adr/0009-kauden-lopun-lunastus.md). Käsite: [`CONTEXT.md`](../CONTEXT.md).
 
 **Tunnistus.** Päättymisajankohta osuu kuluvaan kuukauteen, **eikä** pyörällä ole tyypin 2 tai 10
-CR:ää tilassa 1 Pending tai 2 Done. OOMI-pyörillä ennen lokakuuta 2026 tehdyt Fleet-raportin
-ennenaikaiset päivät (`oomi_exceptional_end_date`) luetaan edelleen päättymisajankohdaksi.
+CR:ää tilassa 1 Pending tai 2 Done. Päättymisajankohta on `subsc_end_date` (§ 2). Fleet-raportin
+ennenaikaisia päiviä (`oomi_exceptional_end_date`) ei lueta lokakuusta 2026 alkaen, ei myöskään
+vanhoja (ADR 0010 D9).
 
 **Määräaika.** Velvoitteet on hoidettava päättymiskuun loppuun mennessä. Jos niitä ei ole hoidettu,
 seuraavan kuun 1. päivänä alkaa jälkiveloitus (ei OOMI-pyörillä).
@@ -566,11 +641,12 @@ seuraavan kuun 1. päivänä alkaa jälkiveloitus (ei OOMI-pyörillä).
 
 | Milloin | Mitä | Kuka |
 |---|---|---|
-| ~15.09. (30 pv ennen; tavoite 60 pv, § 11) | Paylink-linkki työntekijälle, eräpäivä 14 pv. Huoltobudjetti tai käsiraha kattaa → tapa 3/4 eikä linkkiä | `netstuite-send-end-redemption-payment-link` (1.10.2026 alkaen) |
+| 15.09. (sama päivä `months_before` = 1 kk ennen, § 11) | Paylink-linkki työntekijälle, Paylinkin eräpäivä = `subsc_end_date`. Huoltobudjetti tai käsiraha kattaa → tapa 3/4 eikä linkkiä | `netstuite-send-end-redemption-payment-link` (1479) |
 | maksupäivä | `redemption_paid_at` = maksupäivä | status-sync 2.0, vaihe *Maksu* |
 | 1.10. | tapa 1 ja `liab_settled_at` = maksupäivä (jos ei tyypin 2/10 CR:ää), status 2, `ic_redemption_dt` 31.10. — yksi kirjoitus | status-sync 2.0 |
-| 1.10. → | IC-hinta lasketaan | IC-laskuri (D4) |
+| 1.10. → | IC-hinta lasketaan | IC-laskuri, jonka 1480 käynnistää ajon lopuksi (ADR 0015 k7) |
 | ~2.10. | `date_to_non_active` = 1.10. | `customscript1458` |
+| 1.10.–31.10. | maksu ilman tyypin 2/10 CR:ää, kun päättymiskuu on jo alkanut → sama yksi kirjoitus maksua seuraavana yönä | status-sync 2.0 |
 | lokakuu | lokakuu laskutetaan ja raportoidaan normaalisti | laskutus, kuukausiraportointi |
 | 1.11. | Ended-rivi RI:hin | kuukausiraportointi |
 | lokakuun loppu | haku 797 → IC-lunastus | taloustiimi |
@@ -584,8 +660,8 @@ Etukäteen maksettu lunastus (esim. 20.09.) saa `paid_at`:n heti, mutta tavan 1 
 | Tapa | Arvo |
 |---|---|
 | 1 `redemption_paid` | maksupäivä (`closedate`, ei `trandate`) |
-| 2 `redemption_extra_rent` | sen jälkiveloituslaskun **luontipäivä**, jolla kattavuus täyttyy (ADR 0012, muutettu 6.10.2026; aiemmin maksupäivä) |
-| 3 `redemption_maint_budget`, 4 `redemption_down_payment` | päivä jona kattavuus todettiin |
+| 2 `redemption_extra_rent` | sen Done-tilaisen *pidennys*-CR:n `custrecord_cr_closed_date` Helsingin päivänä, jolla kattavuus täyttyy (= laskun luontipäivä; ADR 0012, ADR 0015 k5. Aiemmin maksupäivä) |
+| 3 `redemption_maint_budget`, 4 `redemption_down_payment` | päivä jona kattavuus todettiin (1479:n ajopäivä) |
 | 1, OOMI ilman maksua | tunnistuspäivä |
 
 `custrecord_gbb_redemption_decided_at`:ia **ei lueta** kauden lopun lunastuksessa mihinkään.
@@ -618,8 +694,10 @@ ohittaa pyörän. Päättymisajankohta on viimeisen jatkokuukauden viimeinen pä
 | `custrecord_sta_bike_status` | 2 |
 | `custrecord_gbb_ic_redemption_dt` | `LAST_DAY(päättymisajankohta)` |
 
-Myöhässä saapuva maksu ei muuta mitään, ei edes `paid_at`:ia. OOMI-pyörä päättyy usein kesken kuun,
-mutta tunnistuspäivä on silti päättymiskuun 1. päivä.
+Myöhässä saapuva maksu ei muuta tapaa eikä `liab_settled_at`:ia, mutta `paid_at` kirjataan, koska
+se on maksun fakta ([ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k4; muutettu 7.10.2026, aiemmin
+*"ei edes `paid_at`:ia"*). OOMI-kauppakirja vaatii juuri tämän maksupäivän (ADR 0013 k8). OOMI-pyörä
+päättyy usein kesken kuun, mutta tunnistuspäivä on silti päättymiskuun 1. päivä.
 
 **Tarkistus — OOMI-pyörä, kausi päättynyt, ei selvitystapaa** (odotus 0):
 
@@ -627,8 +705,7 @@ mutta tunnistuspäivä on silti päättymiskuun 1. päivä.
 SELECT id, name FROM customrecord_sta_bike_register
 WHERE custrecord_sta_bike_order_type = 3 AND custrecord_sta_bike_status = 1
   AND custrecord_gbb_liab_settle_method IS NULL
-  AND COALESCE(custrecord_gbb_exceptional_end_date, custrecord_gbb_oomi_exceptional_end_date,
-               custrecord_sta_subsc_end_date) < TRUNC(CURRENT_DATE, 'MM')
+  AND custrecord_sta_subsc_end_date < TRUNC(CURRENT_DATE, 'MM')
 ```
 
 24.09.2026: **34**, korjataan S4:llä ([`imports/2026-09-24-oomi-kauden-loppu/`](../imports/2026-09-24-oomi-kauden-loppu/README.md)).
@@ -702,7 +779,7 @@ velvoitteiden hoitamisesta. Maksua ei odoteta. Perintä on taloustiimin asia.
 | CR Done | Ended-RI, jonka raportointipäivä on 01.01. | monthly-reporting UE |
 | 1.12. | status 2 | kalenterisweep |
 | joulukuu | laskutetaan ja raportoidaan kokonaan | laskutus, kuukausiraportointi |
-| status 2:n jälkeen | `ic_redemption_dt` 31.12. | status-sync 2.0 (syyskuussa CSV) |
+| CR:n käsittelyä seuraava yö | `ic_redemption_dt` 31.12., koska tapa on asetettu (statusta 2 ei odoteta) | status-sync 2.0 ([ADR 0011](adr/0011-ic-paiva-velvoitteista.md)) |
 
 ### Takautuva — CR luotu 10.09., virallinen loppu 30.06., laskutettu 31.08. asti
 
@@ -712,7 +789,7 @@ velvoitteiden hoitamisesta. Maksua ei odoteta. Perintä on taloustiimin asia.
 | sopimusrivit | 31.08. (laskutettu) |
 | hyvitys | tyypin 11 CR 01.07.–31.08. Tämä on ainoa hyvityspolku. `sta_redemption_date`:a ei aseteta |
 | tunnistuspäivä, status 2 | CR:n käsittelypäivä (MAX(01.06., tänään)) |
-| `ic_redemption_dt` | 30.06. (mennyt kausi, sallittu) |
+| `ic_redemption_dt` | 30.06. (mennyt kausi, sallittu), kirjoitetaan CR:n käsittelyä seuraavana yönä |
 
 ### Needs Review -jono
 
@@ -808,14 +885,17 @@ maksettava brutto = round2(maksettava netto × 1,255)
 
 Summa lasketaan **kerran**, pyynnön lähetyshetkellä, sen hetken tiedoista. Sitä ei tallenneta
 rekisteriin eikä lasketa uudelleen pyynnön korjaamiseksi. Jos huoltohyvitys on yli yhden portaan
-(vain negatiivisella summalla), pyörä nostetaan digestiin tiedoksi. Pyyntö lähtee silti.
+(vain negatiivisella summalla), se kirjataan 1479:n lokirivin `eheys`-kenttään. Pyyntö lähtee silti.
+Digestisähköpostia ei ole ([ADR 0014](adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k10).
 
 ### Milloin pyyntö lähetetään
 
-Pyyntö lähetetään vain, kun sille on tarve. Aikaikkuna on **60 päivää ennen päättymisajankohtaa –
-päättymisajankohta** (tavoite; 1479 lähettää nyt 30 päivää ennen). Päättymisajankohdan jälkeen ei
-lähetetä. Työntekijälle voi ilmoittaa eräpäiväksi päättymisajankohdan, mutta järjestelmän raja on
-päättymiskuun loppu (§ 9).
+Pyyntö lähetetään vain, kun sille on tarve. Lähetyspäivä on sama päivä **`months_before` kuukautta**
+ennen `subsc_end_date`:a (parametri 1 tai 2; 9.10.2026 arvo 1). Jos päivää ei ole, käytetään kuun
+viimeistä päivää. Ikkuna on `[tänään, tänään + N kk]`, joten väliin jäänyt ajo saadaan kiinni
+([ADR 0014](adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k13–k16; tarkentaa ADR 0012 k8:n
+"60 päivää"). Päättyneille sopimuksille ei lähetetä millään parametrilla (k17b). Paylinkin eräpäivä on
+`subsc_end_date`, eikä sitä näytetä työntekijälle (k17). Järjestelmän raja on päättymiskuun loppu (§ 9).
 
 Ohitukset järjestyksessä. Ensimmäinen täyttyvä ratkaisee:
 
@@ -824,9 +904,9 @@ Ohitukset järjestyksessä. Ensimmäinen täyttyvä ratkaisee:
 | 1 | OOMI | ei pyyntöä (§ 9) |
 | 2 | ei Active | ei pyyntöä |
 | 3 | selvitystapa jo asetettu | ei pyyntöä, tapaa ei ylikirjoiteta |
-| 4 | tyypin 2 tai 10 CR tilassa Pending tai Done | ei pyyntöä eikä jälkiveloitusta: pyörä päättyy CR:n mukaan (ADR 0010) |
+| 4 | tyypin 2 tai 10 CR missä tahansa tilassa paitsi Cancelled (7) | ei pyyntöä eikä jälkiveloitusta: pyörä päättyy CR:n mukaan (ADR 0010, ADR 0014 k3) |
 | 5 | pyörällä on mikä tahansa Paylink-tilaus tuotteella *Työsuhdepyörän loppulunastus*, tilasta riippumatta (`custrecord_pl_ns_bike_id` tai `custrecord_pl_notes` = `externalid`) | ei uutta pyyntöä |
-| 6 | Done-tilainen tyypin 7 CR, jonka `altname` sisältää *pidennys* (jälkiveloitus käynnissä) | ei pyyntöä; loppu ratkeaa tavalla 1 tai 2 |
+| 6 | Pending- tai Done-tilainen tyypin 7 CR, jonka `altname` sisältää *pidennys* eikä *2a* (jälkiveloitus käynnissä) | ei pyyntöä; loppu ratkeaa tavalla 1 tai 2 (ADR 0014 k3) |
 | 7 | lunastus-SO olemassa tai `end_red_so_created` = T | ei pyyntöä |
 | 8 | loppulunastushinta tyhjä tai negatiivinen | ei pyyntöä, raportoidaan |
 | 9 | loppulunastushinta = 0 € | tapa 4, ei pyyntöä |
@@ -846,7 +926,7 @@ Pyörällä on täsmälleen yksi selvitystapa: ensimmäinen, joka yksin kattaa. 
 | 4 `redemption_down_payment` | loppulunastushinta = 0 € | ajopäivä |
 | 3 `redemption_maint_budget` | huoltohyvitys kattaa hinnan (ohitus 11), todetaan lähetyshetkellä | ajopäivä |
 | 1 `redemption_paid` | pyörällä on maksettu (`custrecord_pl_ns_status` = 3) loppulunastustilaus. Summaa ei verrata: Paylink-tilausta ei voi maksaa vajaana | maksupäivä |
-| 2 `redemption_extra_rent` | laskutetut jälkiveloituskuukaudet × 63,75 € ≥ maksettava netto | rajan ylittävän laskun **luontipäivä** |
+| 2 `redemption_extra_rent` | Done-tilaiset *pidennys*-CR:t × 63,75 € ≥ maksettava netto | rajan ylittäneen CR:n `custrecord_cr_closed_date` (= laskun luontipäivä) |
 
 > [!NOTE]
 > **Toteutus muutospyyntötasolla (7.10.2026, [ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k. 5).** Status-sync 2.0
@@ -858,16 +938,21 @@ Pyörällä on täsmälleen yksi selvitystapa: ensimmäinen, joka yksin kattaa. 
 
 ```
 maksettava netto (kaavalla, tarkistushetken tiedoista)
-− 63,75 € × (laskutetut, hyvittämättömät laskut, jotka on luotu tämän pyörän Done-tilaisista
-             tyypin 7 CR:istä, joiden altname sisältää "pidennys")
+− 63,75 € × (tämän pyörän Done-tilaiset tyypin 7 CR:t, joiden altname sisältää "pidennys"
+             eikä "2a")
 ≤ 0   →  tapa 2
 ```
+
+Jos tapa 1 ja tapa 2 täyttyvät samassa ajossa, aikaisempi päivä voittaa; tasapelissä tapa 1
+(ADR 0015 k5).
 
 - Yksi jälkiveloituslasku = yksi kuukausi = 80,00 € brutto (63,75 € netto), laskun summasta
   riippumatta (todellinen lasku 6.10.: 115,46 tai 114,25 € brutto). Jälkiveloituskuukausi on eri asia
   kuin vuokrakuukausi (`CONTEXT.md`). Jos `handler_jalki` joskus laskuttaa useamman kuukauden kerralla, sääntö
   avataan uudelleen.
 - Laskun maksaminen ei ole ehto. Työnantajan maksu on talouden perintää.
+- Hyvityksiä ei huomioida, koska jälkiveloituskuukausia ei hyvitetä tavallisessa työnkulussa
+  (ADR 0015 k5; aiempi muotoilu *"hyvittämättömät laskut"*).
 - Vain *pidennys*-CR:t lasketaan. Muut tyypin 7 CR:t (*Jälkiveloitus*, *Jälkiveloitus - Poikkeus*,
   *2A - jälkiveloitus*) laskuttavat sopimuskauden kuukausia, eivät kata lunastusta (vrt. B016555, CR-6107).
 - Viimeinen kuukausi laskutetaan kokonaan, vaikka se ylittäisi jäljellä olevan summan. Ylitystä ei
@@ -878,14 +963,21 @@ maksettava netto (kaavalla, tarkistushetken tiedoista)
 ### Avoin pyyntö
 
 - **Jälkiveloituksen aikana** asiakaspalvelu päivittää avoimen Paylink-tilauksen nettosumman käsin
-  vastaamaan jäljellä olevaa summaa (maksettava netto − 63,75 € × kuukaudet). Tuleva raporttiskripti
-  (erillinen, ei vielä määritelty) listaa päivitettävät ja käyttää samaa hintakirjastoa kuin 1479.
-- **Kun velvoite hoidetaan tavalla 2, 3 tai 4**, pyörän avoimet loppulunastustilaukset perutaan
-  Paylinkissä. Jos peruttu tilaus on ehditty maksaa, palautus on talouden asia.
+  vastaamaan jäljellä olevaa summaa (maksettava netto − 63,75 € × kuukaudet). Erillinen
+  raportointi ([ADR 0017](adr/0017-poikkeamaraportointi.md), T51) listaa päivitettävät ja käyttää samaa
+  hintakirjastoa kuin 1479.
+- **Kun velvoite hoidetaan tavalla 2, 3 tai 4, avoimia tilauksia ei peruta** (ADR 0012 k9, muutettu
+  9.10.2026, T45). Jos asiakas maksaa tilauksen, vaikka velvoite on jo hoidettu, ylimääräinen maksu
+  palautetaan tapauskohtaisesti. Status-sync 2.0 ei koske Paylinkiin (ADR 0015 k8).
 
 ---
 
 ## Nykytilan poikkeamat
+
+> [!NOTE]
+> **Tämä osio on 18.09.2026 lähtötilanne, ei nykytila.** Ajantasaiset mittarit ja tuotannossa
+> todennetut korjaukset ovat [`lunastus-tilanne.md`](lunastus-tilanne.md):ssä. Alla mainittu vanha
+> status-sync (1440) on ollut pois ajastuksesta 6.10.2026 alkaen, ja sen korvaa status-sync 2.0 (1480).
 
 Mitattu NetSuitesta 18.09.2026. Yksityiskohdat ja pyöräkohtaiset listat:
 [`../findings/2026-09-18-ennenaikainen-lunastusstatus.md`](../findings/2026-09-18-ennenaikainen-lunastusstatus.md).
