@@ -423,3 +423,53 @@ _Vältä_ (kauppakirjasta): lunastusvahvistus, luovutuskirja
 Kirjanpitokausi jolle pyörän konsernisisäinen lunastus kuuluu. Se on aina se kuukausi jona sopimus
 päättyy — jälkiveloitetulla pyörällä se kuukausi jona velvoitteet hoidettiin, ei alkuperäinen
 päättymiskuukausi. Myöhässä tunnistettu lunastus saa oman, menneen kautensa.
+
+## Poikkeamaraportoinnin käsitteet
+
+### Tarkistus
+
+Kirjattuun sääntöön (ADR:n kohta tai sääntödokumentin pykälä) perustuva ehto, joka erottaa
+NetSuiten nykytilasta tietueet, jotka eivät ole säännön mukaisia. Ilman kirjattua sääntöä ei ole
+tarkistusta: jos sääntöä ei ole, se kirjataan ensin. Tarkistus lukee tietueiden tilaa, ei
+skriptien lokia, joten se on oikein, vaikka jokin ajo olisi jäänyt väliin.
+
+Tarkistus kuvaa säännön, ei virheen tuottajaa. Se on olemassa, vaikka virhettä tuottanut skripti
+tai käytäntö olisi jo korjattu: nolla poikkeamaa todistaa, että korjaus pysyi.
+
+_Vältä_: hälytys, valvonta, digesti
+
+### Poikkeama
+
+Tietue, jonka tarkistus erottaa. Poikkeama on joko **virhe** tai **ennakkovaroitus**. Raportti
+ilmoittaa poikkeamasta, mutta ei korjaa sitä eikä tarjoa korjausta. Ihminen korjaa sen oikeaa
+reittiä pitkin.
+
+### Virhe
+
+Poikkeama, jossa tietue rikkoo sääntöä jo nyt.
+
+### Ennakkovaroitus
+
+Poikkeama, jossa tietue on nyt sallittu, mutta seuraava ajastettu ajo tuottaa siitä virheen.
+Ennakkovaroituksella on aina **määräaika**: sen ajon ajankohta, joka virheen tuottaisi.
+
+_Vältä_: riski (ilman määräaikaa)
+
+### Kuittaus
+
+Käyttäjän kirjaama hyväksyntä sille, että poikkeama on tarkoituksellinen. Kuittauksessa on aina
+syy ja jäljitettävä viittaus päätökseen: ADR, sääntöpykälä, tehtävä tai pyöräkohtainen päätös. Kuittaus piilottaa poikkeaman, ja se on kaikkien nähtävissä: kuka
+kuittasi, milloin ja miksi. Kuittaus raukeaa, kun jokin tarkistuksen lukemista tiedoista muuttuu
+kyseisessä tietueessa; silloin poikkeama arvioidaan uudelleen. Kuittaamaton poikkeama ei ole kenenkään yksittäisen henkilön vastuulla.
+Kaikki käyttäjät vastaavat kaikista poikkeamista yhtä lailla.
+
+### Ajokalenteri
+
+Kirjattu luettelo ajastetuista ja käsin tehtävistä ajoista ja niiden ajankohdista. Ajokalenterista
+saadaan ennakkovaroituksen määräaika, ja se on ajovahdin sääntö.
+
+### Ajovahti
+
+Tarkistuksen erityislaji, joka toteaa, että ajokalenterin mukainen ajo ei ole tapahtunut
+odotetussa ajassa. Ajovahti ei korvaa muita tarkistuksia, vaan kertoo, ettei niiden tuloksiin
+voi vielä luottaa. Se on ainoa tarkistus, joka lukee skriptien lokia tietueiden tilan sijaan.

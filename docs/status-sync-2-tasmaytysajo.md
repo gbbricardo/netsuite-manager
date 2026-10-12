@@ -8,7 +8,7 @@
 [0010](adr/0010-keskenkauden-lunastus.md), [0011](adr/0011-ic-paiva-velvoitteista.md),
 [0012](adr/0012-loppulunastushinta-ja-kattavuus.md), [0014](adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md)
 **Säännöt:** [`lunastuksen-kenttasaannot.md`](lunastuksen-kenttasaannot.md) · **Sanasto:** [`../CONTEXT.md`](../CONTEXT.md)
-**Raportointi:** ei tässä skriptissä → [`raportointiskripti-vaatimukset.md`](raportointiskripti-vaatimukset.md)
+**Raportointi:** ei tässä skriptissä → [`poikkeamaraportointi-vaatimukset.md`](poikkeamaraportointi-vaatimukset.md)
 
 > [!NOTE]
 > Tämä dokumentti korvaa 23.09. version. Vanha versio on gitin historiassa (`git log -- docs/status-sync-2-tasmaytysajo.md`).

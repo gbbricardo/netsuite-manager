@@ -8,7 +8,7 @@
   [ADR 0011](0011-ic-paiva-velvoitteista.md) k. 2 (*velvoitteet hoidettu* = tapa asetettu),
   [ADR 0012](0012-loppulunastushinta-ja-kattavuus.md) k. 5 (kuukaudet muutospyynnöistä)
 - **Rakennusohje:** [`../status-sync-2-tasmaytysajo.md`](../status-sync-2-tasmaytysajo.md)
-- **Raportointi:** [`../raportointiskripti-vaatimukset.md`](../raportointiskripti-vaatimukset.md)
+- **Raportointi:** [`../poikkeamaraportointi-vaatimukset.md`](../poikkeamaraportointi-vaatimukset.md)
 
 ## Konteksti
 

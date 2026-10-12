@@ -37,7 +37,7 @@ tämän repon `queries/`). Ne päivitetään K1:n kanssa samaan aikaan.
 
 > [!NOTE]
 > **7.10.2026 ([ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k. 1):** status-sync 2.0 ei raportoi. S1–S3 on siirretty
-> erillisen raportointiskriptin vaatimuksiksi ([`raportointiskripti-vaatimukset.md`](raportointiskripti-vaatimukset.md)).
+> erillisen raportointiskriptin vaatimuksiksi ([`poikkeamaraportointi-vaatimukset.md`](poikkeamaraportointi-vaatimukset.md)).
 > S4 pysyy 2.0:ssa.
 
 | # | Vaatimus | ADR 0010 |

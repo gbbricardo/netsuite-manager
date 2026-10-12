@@ -50,7 +50,7 @@ Exportissa ovat status ja deployed-tieto. **Parametrit ja toistuvuus puuttuvat**
 | `netstuite-send-end-redemption-payment-link` | T43 K2-rajaus | TASKS T43 (yhden rivin muutos) |
 | `netsuite-bike-redemption-status-sync` | T54 jäännökset: K2-rajaus, `cr_2_10` tila 6 | TASKS T54 |
 | `netsuite-br-lease-fees-check` | T59 ADR 0016 | `docs/lease-fees-check-adr0016-tyoohje.md` |
-| `cf-gbb-tools` | T51 raportointinäkymä (ei takarajaa) | `docs/raportointiskripti-vaatimukset.md` |
+| `cf-gbb-tools` | T51 raportointinäkymä (ei takarajaa) | `docs/poikkeamaraportointi-vaatimukset.md` |
 
 **D. Muut tahot:** T64.
 
@@ -680,7 +680,7 @@ jos samalla pyörällä on useampi CR. Ennen jokaista kuunvaihdetta tarkista kys
 ### [x] T23 — Kaksi muutosta samassa kuussa tuottaa tuplarivin (juurisyy, 8893) — **siirretty 9.10.2026**
 
 > [!NOTE]
-> **Tuoteomistaja 9.10.2026:** Ei koodikorjausta. **Ended-rivin on aina voitettava** pidennys- ja ennenaikainen lunastus -tilanteissa. Kirjattu raportointiskriptin vaatimuksiin (`docs/raportointiskripti-vaatimukset.md` § *Kuukausiraportoinnin ennakkovaroitukset*), ja seuranta on T51:ssä.
+> **Tuoteomistaja 9.10.2026:** Ei koodikorjausta. **Ended-rivin on aina voitettava** pidennys- ja ennenaikainen lunastus -tilanteissa. Kirjattu raportointiskriptin vaatimuksiin (`docs/poikkeamaraportointi-vaatimukset.md` § *Kuukausiraportoinnin ennakkovaroitukset*), ja seuranta on T51:ssä.
 
 > [!NOTE]
 > **Tilanne 9.10.2026:** Korjausta ei ole tehty (`mr_monthly_reporting_ri_update.js:1110`). Pyörä 8893 on nyt kunnossa (yksi lokakuun rivi). Takaraja 1.11.
@@ -1201,7 +1201,7 @@ Päätetty 7.10.2026. Toteutus T37:n mukaan omistavassa repossa: [muutosmäärit
 ### [ ] T51 — Lunastusten raportointiskriptin määrittely
 
 > [!NOTE]
-> **9.10.2026:** Tuoteomistaja: raportointi toteutetaan **cf-gbb-tools-näkymänä** (sisäiset työkalut, live-data SuiteQL:llä, Cloudflare Access). Ei sähköpostidigestiä eikä SuiteScriptiä. Vaatimukset ovat edelleen `docs/raportointiskripti-vaatimukset.md`:ssä.
+> **9.10.2026:** Tuoteomistaja: raportointi toteutetaan **cf-gbb-tools-näkymänä** (sisäiset työkalut, live-data SuiteQL:llä, Cloudflare Access). Ei sähköpostidigestiä eikä SuiteScriptiä. Vaatimukset ovat edelleen `docs/poikkeamaraportointi-vaatimukset.md`:ssä.
 
 Erillinen skripti raportoi kaiken lunastuksiin liittyvän (ADR 0014 k. 18). Se korvaa 1479:n digestin. **Syötteenä on rekisterin
 ja muiden tietueiden tila, ei skriptien loki** (tuoteomistaja 7.10.), ja se voi sisältää T46:n. Ei määritelty: omistava repo, kanavat ja rytmi.
@@ -1210,8 +1210,32 @@ ja muiden tietueiden tila, ei skriptien loki** (tuoteomistaja 7.10.), ja se voi 
 maksulinkkiä eikä ole jälkiveloitusketjua (lokakuussa 16 pyörää), ja (2) pyörät, joiden lunastushinta on 0 € mutta tapaa 4 ei ole kirjattu.
 Extension ohittaa molemmat ryhmät, ja ne jäävät ihmisen ratkaistaviksi.
 Vaatimukset tähän mennessä: (1) Active, ei OOMI, sopimus päättynyt, ei linkkiä, ei tapaa eikä jälkiveloitusta (ADR 0014 k. 17b; 7.10. neljä pyörää, kaikki keskenkauden lunastuksia: B023198, B024587, B024908, B020053). (2) Jälkiveloituspyörät, joilla ei ole lainkaan loppulunastustilausta (7.10. 14 pyörää, ks. T53).
-(3) Status-sync 2.0:n jättämät ryhmät R1–R13 ja keskenkauden S1–S5: [`docs/raportointiskripti-vaatimukset.md`](docs/raportointiskripti-vaatimukset.md) ([ADR 0015](docs/adr/0015-status-sync-2-tarkennukset.md) k. 1).
+(3) Status-sync 2.0:n jättämät ryhmät R1–R13 ja keskenkauden S1–S5: [`docs/poikkeamaraportointi-vaatimukset.md`](docs/poikkeamaraportointi-vaatimukset.md) ([ADR 0015](docs/adr/0015-status-sync-2-tarkennukset.md) k. 1).
 **Valmis kun** määrittely on hyväksytty.
+
+> [!NOTE]
+> **9.10.2026, grilling-istunto:** T51 laajennettu kaikille toimialueille (poikkeamaraportointi). Sisältö on kanavasta riippumaton,
+> ja sama sisältö toimii sekä cf-gbb-tools-näkymänä että sähköpostina (korvaa 9.10. aamun linjauksen *ei sähköpostia*). Raportti
+> vain ilmoittaa, ei korjaa. Ei omistajia. Periaatteet P1–P14 ja tarkistusluettelon luonnos: `docs/poikkeamaraportointi-vaatimukset.md`.
+
+### [ ] T65 — Puuttuvat ADR:t poikkeamaraportoinnin tarkistuksille
+
+Poikkeamaraportointi tekee tarkistuksen vain kirjatusta säännöstä (P3). Näiltä toistuvilta luokilta sääntö puuttuu, ja jokaisesta
+kirjoitetaan ADR ennen kuin siitä tulee tarkistus. Luettelo taustoineen: `docs/poikkeamaraportointi-vaatimukset.md` § *Odottaa ADR:ää*.
+
+- [ ] A1 tyypin 11 hyvityslaskun rivihinta < laskutettu
+- [ ] A2 OOMI-hintaerot (RI ↔ sopimusrivi, `init_subs_rent_fee`)
+- [ ] A3 RI Active ja fee 0
+- [ ] A4 Warning-tilaiset RI-rivit
+- [ ] A5 puuttuvat RI-rivit
+- [ ] A6 sopimusrivien eheys (alku > loppu, päällekkäiset item 30)
+- [ ] A7 Oomin tuloutuskausi (T58)
+- [ ] A8 T23 *Ended voittaa*
+- [ ] A9 T24 saman pyörän useampi siirto-CR
+- [ ] A10 Ended-rivin myöhässä-teksti (nyt vain T29-työohjeessa)
+- [ ] A11 Ended-rivin turha palkkahuomio (nyt vain T28-työohjeessa)
+
+**Valmis kun** jokaisesta on hyväksytty ADR ja vastaava tarkistus on lisätty luetteloon.
 
 ### [ ] T53 — 14 jälkiveloituspyörää ilman loppulunastustilausta
 
@@ -1232,7 +1256,7 @@ B001876, B003230, B003531, B003679, B003698, B003714, B006432, B010533, B010817,
 
 A-julkaisu poistaa digestin. Lue jokaisen ajon jälkeen `scriptnote` (`scripttype = 1479`): `log.error`-rivit (`ERROR`, `STAMP_FAILED`, `EMAIL_FAILED`),
 `NOT_PRICED`, `SKIP_*`, sekä rivit, joilla `eheys` ei ole tyhjä. Lokin säilytys on noin 30 päivää. Rakenna kysely `queries/`-kansioon A:n ensimmäisen ajon jälkeen.
-**Valmis kun** T51 on tuotannossa.
+**Valmis kun** T51:n tarkistus ML4 on tuotannossa (Q26, 9.10.2026).
 
 ---
 
