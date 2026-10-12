@@ -81,7 +81,7 @@ kyselyn yhteen pyörään.
 | **M** maksu | `paid_at IS NULL` ∧ `NVL(method,0) <> 5` ∧ maksutodiste on olemassa (ks. *Maksutodiste*) | `paid_at` puuttuu |
 | **V** vastuut, maksettu | `status = 1` ∧ `paid_at IS NOT NULL` ∧ (`method IS NULL` ∨ (`method = 1` ∧ `liab_settled_at IS NULL`)) | etukäteen maksettu: tapa odottaa päättymiskuuta |
 | **O** OOMI | `order_type = 3` ∧ `status = 1` ∧ `method IS NULL` ∧ `subsc_end_date < ADD_MONTHS(TRUNC(CURRENT_DATE,'MM'),1)` | kauden lopun OOMI ilman tapaa |
-| **J** jälkiveloitus | `status = 1` ∧ `method IS NULL` ∧ `NVL(order_type,0) <> 3` ∧ on Done-tilainen tyypin 7 CR, jonka `LOWER(altname)` sisältää `pidennys` eikä `2a` | tapa 2 voi täyttyä |
+| **J** jälkiveloitus | `status = 1` ∧ `method IS NULL` ∧ `NVL(order_type,0) <> 3` ∧ on Done-tilainen tyypin 7 CR, jonka `LOWER(altname)` sisältää `pidennys` eikä `2a` ja jonka `start_date` > `subsc_org_end_date` | tapa 2 voi täyttyä |
 | **S** status | `status = 1` ∧ `method IS NOT NULL` | tila *lunastus sovittu*, odottaa tunnistuspäivää |
 | **I** IC | `NVL(ic_redemption_done,'F') = 'F'` ∧ (`method IS NOT NULL` ∨ `ic_redemption_dt IS NOT NULL` ∨ `ic_redemption_pr IS NOT NULL`) | IC-päivä kirjoitetaan, korjataan tai tyhjennetään |
 
@@ -117,11 +117,11 @@ Lue pyörän kentät (yksi SuiteQL tai `lookupFields`) ja pyöräkohtaiset fakta
 | `tanaan` | `lunastus.tanaanHelsinki()` |
 | `loppu` | `custrecord_sta_subsc_end_date` |
 | `paattymiskuuAlkanut` | `loppu` ≠ tyhjä ∧ `loppu`:n kuun 1. päivä ≤ `tanaan` |
-| `ennenaikainen` | pyörällä on tyypin 2 tai 10 CR tilassa 1 Pending tai 2 Done |
+| `ennenaikainen` | pyörällä on tyypin 2 tai 10 CR tilassa 1 Pending, 2 Done tai **6 Needs Review** (lisätty 9.10., T13: Needs Review -jonossa odottava keskenkauden lunastus ei saa näyttää kauden lopulta) |
 | `kaudenLoppu` | `paattymiskuuAlkanut` ∧ ¬`ennenaikainen` |
 | `oomi` | `custrecord_sta_bike_order_type = 3` |
 | `maksupaiva` | aikaisin maksutodiste (yllä), tai tyhjä |
-| `pidennykset` | Done-tilaiset tyypin 7 CR:t, `LOWER(altname)` sisältää `pidennys` eikä `2a`, `closed_date`n (Helsinki) mukaan nousevasti. Vain J-joukon pyörille |
+| `pidennykset` | Done-tilaiset tyypin 7 CR:t, `LOWER(altname)` sisältää `pidennys` eikä `2a`, **ja `custrecord_cr_start_date` > pyörän `custrecord_sta_subsc_org_end_date`** (K2-rajaus 9.10., T34: vain alkuperäisen päättymispäivän jälkeen alkava pidennys on jälkiveloitusta; sama ehto tulee 1479:n jälkiveloitusohitukseen, T43; 12.10. se ei ole vielä 1479:n koodissa), `closed_date`n (Helsinki) mukaan nousevasti. Vain J-joukon pyörille |
 
 Vaiheet ajetaan **muistissa peräkkäin**, ja jokainen vaihe näkee edellisten muutokset.
 

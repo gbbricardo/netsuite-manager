@@ -7,6 +7,18 @@
 Tämä dokumentti kertoo **missä mennään**. Suunnitelma kertoo mitä tehdään ja säännöt miksi.
 
 > [!IMPORTANT]
+> **12.10.2026: status-sync 2.0 on tuotannossa** ([ADR 0015](adr/0015-status-sync-2-tarkennukset.md),
+> [rakennusohje](status-sync-2-tasmaytysajo.md)). Script `customscript_gbb_mr_redemption_sync2` = **1480**. Ajo joka yö
+> klo 00:30 Helsingin aikaa, ja se korvaa vanhan 1440:n (osa A ja kalenterisweep, *Not Scheduled* 6.10. alkaen).
+> - **Ensimmäinen live-ajo 10.10.:** 1 944 kirjoitusta, 0 virhettä.
+> - **Seuraavat yöt:** 18 ja 8 kirjoitusta.
+> - **Todennuskyselyt:** 0 (T55).
+> - **IC-päivät:** 2.0 kirjoittaa ne nyt ADR 0011:n mukaan, ja IC-laskuri käynnistyy ajon lopussa. CSV-täytöt (S2/S3) ovat historiaa.
+> - **12.10. lisätty:** K2-rajaus ja CR-tila 6 (PR #5).
+>
+> Alla olevat syyskuun luvut ja ajojärjestykset ovat historiaa.
+
+> [!IMPORTANT]
 > **24.09.2026: keskenkauden lunastuksen säännöt vahvistettu** ([ADR 0010](adr/0010-keskenkauden-lunastus.md),
 > kenttäsäännöt § 10). Kaksi syyskuun CSV:tä odottaa käyttäjän ajoa: T7 `decided_at`-historia ja
 > T8 poikkeuspäivät (33 pyörää, **ennen kirjastomuutosta**). Lokakuun tehtävät T9–T13 ovat
