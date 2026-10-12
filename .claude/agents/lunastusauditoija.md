@@ -186,6 +186,9 @@ Rajaa aina pois: inaktiiviset rekisteritietueet (`isinactive = 'T'`, ADR 0015 k1
 - `GROUP BY … ORDER BY <alias>` ja `ORDER BY COUNT(*)` kaatuvat — järjestä sarakkeen numerolla tai alikyselyssä
 - `UNION ALL` toimii, mutta ei `SELECT *`:n kanssa
 - CTE:t, `LAG`, `ROW_NUMBER`, `LISTAGG` ja `REGEXP_LIKE` toimivat
+- `EXISTS`-alikysely, jossa on `LOWER(altname) … NOT LIKE`, kaatui 12.10.2026 MCP-virheeseen
+  *Invalid content from server*. Kirjoita CR:n nimiehto `JOIN` + `DISTINCT` -muotoon (§8, R13)
+- `isinactive` toimii rekisterillä (12.10.2026 kaikki 46 758 = F)
 - `BUILTIN.DF(kenttä)` antaa select-kentän näyttöarvon, mutta ei kelpaa `GROUP BY`:hin
 - `systemnote`-taulussa `GROUP BY` kaatuu; hae rivit ja laske itse. `name = -5` tarkoittaa Systemiä
   eli CSV-importtia. Tyhjä tulos custom-recordin suodattimella ei ole todiste — validoi suodatin

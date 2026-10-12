@@ -507,6 +507,8 @@ WHERE custrecord_gbb_liab_settle_method = 1
                     AND cr.custrecord_cr_type = 2 AND cr.custrecord_cr_status IN (1, 2))
 ```
 
+12.10.2026: **3** (B006022, B014617, B027643), kaikki status 2.
+
 **Maksupäivä palautuksella** (odotus 0). `paid_at` on maksun fakta kaikilla muilla tavoilla
 ([ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k4), joten aiempi kysely *"maksupäivä tavalla jolla
 ei ole maksua"* (`method <> 1 AND paid_at IS NOT NULL`) ei enää mittaa virhettä.
@@ -516,6 +518,8 @@ SELECT id, name FROM customrecord_sta_bike_register
 WHERE custrecord_gbb_liab_settle_method = 5
   AND custrecord_gbb_redemption_paid_at IS NOT NULL
 ```
+
+12.10.2026: **0**.
 
 **Takautuvan käsittelyn määrä** (ei virhe, mittari):
 
@@ -536,6 +540,9 @@ WHERE br.custrecord_gbb_liab_settle_method IS NOT NULL
               WHERE cr.custrecord_cr_bike_registry = br.id
                 AND cr.custrecord_cr_type = 2 AND cr.custrecord_cr_status = 2)
 ```
+
+12.10.2026: **1 713**. Tämä on `decided_at`-historian CSV:n (T7) ajamaton joukko (24.09.: 1 711), eikä
+uusi virhe. Luku putoaa lähelle nollaa, kun T7 on ajettu.
 
 **Jumiin jäänyt lunastus sovittu** — tunnistuspäivä ohitettu, status ei vaihtunut:
 
@@ -582,6 +589,8 @@ WHERE custrecord_sta_bike_status IN (2, 3)
   AND custrecord_gbb_liab_settle_method IS NULL
 ```
 
+12.10.2026: **1**, B024587 (status 3, ProMet Oy, T1d).
+
 **Status ja palautus eivät täsmää** (odotus 0; ihmisen päätös, [ADR 0007](adr/0007-status-sync-2-tasmaytysajo.md) k5):
 
 ```sql
@@ -590,6 +599,10 @@ FROM customrecord_sta_bike_register
 WHERE (custrecord_sta_bike_status = 3 AND NVL(custrecord_gbb_liab_settle_method, 0) <> 5)
    OR (custrecord_sta_bike_status = 2 AND custrecord_gbb_liab_settle_method = 5)
 ```
+
+12.10.2026: **5**. B024587 (ks. yllä) ja B020053 (status 2, tapa 5, T55) sekä B036124, B037996 ja
+B045683 (status 3, tapa 1). Kolmesta viimeisestä on päätetty 9.10. (TASKS § *Pyöräkohtaiset päätökset*):
+tapa 5 CSV:llä, mutta CSV:tä ei ole vielä ajettu.
 
 **IC-päivä ei seuraa lähtötietoja** (odotus 0 1480-ajon jälkeen, [ADR 0011](adr/0011-ic-paiva-velvoitteista.md) k2, k6):
 
@@ -604,6 +617,9 @@ WHERE NVL(custrecord_gbb_ic_redemption_done, 'F') = 'F'
      OR (custrecord_gbb_liab_settle_method IS NULL AND custrecord_gbb_ic_redemption_dt IS NOT NULL) )
 ```
 
+12.10.2026: **2**, molemmat IC-päivä puuttuu: B015557 (CR-käsittelijä kirjasi tavan 12.10., joten 1480
+korjaa seuraavana yönä) ja testipyörä B017530. Rajaa B017530 pois.
+
 **IC-käsitelty mutta Active** (odotus 0, ADR 0011 *Seuraukset*):
 
 ```sql
@@ -611,17 +627,24 @@ SELECT id, name FROM customrecord_sta_bike_register
 WHERE custrecord_gbb_ic_redemption_done = 'T' AND custrecord_sta_bike_status = 1
 ```
 
+12.10.2026: **0**.
+
 **Tapa 3 tai 4 jälkiveloituspyörällä** (odotus 0, [ADR 0014](adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k4):
 
 ```sql
-SELECT br.id, br.name, br.custrecord_gbb_liab_settle_method
+SELECT DISTINCT br.id, br.name, br.custrecord_gbb_liab_settle_method
 FROM customrecord_sta_bike_register br
+JOIN customrecord_subscrption_change_request cr ON cr.custrecord_cr_bike_registry = br.id
 WHERE br.custrecord_gbb_liab_settle_method IN (3, 4)
-  AND EXISTS (SELECT 1 FROM customrecord_subscrption_change_request cr
-              WHERE cr.custrecord_cr_bike_registry = br.id AND cr.custrecord_cr_type = 7
-                AND cr.custrecord_cr_status IN (1, 2)
-                AND LOWER(cr.altname) LIKE '%pidennys%' AND LOWER(cr.altname) NOT LIKE '%2a%')
+  AND cr.custrecord_cr_type = 7 AND cr.custrecord_cr_status IN (1, 2)
+  AND LOWER(cr.altname) LIKE '%pidennys%' AND LOWER(cr.altname) NOT LIKE '%2a%'
 ```
+
+Kirjoita tämä joinina. Sama ehto `EXISTS`-alikyselyssä (`LOWER … NOT LIKE`) kaatui 12.10.2026 kahdesti
+MCP-välityspalvelimen virheeseen *Invalid content from server*.
+
+12.10.2026: **1**, B046508 (tapa 4, CR:t 6513 ja 6972). Sallittu: tuoteomistaja päätti 9.10.2026
+(T33), että tapa 4 on oikein ITSEHANKINTA-pyörälle eikä jälkiveloitusta pureta.
 
 ---
 
