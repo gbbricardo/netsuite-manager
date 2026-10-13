@@ -121,7 +121,7 @@ Lue pyörän kentät (yksi SuiteQL tai `lookupFields`) ja pyöräkohtaiset fakta
 | `kaudenLoppu` | `paattymiskuuAlkanut` ∧ ¬`ennenaikainen` |
 | `oomi` | `custrecord_sta_bike_order_type = 3` |
 | `maksupaiva` | aikaisin maksutodiste (yllä), tai tyhjä |
-| `pidennykset` | Done-tilaiset tyypin 7 CR:t, `LOWER(altname)` sisältää `pidennys` eikä `2a`, **ja `custrecord_cr_start_date` > pyörän `custrecord_sta_subsc_org_end_date`** (K2-rajaus 9.10., T34: vain alkuperäisen päättymispäivän jälkeen alkava pidennys on jälkiveloitusta; sama ehto tulee 1479:n jälkiveloitusohitukseen, T43; 12.10. se ei ole vielä 1479:n koodissa), `closed_date`n (Helsinki) mukaan nousevasti. Vain J-joukon pyörille |
+| `pidennykset` | Done-tilaiset tyypin 7 CR:t, `LOWER(altname)` sisältää `pidennys` eikä `2a`, **ja `custrecord_cr_start_date` > pyörän `custrecord_sta_subsc_org_end_date`** (K2-rajaus 9.10., T34: vain alkuperäisen päättymispäivän jälkeen alkava pidennys on jälkiveloitusta; sama ehto on 1479:n jälkiveloitusohituksessa 12.10. alkaen, T43, sillä erolla, että 1479:ssä tyhjä `cr_start_date` tai `subsc_org_end_date` laskee yhä jälkiveloitukseksi), `closed_date`n (Helsinki) mukaan nousevasti. Vain J-joukon pyörille |
 
 Vaiheet ajetaan **muistissa peräkkäin**, ja jokainen vaihe näkee edellisten muutokset.
 

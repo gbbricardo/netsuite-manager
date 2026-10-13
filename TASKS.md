@@ -47,7 +47,7 @@ Exportissa ovat status ja deployed-tieto. **Parametrit ja toistuvuus puuttuvat**
 | `netsuite-subscription-extension` | T61 extension 2.0 (ajo 10.11.) | `docs/extension-2-vaatimukset.md` |
 | `netsuite-monthly-reporting` | T28, T29 | `docs/monthly-reporting-korjaukset-t28-t29.md` |
 | `netsuite-subscrption-cr-scripts` | T13 H1–H6, T11 COALESCE pois | `docs/cr-scripts-h1-h6-tyoohje.md`, `…-t28-t29.md` § T11 |
-| `netstuite-send-end-redemption-payment-link` | T43 K2-rajaus | TASKS T43 (yhden rivin muutos) |
+| `netstuite-send-end-redemption-payment-link` | ~~T43 K2-rajaus~~ **valmis 13.10.** | TASKS T43 |
 | `netsuite-bike-redemption-status-sync` | T54 jäännökset: K2-rajaus, `cr_2_10` tila 6 | TASKS T54 |
 | `netsuite-br-lease-fees-check` | T59 ADR 0016 | `docs/lease-fees-check-adr0016-tyoohje.md` |
 | `cf-gbb-tools` | T51 raportointinäkymä (ei takarajaa) | `docs/poikkeamaraportointi-vaatimukset.md` |
@@ -1086,7 +1086,49 @@ laskematta eikä pyörä näy listalla (T39:n ehto). Ehdotus: päivittäinen ajo
 Määritelty 6.10.2026. Säännöt: [kenttäsäännöt § 11](docs/lunastuksen-kenttasaannot.md#11-loppulunastushinnan-määräytyminen-ja-kattavuus).
 Korjaukset tehdään omistavissa repoissa erillisessä istunnossa.
 
-### [ ] T43 — 1479: ADR 0012:n lisäykset T37:ään (ennen 31.10.)
+### [x] T43 — 1479: ADR 0012:n lisäykset T37:ään (ennen 31.10.) — **valmis 13.10.2026**
+
+> [!NOTE]
+> **Valmis 13.10.2026 (tuotantoajo luettu NetSuitesta).** K2-rajaus on tuotannossa (maksulinkkirepo `9d85964`, pushattu;
+> todennus `DEPLOYMENT.md`:ssä `ae738e2`). Ajo 13.10. 08:01 Helsinki: `rajattu tilaus=0 jalkiveloitus=1 cr_2_10=0 | selected=2`,
+> `SENT=1 SKIP_LINKED_SO=1 unhandledMapErrors=0`. Erot odotukseen johtuvat käyttäjän käsimuutoksista 12.10., eivät koodista:
+> - **B010533** (S5-pyörä, CR:t alkavat 1.9. > `org_end` 30.6.): `subsc_end_date` 31.10. → 30.11. klo 16:21, joten pyörä poistui
+>   kyselyikkunasta (13.10.–16.11.). Siksi `jalkiveloitus=1` eikä 2. Rajaus koskee sitä yhä, kun marraskuun kohortti tulee ikkunaan.
+> - **B011223 ja B031422:** `end_red_so_created` T → F tarkoituksella (käyttäjä: B011223:n tyypin 3 SO SOGBB0002659, 1 040 €,
+>   tila B, on todennäköisesti aiheeton). B011223 sai maksulinkin (Paylink 355331/6684, 161,00 €, eräpäivä 31.10.). B031422 pysähtyi
+>   tarkistukseen 4: tyypin 4 SO SOGBB0000529 (`SKIP_LINKED_SO`).
+> - **Avoin löydös, ei T43:n osa:** B011223:lle luotiin 13.10. 08:56 käsin myös lasku **INVGBB1015522, 161,00 €, Kattava Oy**
+>   (*Lunastus - Bike redemption*, Open). Sama lunastus on pyydetty sekä loppukäyttäjältä että yritykseltä. Kumpi jää voimaan,
+>   on tuoteomistajan ja taloustiimin päätös. Myös SOGBB0002659 on yhä auki.
+
+> [!NOTE]
+> **Tarkistus 12.10.2026 (NetSuite + maksulinkkirepon `master` c973391):**
+> - **Ohitus 4 pitää — valmiusehto täyttyy.** Jokaisen ajon 9.–11.10. `selection`-rivillä on `cr_2_10=0`. 7.10. dry run
+>   (813 DRY_RUN) ei valinnut kumpaakaan Active-pyörää, joka päättyy 10–11/2026 ja jolla on tyypin 2/10 CR (B011627
+>   CR 6610 ja B030672 CR 6617, molemmat Done). Live-ajojen ainoat valinnat B011223 ja B031422 (`SKIP_IN_PROGRESS`)
+>   ovat ilman 2/10 CR:ää.
+> - **K2-rajausta ei ole vielä koodissa:** `src/gbb_mr_send_end_redemption_paylink.js:153-156` `EXCLUSIONS.jalkiveloitus`.
+>   Sama vakio palvelee valintaa (`:380`), laskuria (`:389`) ja vartijaa (`:619`), joten yksi lisärivi riittää:
+>   `AND cr.custrecord_cr_start_date > br.custrecord_sta_subsc_org_end_date` (sama kuin 1480:n `PIDENNYS_CR`,
+>   `gbb_mr_redemption_sync2.js:142-146`). *(Toteutettu 12.10. vaihtoehtona B, ks. alla.)*
+> - **Muutos ei muuta tänään yhtään valintaa.** Kaikki 614 Pending/Done-pidennys-CR:ää (383 pyörää) alkavat
+>   alkuperäisen päättymispäivän jälkeen, eikä yhdeltäkään niiden pyörältä puutu `subsc_org_end_date`. Active-pyöriä, joiden
+>   kaikki pidennys-CR:t osuvat alkuperäiseen kauteen, on 0. Esimerkkipyörät eivät myöskään osu nimiehtoon: B046667:n CR-5094
+>   on *B046667 - Jälkiveloitus* ja B016555:n CR-6107 *Jälkiveloitus - Poikkeus*, joten kumpikaan nimi ei sisällä sanaa
+>   `pidennys`. B046667 on jälkiveloituspyörä CR 6973:n (alkaa 1.10. > 30.9.) takia, joten rajaus ei muuta sitä.
+>   Rajaus on suoja tulevia virhe-CR:iä vastaan. Huomio: tyhjä `subsc_org_end_date` saisi CR:n jäämään laskematta, jolloin pyörä
+>   pääsisi linkkiin. Tänään sellaisia pyöriä on 0.
+> - **K2 tehty 12.10.2026** (maksulinkkirepo `9d85964` + docs `12532cb`, pushattu 12.10.).
+>   Toteutus poikkeaa 1480:stä tarkoituksella: tyhjä `cr_start_date` tai `subsc_org_end_date` **laskee yhä** jälkiveloitukseksi,
+>   joten puuttuva päivä estää linkin eikä lähetä sitä (käyttäjän päätös 12.10.). Yllä mainittu sivuvaikutus poistui.
+>   File Cabinetissa tiedosto 483438, 39 448 tavua, muokattu 12.10.
+> - **Dry run todennettu NetSuitesta:** testideployment 2191, `testBikeId=46667`: `selection (DRY RUN)` `rajattu jalkiveloitus=1
+>   cr_2_10=0 | selected=0`, `run complete (DRY RUN)` `unhandledMapErrors=0`. B046667 ennallaan (`link_sent` F, ei tapaa,
+>   `lastmodified` 5.10., 0 Paylink-pyyntöä). Huomio: pyörä rajautui jo valinnassa, joten pyöräkohtainen vartija (`:619`) ei
+>   ajanut. Se käyttää samaa vakiota, joten ehto on sama.
+> - **Tuotantoajon tarkistus 13.10.: tehty, ks. ylin huomio.** (loki ~22:01 12.10. tilin aikaa = 08:01 Helsinki). Odotus `selection`-rivillä
+>   `rajattu tilaus=0 jalkiveloitus=2 cr_2_10=0 | selected=2` (B011223 ja B031422 `SKIP_IN_PROGRESS`), `unhandledMapErrors=0`,
+>   ei `SENT`-rivejä jälkiveloituspyörille. Kun tämä täsmää, T43 on valmis.
 
 > [!NOTE]
 > **9.10.2026:** **Ohitus 4 on jo tuotannossa** (julkaisu B 7.10., `gbb_mr_send_end_redemption_paylink.js:158-160` ja `:381`, loki `cr_2_10=`). Tarkistusagentin väite "ei näy committeissa" oli väärä.
