@@ -1098,8 +1098,9 @@ Korjaukset tehdään omistavissa repoissa erillisessä istunnossa.
 >   tila B, on todennäköisesti aiheeton). B011223 sai maksulinkin (Paylink 355331/6684, 161,00 €, eräpäivä 31.10.). B031422 pysähtyi
 >   tarkistukseen 4: tyypin 4 SO SOGBB0000529 (`SKIP_LINKED_SO`).
 > - **Avoin löydös, ei T43:n osa:** B011223:lle luotiin 13.10. 08:56 käsin myös lasku **INVGBB1015522, 161,00 €, Kattava Oy**
->   (*Lunastus - Bike redemption*, Open). Sama lunastus on pyydetty sekä loppukäyttäjältä että yritykseltä. Kumpi jää voimaan,
->   on tuoteomistajan ja taloustiimin päätös. Myös SOGBB0002659 on yhä auki.
+>   (*Lunastus - Bike redemption*, Open). Sama lunastus on pyydetty sekä loppukäyttäjältä että yritykseltä. **Päätös 13.10.
+>   (tuoteomistaja): molemmat jäävät voimaan**; jos molemmat maksetaan, ylimaksu palautetaan tapauskohtaisesti (vrt. T45).
+>   Myös SOGBB0002659 on yhä auki.
 
 > [!NOTE]
 > **Tarkistus 12.10.2026 (NetSuite + maksulinkkirepon `master` c973391):**
