@@ -49,7 +49,7 @@ Exportissa ovat status ja deployed-tieto. **Parametrit ja toistuvuus puuttuvat**
 | `netsuite-subscrption-cr-scripts` | T13 H1–H6, T11 COALESCE pois | `docs/cr-scripts-h1-h6-tyoohje.md`, `…-t28-t29.md` § T11 |
 | `netstuite-send-end-redemption-payment-link` | ~~T43 K2-rajaus~~ **valmis 13.10.** | TASKS T43 |
 | `netsuite-bike-redemption-status-sync` | T54 jäännökset: K2-rajaus, `cr_2_10` tila 6 | TASKS T54 |
-| `netsuite-br-lease-fees-check` | T59 ADR 0016 | `docs/lease-fees-check-adr0016-tyoohje.md` |
+| `netsuite-br-lease-fees-check` | T59 ADR 0016 + 0018 (live odottaa T58:aa) | `docs/lease-fees-check-adr0016-tyoohje.md` (uusittu 12.10.) |
 | `cf-gbb-tools` | T51 raportointinäkymä (ei takarajaa) | `docs/poikkeamaraportointi-vaatimukset.md` |
 
 **D. Muut tahot:** T64.
@@ -1216,6 +1216,31 @@ laskulla, jonka päiväys on 2026.
 ### [ ] T59 — Lease fees check ADR 0016:n mukaan (omistava repo `netsuite-br-lease-fees-check`, erillinen istunto)
 
 > [!NOTE]
+> **12.10.2026: Toteutuksen päätökset tehty** ([ADR 0018](docs/adr/0018-lease-fees-check-tarkennukset.md), grilling Q1–Q17). Työohje on kirjoitettu uudelleen.
+> - Jono valitaan koodissa SuiteQL:llä: status 2, lippu F ja `subsc_end_date` < tänään Helsingin aikaa. Haku 796 poistuu käytöstä.
+> - **Lippu asetetaan vasta päättymisen jälkeen** (muuttaa ADR 0016 k9:n), joten T48 ei ole enää esiehto.
+> - Asiakas ja ensimmäinen kuukausi päätellään sopimusrivien laskutushistoriasta (alaraja 2025-10).
+> - Pyörät, joille asiakasta ei voi päätellä (2 293, lista `exports/2026-10-12-lease-fees-no-customer.csv`) jäävät tilaan `NO_CUSTOMER` ja lippu F:ksi.
+> - Parametrit ovat `dry_run` ja `test_bike_id`. Tiedostolokia ei ole.
+> - **Live-ajo odottaa T58:aa.** Jos T58 ei ole valmis 26.10. mennessä, palataan tuoteomistajalle.
+
+> [!NOTE]
+> **12.10.2026: PR #1 hyväksytty ja mergetty** (`netsuite-br-lease-fees-check`, kaksi tarkistuskierrosta, viimeinen ilman muutostarpeita).
+> - Datalla laskettu tulos tänään: PAID 6 773, WAITING 126 (49 asiakasta), NO_CUSTOMER 2 294.
+> - Ei ladattu NetSuiteen. Seuraavaksi käyttöönotto README:n järjestyksessä: parametrit ensin, dry run, T58 = 0, live.
+> - **Q18–Q19 (12.10.):** lisätään alkupäiväparametri (tyhjä = 1.12.2025, `NO_CUSTOMER` 2 293 → 275), ja 2025-10-poikkeus poistuu kauden alusta. Muutokset tehdään PR #2:ssa. Avoin lasku 20052810 (asiakas 2263) siirtyy perintään.
+> - Tuoteomistaja: uusia tarkistuksia ei lisätä.
+
+> [!IMPORTANT]
+> **12.10.2026: 1432 on tuotannossa (live).** Vanha deployment poistettiin, ja uusi `customdeploy_gbb_lease_fee_check` (2190) luotiin. Lokitaso on Debug, ajo päivittäin klo 16 ja dry run pois.
+> - **Dry runit 12.10.:** B045898 → PAID. Alkupäivällä 2026-08-01 jono 549 (PAID 448, WAITING 100, NO_CUSTOMER 1). Alkupäivällä 2026-01-01 jono 6 263 (PAID 5 925, WAITING 117, NO_CUSTOMER 221). Virheitä 0, kesto noin 6 min 20 s, ja tulokset täsmäsivät datalla laskettuun odotukseen.
+> - **Ensimmäinen live-ajo 12.10. noin klo 14:16 Helsingin aikaa** alkupäivällä 2026-09-01: jono 386, PAID 302, WAITING 83, NO_CUSTOMER 1, virheitä 0. Kaikki 302 ovat status 2 -pyöriä ja päättyneitä. T60-tyyppinen tarkistus ei löytänyt avointa vuokralaskua yhdeltäkään. Ainoa osuma on B005074, jonka vanha logiikka merkitsi aamulla.
+> - **Tuotannon alkupäivä on nyt 2026-06-01** (käyttäjä). Se poikkeaa ADR 0018 k9:n oletuksesta 2025-12-01.
+> - **Live otettiin käyttöön ennen T58:aa** (ADR 0018 k11). 12.10. tarkistettuna yksikään F-pyörä ei saisi lippua T58:n takia: kaikilla 28 riskipyörällä on muita avoimia laskuja kaudella. **Riski palaa, jos ne maksetaan ennen toukokuun laskuja.** T58 on siksi yhä kiireellinen.
+> - **Vanha skripti asetti lipun väärin 14 OOMI-pyörälle** 15.9. ja 29.9. (T58, avoin 2025-05-lasku), ja kaikille on lähetetty kauppakirja. Lista: B038141, B038216, B038840, B038875, B039080, B039361, B039392, B039643, B039681, B039754, B040286, B041766, B044527, B045168. Avoimet toukokuun laskut siirtyvät perintään (ADR 0013 k12).
+> - **Vanha logiikka asetti lipun 12.10. aamulla myös pyörille B004930 ja B005074,** jotka päättyvät vasta 31.10. B005074:n asiakkaalla on avoin lokakuun lasku INVGBF1046267. Avoin vuokralasku ilman tuloutuskautta ei estä, ja niitä on tänään 0.
+
+> [!NOTE]
 > **9.10.2026:** Työohje on valmis: `docs/lease-fees-check-adr0016-tyoohje.md`. `custcol_sta_so_revrec_start` toimii SuiteQL-suodattimena (N/search todennetaan koeskriptillä). Tuotannossa on vain **1432 `customscript_gbb_lease_fee_check`** (SuiteQL 9.10.). Sisarrepon `_v2`-nimet eivät vastaa NetSuitea, ja tämä korjataan istunnossa. **Riski:** haun 796 ehto "päättyy alle 24 pv päästä" estää nyt kauppakirjan lähdön ennen päättymistä. Haun 793 ehdot (T48) on luettava käyttöliittymästä **ennen** kuin 796:n ehto poistetaan.
 
 > [!NOTE]
@@ -1230,6 +1255,10 @@ Sisarrepon §7 *Manual Override* ja dokumenttien eräpäiväväite korjataan. Va
 toimii `N/search`-suodattimena (tai käytä `N/query`:a). **Valmis kun** muutos on tuotannossa ja T60 on todennettu.
 
 ### [ ] T60 — Ensimmäisen ajon todennus T59:n jälkeen
+
+> [!NOTE]
+> **12.10.2026:** Odotukset on päivitetty ADR 0018:n mukaan työohjeen §4:ään. Jonossa on noin 9 200 pyörää, joista 2 293 saa tuloksen `NO_CUSTOMER`. Lippu T vain pyörille, joiden `subsc_end_date` < ajopäivä.
+> Alla oleva lähetysskriptiä (793) koskeva varoitus on vanhentunut, koska päättymispäiväportti on nyt tässä skriptissä.
 
 Odotus löydöksen 8.10. lukujen perusteella: 131 Oomi-pyörää ja B006141 sekä B034775 saavat lipun T. Tarkista lisäksi, ettei
 yksikään lippu T -pyörä ole asiakkaalla, jolla on avoin vuokralasku pyörän tarkistettavalla kaudella. Lähetysskripti (793) ei saa

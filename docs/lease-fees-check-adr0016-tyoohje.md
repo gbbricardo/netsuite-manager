@@ -1,72 +1,156 @@
-# Työohje: lease fees check ADR 0016:n mukaiseksi (T59)
+# Työohje: lease fees check ADR 0016:n ja ADR 0018:n mukaiseksi (T59)
 
-Kohde: `../netsuite-br-lease-fees-check` (`mr_lease_fees_check_v2.js`, 506 riviä). NetSuite: skripti 1432
-`customscript_gbb_lease_fee_check`, deployment `customdeploy_gbb_lease_fee_check`, **SCHEDULED**, haku 796
-(`customsearch_gbb_br_vuokramaksut`). Säännöt: [ADR 0016](adr/0016-kaikki-vuokrat-maksettu.md), taustalla
-[ADR 0013](adr/0013-kauppakirjan-lahetys.md). **Valmis ennen 1.11.2026.** Tämä ohje ei muuta mitään; työ tehdään sisarreposta.
-Huom: sisarrepon README nimeää skriptin `..._v2`, NetSuite-inventaario ilman päätettä. Tarkista oikea tunnus UI:sta ennen deploya.
+Kohde: `../netsuite-br-lease-fees-check` (`mr_lease_fees_check_v2.js` ja `lib_lease_fees_check.js`, PR #1). NetSuite: skripti **1432**
+`customscript_gbb_lease_fee_check`, deployment `customdeploy_gbb_lease_fee_check`, **SCHEDULED**.
+Säännöt ovat [ADR 0016](adr/0016-kaikki-vuokrat-maksettu.md):ssa ja sen toteutustarkennukset
+[ADR 0018](adr/0018-lease-fees-check-tarkennukset.md):ssa (grilling 12.10.2026). Taustalla on [ADR 0013](adr/0013-kauppakirjan-lahetys.md).
+**Live ennen 1.11.2026.** Tämä ohje ei muuta mitään, vaan työ tehdään sisarrepossa erillisessä istunnossa.
 
-## 0. Tee ensin (todennus ennen koodia)
+*Kirjoitettu uudelleen 12.10.2026.* Edellinen versio (9.10.) neuvoi muuttamaan haun 796, tekemään N/search-koeskriptin ja
+asettamaan lipun status 2:ssa. Ne kaikki on korvattu ADR 0018:lla.
 
-1. **`custcol_sta_so_revrec_start` hakusuodattimena.** SuiteQL:llä todennettu 9.10.2026: kenttä on `transactionline`-taulun tallennettu
-   sarake, ja suodatus toimii (`>= 1.9.2026 AND < 1.10.2026`: 28 936 riviä, 3 916 laskua, tuotteet 30/31/33).
-   SuiteQL ei todista `N/search`-tilaa. Aja ensin 10 rivin koeskripti, jossa `search.create({type:INVOICE, filters:[['custcol_sta_so_revrec_start','onorafter',...],'AND',['item','anyof',30,31,33],'AND',['mainline','is','F']]})`
-   ja sarake `custcol_sta_so_revrec_start`. Jos suodatin hylätään (`SSS_INVALID_SRCH_FILTER`) tai palauttaa 0, vaihda `N/query` (`query.create({type:'transactionline'...})`)
-   tai SuiteQL (`N/query.runSuiteQL`), jossa sama ehto toimii. **Kirjaa havainto sisarrepon `NETSUITE_RECORDS_AND_FIELDS.md` §5:een.**
-2. **T58 valmis.** 332 laskulla (331 Oomin 1.5./7.5. + INVGBF1043393 16.9.) kausi on 2025-05. Ilman korjausta ne putoavat asiakkaan kauden ulkopuolelle: ks.
-   `findings/2026-10-09-t58-oomi-toukokuu-tuloutuskausi.csv`. Älä tee Oomi-poikkeusta.
-3. **Haun 793 ehdot.** Lue UI:sta (SuiteQL ei näe). Ks. §4.
+## 1. Skriptin uusi logiikka
 
-## 1. Nykyinen logiikka vs. ADR 0016
+### getInputData: jono SuiteQL:llä (ADR 0018 k1–k2)
 
-| ADR 0016 | Nyt (tiedosto:rivi) | Muutos |
-|---|---|---|
-| k4: vuokrakuukausi = rivin `revrec_start` | `checkCategory1` hakee laskun `duedate on` historiapäivä (l. 139-150); Oomi Part A `trandate`-kuukausi (l. 218-230) | Suodata rivit `custcol_sta_so_revrec_start` kuukausi = tarkistettava kuukausi, `item anyof 30,31,33`, `mainline F` |
-| k3: viimeisin laskutettava asiakas | Kaikkien rivien asiakkaat (l. 125-129, `customerDateMap`); Oomilla bike employer (l. 381) | Valitse sopimusriveistä (`customrecord_sta_ca_agreement_row.custrecord_sta_bikeid`) emosopimuksen `custrecord_sta_ca_customer`, jolle vuokraa on viimeksi laskutettu; vain sen laskut. Aiemmat asiakkaat (siirto, tyypit 1/9) eivät estä |
-| k5: koko kausi `subsc_end_date`:en asti | Ikkuna `max(minDate, nyt - 5*30 pv)` (l. 14, 72-73); lähde `invoicehistory`-JSON | Poista `SIX_MONTHS_MS`. Kuukaudet: asiakkaan ensimmäinen vuokrakuukausi … `custrecord_sta_subsc_end_date` (l. 375-376; tyhjä = ei ylärajaa, tarkista) |
-| k7: ei vaatimusta laskusta jokaiselle kuukaudelle | "no invoice found" = fail (l. 167-173, 238-244) | Poista molemmat. Ehto: ei yhtään maksamatonta vuokralaskua kaudella |
-| Oomi ei Part A/B | `OOMI_*`-vakiot (l. 20-23), haara l. 380-405, `checkCategory1OomiDateBased` (l. 200-265) | Poista kokonaan; kaikki pyörät samalla säännöllä |
-| k2: ei luokkaa 2 | `checkCategory2` (l. 272-355) ja `allPass = cat1 && cat2` (l. 411) | Poista luokka 2 ja sen lokirivit (summarize l. 461-492). Jälkiveloitus kuuluu velvoitteisiin (ADR 0012) |
-| k2: vuokralasku ei pyöräkohtainen | Ei rajausta | Ota vain laskut, joilla `custbody_sta_bike_id` tyhjä ja `custbody_sta_is_so_type` tyhjä (ADR:n tunnistustaulu). Jälkimmäinen ei nyt rajaa mitään (tyhjä kaikilla 53 430 laskulla), mutta ehto säilytetään |
-| k6/k1: maksettu = lasku Paid In Full, koko asiakas | `inv.status !== 'paidInFull'` (l. 177, 248) | Pidä, mutta käy läpi kaikki asiakkaan tarkistettavan kauden vuokralaskut (myös muiden pyörien rivit ja erääntymättömät). Osittain maksettu = maksamaton |
-| k5: kauden ulkopuoliset laskut eivät estä | n/a | Rivit, joiden `revrec_start` > `subsc_end_date`, jätetään pois |
-| k10: lippu lopullinen | Haku 796 rajaa lippu = F; skripti vain asettaa | Pidä. Älä koskaan palauta F:ksi |
-| k11: ei käsin asetusta | README "Manual override"; solution §7 (l. 243-247) | Poista §7 ja README-osio; kirjaa: lähetys käsin ADR 0013 k10-11 mukaan |
-| k9: lippu kun status 2 | Haku 796: status 2 AND SO Paid In Full AND SO-tyyppi AND `subsc_end_date` < 24 pv päästä (solution §3.1, l. 47-60) | Poista SO-ehdot (Main Line, SO Status, SO Type) **ja** päättymispäiväehto. Jäljelle: status 2, ei lähetetty, ei estetty, lippu F |
-| Dokumentit | `NETSUITE_RECORDS_AND_FIELDS.md` §2 ja §5 (`duedate on`); `lease_fees_check_solution_v2.md` §4.1 (l. 110-115) | Korjaa: historiapäivä on vuokrakuukauden alku, ei eräpäivä; päivitä §3.1, §4.2-4.4, §7, §11 ja README:n kaavio/rajoitukset |
+```sql
+SELECT br.id, br.name, br.custrecord_sta_subsc_end_date
+FROM customrecord_sta_bike_register br
+WHERE br.custrecord_sta_bike_status = 2
+  AND br.custrecord_gbb_all_lease_fees_paid = 'F'
+  AND br.custrecord_sta_subsc_end_date < TO_DATE(:tanaanHelsinki, 'YYYY-MM-DD')
+  AND br.custrecord_sta_subsc_end_date >= TO_DATE(:alkupaiva, 'YYYY-MM-DD')   -- parametri, tyhjä = 2025-12-01 (ADR 0018 k9, Q18)
+  -- test_bike_id: AND br.id = :test_bike_id
+```
 
-Koodiin ei tarvita `N/record.load` joka laskulle: yksi haku asiakkaan kaikista vuokrariveistä
-(`entity`, `custcol_sta_so_revrec_start` välillä, `status`) riittää ja säästää governancea. Ryhmittele pyörä- ja asiakastason tulokset
-`map`-vaiheessa, mutta asiakas voidaan myös välimuistittaa `reduce`-vaiheessa, jotta samaa asiakasta ei haeta 100 kertaa.
+- `tanaanHelsinki` lasketaan `Europe/Helsinki`-vyöhykkeellä. Runtime on noin 10 h jäljessä, joten UTC- tai
+  palvelinpäivää ei käytetä. Mallina toimii 1479:n `lib_gbb_helsinki_date.js`.
+- Lähetettyjä, estettyjä tai tapoja 5–8 ei rajata pois. Haku 796 ja parametri `custscript_gbb_lease_check_search_id` poistuvat.
+- Suuren tuloksen sivutus tehdään `query.runSuiteQLPaged`-kutsulla. Ensimmäinen ajo palauttaa noin 7 200 riviä (alkupäivä 1.12.2025).
 
-## 2. Käyttöönotto
+### map: asiakas ja kausi (ADR 0018 k3–k6)
 
-1. Koodi ja dokumentit sisarrepon haaraan. Dry-run (ei `submitFields`) ensin: loki kertoo, mitkä pyörät saisivat lipun.
-2. Aja tuotannossa kerran lokitilassa (ilman kirjoitusta). Vertaa T60:n odotukseen (§3).
-3. Muuta haku 796 (SO-ehdot ja 24 pv ehto pois) vasta, kun skripti on ladattu. Käänteisesti haku laajenee ja vanha skripti ajaisi 296+ pyörää väärällä logiikalla.
-4. Deploya skripti, pidä ajastus ennallaan. Siirtymä tehdään yhdellä kertaa.
-5. Päivitä `schemas/script-inventory.md` ja TASKS T59.
+1. Haetaan pyörän vuokrarivit:
+   ```sql
+   SELECT ar.id, ar.custrecord_sta_ca_row_license_startdate, ar.custrecord_sta_ca_row_invoicehistory, ca.custrecord_sta_ca_customer
+   FROM customrecord_sta_ca_agreement_row ar
+   LEFT JOIN customrecord_sta_customer_agreement ca ON ar.custrecord_sta_ca_parent_agreement = ca.id
+   WHERE ar.custrecord_sta_bikeid = :bikeId AND ar.custrecord_sta_ca_row_item = 30
+   ```
+   - Historia on pitkä tekstikenttä. `SUBSTR` tai CTE-projektio kaatuu (*Invalid or unsupported search*), joten JSON
+     jäsennetään JS:ssä.
+   - Muoto on `["2026-05-01", ...]` vaihtelevin välilyönnein.
+   - Rivi, joka alkaa päättymisen jälkeen tai jonka luettavassa historiassa ei ole yhtään kuukautta ≤ päättymiskuu, ohitetaan.
+   - Jos muun rivin historia ei jäsenny, päivä on virheellinen, alkupäivä puuttuu tai asiakasta (emosopimusta) ei ole, pyörän
+     tulos on **`NO_CUSTOMER`**, ja rivi ja syy kirjataan detailiin. Vanhempaa asiakasta ei valita varalle (ADR 0018 k6,
+     tarkistus 12.10.). Rivit haetaan `LEFT JOIN`illa, jotta emosopimukseton rivi ei katoa.
+2. Mukaan otetaan rivit, joilla `license_startdate` ≤ `subsc_end_date` ja vähintään yksi historiakuukausi
+   ≤ päättymiskuu. Päättymiskuun jälkeiset historiakuukaudet ohitetaan.
+3. Jos tällaisia rivejä ei ole, tulos on **`NO_CUSTOMER`**. Lippua ei aseteta, ja pyörä lokitetaan.
+4. **Asiakas** on se, jonka riveillä on myöhäisin kuukausi. Tasatilanteessa mukaan otetaan kaikki asiakkaat, joilla on
+   sama myöhäisin kuukausi.
+5. **Kausi** asiakasta kohden:
+   - Alku on asiakkaan varhaisin historiakuukausi tälle pyörälle, ilman 2025-10-poikkeusta (Q19).
+   - Loppu on päättymiskuun ensimmäinen päivä.
 
-## 3. T60: todennus ensimmäisen ajon jälkeen
+### map: estävät laskut (ADR 0016 k1, k2, k4, k6–k8)
 
-- 131 Oomi-pyörää sekä B006141 ja B034775 saavat lipun T (löydös `findings/2026-10-08-lease-fees-check-duedate-findings.md`).
-- Yksikään lippu T -pyörä ei ole asiakkaalla, jolla on avoin vuokralasku pyörän tarkistettavalla kaudella (`revrec_start` <= `subsc_end_date`, status muu kuin Paid In Full).
-  Pidä tämä SuiteQL-kyselynä `queries/`-kansiossa.
-- 58 pysäytettyä asiakasta pysyvät odottamassa (ADR 0016 k6), eikä odotus ole virhe.
-- Todenna: lippu T ei ole asetettu yhdellekään pyörälle, jonka status on muu kuin 2.
-- T58-kyselyn on palautettava 0 ennen ajoa, muuten Oomi-asiakkaat jäävät kauden ulkopuolelle.
+```sql
+SELECT DISTINCT t.id, t.tranid, BUILTIN.DF(t.status) status
+FROM transaction t
+JOIN transactionline tl ON tl.transaction = t.id
+WHERE t.type = 'CustInvc'
+  AND t.entity = :customerId
+  AND tl.item IN (30, 31, 33)
+  AND tl.custcol_sta_so_revrec_start >= TO_DATE(:kausiAlku, 'YYYY-MM-DD')
+  AND tl.custcol_sta_so_revrec_start <  ADD_MONTHS(TO_DATE(:kausiLoppu, 'YYYY-MM-DD'), 1)
+  AND t.custbody_sta_bike_id IS NULL
+  AND t.custbody_sta_is_so_type IS NULL
+  AND t.status <> 'B'          -- B = Paid In Full
+```
 
-## 4. Riski: lähetysskripti (haku 793, 1433) ja päättymisajankohta
+- Lippu asetetaan vain, jos yksikään asiakas ei palauta yhtään riviä. Laskun puuttuminen ei estä.
+- Todenna `t.status`-koodi (`'B'` = Paid In Full, ks. ADR 0016:n tunnistustaulu) ja `IS NULL` -ehdot ennen dry runia
+  yhdellä tunnetulla pyörällä.
+- **Välimuisti:** sama asiakas ja kausi esiintyy kymmenillä pyörillä. Tulos kannattaa välimuistittaa map-ajon sisällä
+  (avain asiakas|alku|loppu), tai pyörät ryhmitellään asiakkaan mukaan `reduce`-vaiheeseen. Toteuttaja valitsee.
+  Suurin asiakas on Kymenlaakson hyvinvointialue, jolla on 448 riviä yhdellä laskulla.
 
-**On riski.** ADR 0013 k3 edellyttää, ettei kauppakirja lähde ennen päättymisajankohtaa.
-- Lähetysskriptissä ei ole kelpoisuussääntöä: `gbb-mr-send-bill-of-sale-pdf.js:108-111` vain lataa haun 793 (`search.load`). Kaikki ehdot ovat haussa, jota ei näe SuiteQL:llä (`findings/2026-10-06-kauppakirja-nykytila.md`).
-- Nykyisin päättymispäivän läheisyyden takaa vain haun **796** ehto "subsc_end_date alle 24 päivän päässä". Kun se poistetaan (k9), lippu tulee T:ksi status 2:ssa. Jos haku 793 suodattaa vain lippua, lähetysta ja estoa, **kauppakirja lähtee ennen päättymisajankohtaa**. Kerran lähetettyä ei voi perua.
-- Toimi: lue 793:n ehdot UI:sta ennen kuin 796 muutetaan. Jos siinä ei ole `subsc_end_date` < nyt (tai vastaavaa), lisää se 793:een **ennen** 796:n muutosta. Pidä 796:n 24 pv ehto, kunnes tämä on todennettu. 3 lokakuussa päättyvää OOMI-pyörää on jo saanut kauppakirjan (löydös N2), joten tämä ei ole teoreettinen.
+### Kirjoitus ja loki (ADR 0018 k9–k10)
+
+- Kun lasku ei estä eikä dry run ole päällä, kutsutaan `record.submitFields({ [PAID_FIELD]: true })`. Lippua ei koskaan palauteta F:ksi.
+- Jokainen pyörä saa yhden `log.audit`-rivin:
+  - Otsikko on `<TULOS> <pyörän nimi>` ja dry runissa `DRY RUN <TULOS> <pyörän nimi>`.
+  - `TULOS` on `PAID` (lippu asetettu), `WAITING` (estävä lasku) tai `NO_CUSTOMER`.
+  - Detail on kiinteä lista aina samassa järjestyksessä: `asiakas=<id[,id]> kausi=<YYYY-MM>..<YYYY-MM> avoimet=<tranid,…> (enintään 10, sitten +N) ohitetut_rivit=<rivi:syy,…|->`.
+- `summarize` kirjoittaa yhden rivin määrineen (PAID, WAITING, NO_CUSTOMER, virheet) sekä jokaisen map-virheen.
+- Parametrit ovat `custscript_gbb_lease_check_dry_run` (checkbox), `custscript_gbb_lease_check_test_bike_id` (integer) ja
+  `custscript_gbb_lease_check_start_date` (date, tyhjä = 2025-12-01, luetaan Helsingin kalenteripäivänä, ADR 0018 k9 / Q18).
+
+### Poistetaan
+
+| Mitä | Missä nyt |
+|---|---|
+| `SIX_MONTHS_MS`, 5 kuukauden ikkuna | l. 14, 72-73 |
+| Oomi Part A/B, `OOMI_*`-vakiot, `checkCategory1OomiDateBased` | l. 20-23, 200-265, 380-405 |
+| Luokka 2 (jälkiveloitus), `checkCategory2`, `cat1 && cat2` | l. 272-355, 411 |
+| *no invoice found* = hylkäys | l. 167-173, 238-244 |
+| `duedate on` -laskuhaku ja `record.load` (sopimus, pyörä) | l. 139-150, 126, 368 |
+| Tiedostoloki, `writeLogFile`, `log_folder_id`- ja `search_id`-parametrit | l. 26-55, 457-503 |
+| `N/file`-, `N/search`-moduulit | l. 5 |
+
+## 2. Sisarrepon dokumentit
+
+- **README:**
+  - Korjaa tunnukset muotoon `customscript_gbb_lease_fee_check` / `customdeploy_gbb_lease_fee_check` (1432). Tiedostonimi säilyy.
+  - Kirjoita kaavio, parametrit ja rajoitukset uudelleen.
+  - Poista *Manual override* ja kirjoita tilalle: lähetys käsin ADR 0013 k10–11:n mukaan.
+  - Viittaa ADR 0016:een ja 0018:aan.
+- **`NETSUITE_RECORDS_AND_FIELDS.md`:**
+  - Historiapäivä on vuokrakuukauden alku, ei eräpäivä.
+  - Lisää `license_startdate`, `invoicehistory` (JSON, alkaa 2025-12), `custcol_sta_so_revrec_start`, `custbody_sta_bike_id` ja `custbody_sta_is_so_type`.
+  - Poista OOMI- ja CR-osiot.
+- **`lease_fees_check_solution_v2.md`** poistetaan.
+
+## 3. Käyttöönotto
+
+1. Koodi ja dokumentit tehdään sisarrepon haaraan.
+2. **Ensin parametrit, sitten koodi.** Luodaan `dry_run`, `test_bike_id` ja `start_date` (tyhjäksi) skriptille 1432 ja varmistetaan, että dry run on
+   päällä deploymentissa (tai deployment on Not Scheduled siirron ajan). Vasta sitten molemmat tiedostot ladataan ja Script File
+   osoitetaan `mr_lease_fees_check_v2.js`:ään. Koodi on fail-closed: puuttuva parametri tarkoittaa dry runia, live vaatii dry runin
+   poistamisen käsin. Vanhat parametrit poistetaan vasta ensimmäisen live-ajon jälkeen.
+3. **Dry run tuotannossa.** Tuloksia verrataan §4:n odotuksiin. Dry run ajetaan ensin `test_bike_id`:llä, esimerkiksi
+   B006540 (siirto päättymisen jälkeen), B024003 (siirto 6/2026; B004026 päättyy vasta 31.10.), B003328 (tasatilanne) ja yksi OOMI-pyörä.
+4. **Esiehto live-ajolle: T58.** Oomin toukokuun 2026 laskujen tuloutuskausi on korjattu (T58-kysely palauttaa 0).
+   Jos T58 ei ole valmis 26.10. mennessä, palataan tuoteomistajalle. Silloin vaihtoehto on käydä noin 12 avoimen
+   laskun asiakkaat läpi käsin.
+5. Dry run pois. Ajastus pysyy ennallaan, ennen lähetysskriptiä 1433.
+6. Ensimmäisen live-ajon jälkeen haku 796 inaktivoidaan, ja päivitetään `schemas/script-inventory.md` sekä TASKS T59/T60.
+
+T48 (haun 793 ehdot) **ei ole esiehto**, koska lippu tulee T:ksi vasta päättymisajankohdan jälkeen (ADR 0018 k2).
+
+## 4. T60: todennus ensimmäisen ajon jälkeen
+
+- **Määrä (12.10., alkupäivä 1.12.2025):** jono 7 174, PAID 6 775, WAITING 124, **NO_CUSTOMER 275**. NO_CUSTOMER-joukon
+  pitää vastata listan `exports/2026-10-12-lease-fees-no-customer.csv` rivejä, joiden `paattymispaiva` ≥ 2025-12-01
+  (B017530 jää alkupäivän alle). Selection-rivin on näytettävä `alkupaiva=2025-12-01`. Suurin osa muista saa `PAID`-tuloksen. `WAITING` keskittyy noin 58 asiakkaaseen, joilla on
+  vanha avoin vuokralasku (ADR 0016 k6).
+- **131 OOMI-pyörää sekä B006141 ja B034775** saavat lipun T, jos päättymisajankohta on mennyt
+  (`findings/2026-10-08-lease-fees-check-duedate-findings.md`).
+- **Ei yhtään väärää T:tä:** yksikään lippu T -pyörä ei ole asiakkaalla, jolla on avoin vuokralasku pyörän kaudella.
+  Kysely tallennetaan `queries/`-kansioon samalla asiakas- ja kausisäännöllä.
+- **Portti pitää:** lippua T ei ole asetettu yhdellekään pyörälle, jonka status on muu kuin 2 tai jonka
+  `subsc_end_date` ≥ ajopäivä.
+- **`NO_CUSTOMER`-pyörillä lippu on yhä F.**
 
 ## 5. Riskit
 
-- Skripti ajaa vanhalla logiikalla (SCHEDULED) siihen asti. Älä muuta hakua 796 ennen koodia.
-- `N/search`-suodatin voi hylätä kustomisarakkeen: ks. §0.
-- Governance: asiakas voi olla iso (Kymenlaakson hyvinvointialue 448 riviä yhdellä laskulla). Haku asiakas+kausi, ei rivi riviltä.
-- Lippu on lopullinen (k10): virheellinen T ei korjaannu skriptillä. Siksi dry-run ensin.
-- Päättymisajankohta siirtyy jälkiveloituksessa (`handler_jalki`): kausi pitenee, mutta lippu ei palaudu (hyväksytty seuraus, k10).
+- **Lippu on lopullinen** (ADR 0016 k10). Virheellistä T:tä ei voi korjata skriptillä. Siksi dry run ja T58 tehdään ensin.
+- **Skripti ajaa vanhalla logiikalla** (SCHEDULED) uuden version lataukseen asti. Hakuun 796 ei kosketa ennen sitä, ja
+  inaktivointi tehdään vasta live-ajon jälkeen.
+- **Päättymisajankohta siirtyy jälkiveloituksessa** (`handler_jalki`). Status 2 -pyörällä tätä ei tavallisesti tapahdu.
+  Jos tapahtuu, lippua ei palauteta (hyväksytty, ADR 0016 k10).
+- **Governance:**
+  - Kyselyt tehdään asiakas- ja kausikohtaisesti, ei rivi riviltä.
+  - Ensimmäinen ajo on noin 7 200 map-kutsua, kukin kaksi tai kolme kyselyä.
+  - Jokainen pyörä saa lokirivin, myös pysyvä noin 275 pyörän `NO_CUSTOMER`-joukko (ADR 0018 k10, hyväksytty).

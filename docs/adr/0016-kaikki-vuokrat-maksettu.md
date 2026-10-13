@@ -62,6 +62,9 @@ Historiapäivä on kuitenkin vuokrakuukauden alku, ja eräpäivä riippuu asiakk
    maksettu lasku*. Laskutuksen kattavuus on laskutusmoottorin ja sopimusriviauditoinnin asia.
 8. **Laskun tila** on sen saldo hyvitysten kohdistamisen jälkeen (ADR 0013 k5): maksettu kokonaan tai ei.
 9. **Lippu asetetaan, kun pyörä on Redeemed (status 2), mutta kauppakirja lähtee vasta päättymisajankohdan jälkeen.**
+   *Muutettu 12.10.2026 ([ADR 0018](0018-lease-fees-check-tarkennukset.md) k. 2): lippu asetetaan vasta, kun
+   päättymisajankohta on mennyt (status 2 ja `subsc_end_date` < tänään Helsingin aikaa). Kohdat 3, 5 ja 7 on tarkennettu
+   samassa ADR:ssä.*
    - Tarkistettavana ovat kaikki status 2 -pyörät, joiden lippu ei ole vielä T. Maksettu lunastus-SO ei ole
      ehto (ADR 0013 k6).
    - Lippu kertoo vain vuokralaskuista. Kauppakirjan piiri, esto ja omistuksen siirtymispäivä ovat
