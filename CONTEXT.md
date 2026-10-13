@@ -68,6 +68,10 @@ Jos ne ovat, pyörä merkitään lunastetuksi; jos eivät, seuraavan kuun ensimm
 jälkiveloitus. Sillä, minä päivänä kuun sisällä tai kenen toimesta velvoite hoidettiin, ei ole
 merkitystä.
 
+Käytännössä määräajan jälkeen on **armonaika**: jälkiveloitus todetaan kerran kuussa, seuraavan
+kuun 10. päivänä. Jos velvoitteet hoidetaan sitä ennen, jälkiveloitusta ei tule, ja sopimus päättyy
+alkuperäisessä päättymiskuussaan, vaikka velvoite hoidettiin vasta seuraavassa kuussa.
+
 Etukäteen maksettu lunastusmaksu hoitaa velvoitteen mutta ei päätä sopimusta ennen
 päättymisajankohtaa.
 
@@ -226,6 +230,8 @@ lopun lunastus tiettynä kuukautena, kun molemmat pätevät:
 - mikään kauden aikana tehty muutospyyntö ei osoita, että sopimus päätetään ennenaikaisesti.
   Ennenaikaisuuden osoittaa vain keskenkauden lunastus- tai reklamaatio/peruutus-muutospyyntö, joka
   odottaa käsittelyä tai on käsitelty. Virheeseen päätynyt tai peruttu ei osoita.
+  Virheeseen päätynyt muutospyyntö kuitenkin pysäyttää automaation: pyörälle ei lähetetä
+  lunastusmaksupyyntöä eikä sitä jälkiveloiteta, ennen kuin ihminen on ratkaissut muutospyynnön.
   OOMI-pyörällä ennenaikaisuuden kertoi syyskuuhun 2026 asti **Oomi Fleet -raportti**; lokakuusta
   2026 alkaen OOMI-pyörän ennenaikainen päättyminen tehdään muutospyynnöllä kuten muillakin.
 
@@ -291,7 +297,9 @@ Jatkaminen päättyy **automaattisesti** silloin kun laskutetut jälkiveloitusku
 maksettavan loppulunastussumman, tai kun lunastusmaksu maksetaan. Jokainen laskutettu
 jälkiveloituskuukausi kattaa kiinteästi 80,00 € brutto (63,75 € netto), laskun summasta
 riippumatta. Laskutettu kuukausi tunnistetaan käsitellystä jälkiveloituksen muutospyynnöstä: yksi
-muutospyyntö on yksi kuukausi. Jälkiveloituskuukausia ei hyvitetä tavallisessa työnkulussa. Laskun maksaminen ei ole ehto: perintä on taloustiimin asia. Sopimus päättyy sinä
+muutospyyntö on yksi kuukausi. Automaatio jälkiveloittaa vain kuluvan kuukauden eikä kuro
+väliin jääneitä kuukausia kiinni: jos pyörän jälkiveloitus on jäänyt kuukaudeltakin tekemättä,
+pyörä on poikkeama, jonka ihminen ratkaisee. Jälkiveloituskuukausia ei hyvitetä tavallisessa työnkulussa. Laskun maksaminen ei ole ehto: perintä on taloustiimin asia. Sopimus päättyy sinä
 kuukautena, jona velvoitteet hoidettiin. OOMI-pyörää ei jälkiveloiteta.
 
 Työntekijän avoin lunastusmaksupyyntö päivitetään käsin vastaamaan jäljellä olevaa summaa.
