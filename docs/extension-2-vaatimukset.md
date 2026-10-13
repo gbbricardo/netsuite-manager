@@ -43,8 +43,8 @@ Uudelleenkirjoitus korjaa kaksi vanhan skriptin vikaa ja yhdenmukaistaa säänn�
    - *Haku ja ajastus sitoivat toisensa.* Haun suodatin `subsc_end_date = eilen` toimii vain kuun 1. päivänä. Siksi ajoa ei voinut siirtää (esim. 7. arkipäivälle), ja `dayOfMonth 31` ohitti kokonaisia kuukausia ilman virhettä.
 4. **Samat säännöt kuin maksulinkissä (K 2.10., 6.–7.10.):** hinta − huoltohyvitys (summasta), tapa asetettu = ei pidennystä, hinta 0 = ei pidennystä, kattavuus M1. *"Jos lunastushinta on 0 €, silloin ei tarvitse pidentää mitään."*
 5. **Hintakirjasto on `lib_gbb_redemption_price.js`** (maksulinkkirepo, `src/`, File Cabinetissa 1479:n kansiossa). Uusi skripti lataa sen File Cabinet -polusta (absoluuttinen polku, kuten status-sync 2.0, ADR 0015 k. 5) eikä kopioi logiikkaa. Käytetään `prepareBrackets`, `maintenanceRemainder` ja `calculate`. Helsingin päivät tulevat `lib_gbb_helsinki_date.js`:stä (`helsinkiToday`, `shiftMonths`).
-6. **Yksinkertainen skripti (ADR 0014 k. 7–11, 18):** ei digestiä, ei viikonpäiväsääntöjä, ei dry run -tilaa eikä testiympäristöä. Raportointi on erillinen skripti (T51), joka lukee rekisterin tilaa, ei tämän skriptin lokia.
-7. **Parametrit poistuvat:** `search_id`, `bike_id`, `override_sub_end_date`, `log_folder_id`. Override-tila oli OOMI-vuotoa ja piti poistaa. Tiedostoloki poistuu, koska raportointi ei lue sitä. Parametreja ei jää yhtään. (P, ks. kysymys 6)
+6. **Yksinkertainen skripti (ADR 0014 k. 7–11, 18):** ei digestiä, ei viikonpäiväsääntöjä, ei dry run -tilaa eikä testiympäristöä. **Muutettu 13.10.2026 (Q15):** kaksi valinnaista testausparametria, ks. § *Testausparametrit*. Raportointi on erillinen skripti (T51), joka lukee rekisterin tilaa, ei tämän skriptin lokia.
+7. **Parametrit poistuvat:** `search_id`, `bike_id`, `override_sub_end_date`, `log_folder_id`. Override-tila oli OOMI-vuotoa ja piti poistaa. Tiedostoloki poistuu, koska raportointi ei lue sitä. Parametreja ei jää yhtään. (P, ks. kysymys 6) **Muutettu 13.10.2026 (Q15):** tilalle tulee kaksi uutta, suojia ohittamatonta testausparametria (§ *Testausparametrit*). Vanha `bike_id` ei palaa: se ohitti tila-, OOMI- ja tyyppisuojat.
 8. **OOMI ei kuulu skriptille millään reitillä.** Suodatin on SQL:ssä, ja sama suodatin on ainoa reitti (ei ohitusparametria).
 9. **Skripti ei kirjoita pyörärekisteriin, ei Paylinkiin eikä laskuihin.** Se luo vain CR:n.
 10. **Ei kiinnikurontaa (K 13.10., ADR 0019).** Yksi ajo luo pyörälle enintään yhden CR:n, ja se on aina kuluva kuukausi. Jos pyörän jälkiveloitus on jäänyt kuukaudeltakin tekemättä, skripti ei käsittele pyörää vaan kirjaa virherivin `MISSED_MONTHS`. Ihminen ratkaisee pyörän.
@@ -158,7 +158,21 @@ Kentät kuten vanhassa skriptissä (V, `mr_subscription_extension.js:178-191`), 
 - **Ajopäivä on vapaa**, koska valinta ei riipu ajopäivästä. Päätetty: **kuun 10. päivä, 03:00 Helsinki** (ks. päätös 4), jolloin 1480 (ajaa joka yö 00:30) on ajanut vähintään kerran uuden kuun puolella ja maksut sekä tavat 1–4 on kirjattu (P). 
 - Ajo kuun 1. päivänä ennen 1480:tä on kielletty (vika 3a). Jos ajastus sallii vain `MonthlyEvent`, ei `dayOfMonth` 29–31 (ei ole joka kuussa).
 - **Myöhästynyt ajo samassa kuussa toimii**: valinta kattaa kaiken ennen kuluvan kuun 1. päivää, joten ajo mihin tahansa päivään kuluvassa kuussa tuottaa saman joukon. **Ajamatta jäänyt kuukausi ei kiri kiinni** (ADR 0019): seuraavan kuun ajossa kaikki sen kuun pyörät saavat `MISSED_MONTHS`-rivin, ja ihminen ratkaisee ne. Epäonnistunut 10. päivän ajo on siksi ajettava uudelleen saman kuun aikana.
-- Deployment ei sisällä parametreja. 1437 siirretään `NOTSCHEDULED`:stä `SCHEDULED`:iin vasta hyväksymistestien jälkeen.
+- Tuotantodeploymentin (`customdeploy_gbb_sub_extension`) testausparametrit ovat aina tyhjiä. 1437 siirretään `NOTSCHEDULED`:stä `SCHEDULED`:iin vasta hyväksymistestien jälkeen.
+
+## Testausparametrit
+
+Tuoteomistajan päätös 13.10.2026 (Q15). Poikkeus ADR 0014:n linjaan (ei dry runia): ilman näitä map-vaihetta (hinnoittelu, ehdot 7–13) ja CR:n tallennusta ei voi todentaa tuotantodatalla ennen ensimmäistä oikeaa ajoa. Kumpikaan parametri ei ohita yhtään ehtoa.
+
+| Parametri | Tyyppi | Vaikutus |
+|---|---|---|
+| `custscript_gbb_ext_bike_id` | Kokonaisluku, valinnainen | Rajaa valinnan (ja ehtojen 5, 5b ja 6 laskentakyselyn) yhteen pyörään: `AND br.id = :bike_id`. Kaikki ehdot 1–13 pätevät kuten ilman rajausta. Pyörä, joka ei täytä ehtoja 1–6, ei tule valituksi (ehdokkaita = 0). |
+| `custscript_gbb_ext_dry_run` | Valintaruutu, oletus pois | Skripti käy läpi koko valinnan ja kaikki päätökset (myös ehdon 5 uudelleentarkistuksen), mutta ei tallenna CR:ää. Jokaisesta pyörästä, jolle CR luotaisiin, kirjataan `log.audit`-rivi `WOULD_CREATE <pyörän nimi>`, jonka detail on sama kuin `CREATED`-rivillä ilman `cr=`-kenttää. |
+
+- Yhteenvetorivi kertoo tilan: dry runissa otsikko on `mr_subscription_extension: summary (DRY RUN)` ja `luotu=<n>` korvautuu `would_create=<n>`:llä. Jos `bike_id` on asetettu, detailin alkuun lisätään `bike_id=<id>; `. Laskurien täsmäytys pätee kummassakin tilassa.
+- Virherivit (`NOT_PRICED`, `NO_EMPLOYER`, `MISSED_MONTHS`, `END_NOT_MONTH_END`, porrasrivit) kirjataan dry runissakin, jotta ne voi todentaa ennen oikeaa ajoa.
+- Testiajot tehdään **erillisellä deploymentilla** `customdeploy_gbb_sub_extension_test` (`NOTSCHEDULED`), jolle parametrit asetetaan. Tuotantodeploymentin parametrit pysyvät tyhjinä, joten unohtunut dry run -asetus ei voi estää 10. päivän oikeaa ajoa. Kaksi deploymenttia ei luo tuplia, koska ehto 5 tarkistetaan uudelleen juuri ennen tallennusta; testiajoa ei silti käynnistetä tuotantoajon aikana.
+- Testijärjestys: (1) dry run koko joukolle ja tuloksen vertailu hyväksymistesteihin, (2) oikea ajo yhdellä pyörällä (`bike_id`, dry run pois) ja sen CR:n seuranta 1199:n läpi, (3) tuotantoajo 10.11.
 
 ## Idempotenssi
 
@@ -179,7 +193,7 @@ Kentät kuten vanhassa skriptissä (V, `mr_subscription_extension.js:178-191`), 
 
 ## Hyväksymistestit
 
-Jokainen todennetaan live-ympäristössä, koska dry runia ei ole: testi tehdään vertaamalla `getInputData`:n SQL:ää ja map-vaiheen päätöksiä erillisellä lukukyselyllä ennen ensimmäistä ajoa, ja ensimmäinen ajo kuluvan kuun CR-luonnilla tarkistetaan lukemalla. Tarkat pyörät päivitetään ajopäivän datalla.
+Jokainen todennetaan live-ympäristössä: SQL-valinta lukukyselyllä ja map-vaiheen päätökset testideploymentin dry runilla (§ *Testausparametrit*) ennen ensimmäistä ajoa, ja ensimmäinen ajo kuluvan kuun CR-luonnilla tarkistetaan lukemalla. Tarkat pyörät päivitetään ajopäivän datalla.
 
 | # | Pyörä / tilanne | Odotettu |
 |---|---|---|
@@ -211,7 +225,7 @@ Yhteenvedon luvut täsmäävät: ehdokkaat = luodut + map-vaiheen ohitukset + vi
 
 1. Rakennus ja koodikatselmointi sisarrepossa (oma istunto, ei tässä repossa). Hintakirjasto ladataan, ei kopioida.
 2. Hyväksymistestit T1–T15 (ml. T10b–T10g) lukukyselyillä (SQL-valinta vs. odotettu), tavoite **ma 19.10.**
-3. 1437:n script-tietue: poista parametrit, deployment `customdeploy_gbb_sub_extension` yksi ajastus: Monthly, kuun 10. päivä, 03:00. Poista aikaisempi päivittäinen/kuukausiajastus.
+3. 1437:n script-tietue: poista neljä vanhaa parametria ja luo kaksi testausparametria (§ *Testausparametrit*) sekä testideployment `customdeploy_gbb_sub_extension_test` (`NOTSCHEDULED`); deployment `customdeploy_gbb_sub_extension` yksi ajastus: Monthly, kuun 10. päivä, 03:00. Poista aikaisempi päivittäinen/kuukausiajastus.
 4. Ensimmäinen tuotantoajo **ti 10.11.2026 klo 03:00** (päätös 4). TASKS T54:n oletus "extension 1.11. 03:00" on rauennut.
 5. Ajon jälkeen: lue `scriptnote` (script 1437), vertaa luotuja CR:iä lukukyselyyn ja tarkista, ettei yhdelläkään ole OOMI-pyörää, tapaa 3/4 tai hintaa 0. Ajo ennen CR-prosessoria (1199) antaa mahdollisuuden poistaa virheellinen Pending-CR ennen laskutusta.
 6. Päivitä: sisarrepon README (poistuvat parametrit, hakuun liittyvät varoitukset), `schemas/script-inventory.md` (T63), tämän repon CLAUDE.md:n kohta *The extension loop has no owner*, TASKS T54 ja T61-tehtävä ("extension 2.0").
