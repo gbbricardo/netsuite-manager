@@ -105,6 +105,7 @@ Huomioita:
   Ehto 5b ohittaisi 4: B011223 ja B031422 (päättyvät 31.10., ei linkkiä, lunastus käynnissä `end_red_so_created` = T) sekä B023198 ja B024908
   (`subsc_end_date` 30.11.2025, ei linkkiä eikä ketjua). B010533 ja B046667 jatkavat ketjua ilman linkkiä. (13.10.: B010533:n `subsc_end_date` siirrettiin käsin 30.11.:een 12.10., joten se ei ole marraskuun ajon ehdokas.) Yhdelläkään ei ole tyypin 2/10 CR:ää eikä hintaa 0.
   Luku pienenee lokakuun aikana, kun maksuja tulee.
+- **Simulaatio 13.10.2026 (V):** skripti ajettiin paikallisesti tuotantodatalla ajopäivällä 10.11.2026 (dry run): perusjoukko 353, `ohitettu_ei_linkkia` 3 (B023198, B024908, B031422), ehdokkaita 350, joista kaikki saisivat CR:n; ei virherivejä. B011223:n linkkilippu on nyt T, ja sillä on avoin lunastuslasku INVGBB1015522 (12.10.). **Päätös (tuoteomistaja 13.10.2026, Q16):** sääntö saa toimia. Jos lasku on maksettu ennen ajoa, pyörä putoaa ehdolla 6; muuten se jälkiveloitetaan kuten muutkin.
 
 ## Ohitussäännöt järjestyksessä
 
@@ -197,7 +198,7 @@ Jokainen todennetaan live-ympäristössä: SQL-valinta lukukyselyllä ja map-vai
 
 | # | Pyörä / tilanne | Odotettu |
 |---|---|---|
-| T1 | **B046508** (ITSEHANKINTA, hinta 0, päättyi 31.8., huoltosumma tyhjä) | Ei CR:ää (ehto 8). Vanha skripti loi CR:t 6513 ja 6972 |
+| T1 | **B046508** (ITSEHANKINTA, hinta 0, päättyi 31.8., huoltosumma tyhjä) | Ei CR:ää (ehto 8). Vanha skripti loi CR:t 6513 ja 6972. 13.10.: pyörän tila on 2 ja tapa 4, joten SQL (ehdot 1 ja 3) rajaa sen jo pois |
 | T2 | Active, ei-OOMI, päättyi edellisessä kuussa, ei tapaa, hinta 399 €, huoltosumma 0 | CR luodaan, `start` = kuluvan kuun 1., `end` = viimeinen |
 | T3 | Sama pyörä, toinen ajo samana päivänä | Ei toista CR:ää (ehto 5) |
 | T4 | Sama pyörä, ajo CR:n Done-käsittelyn jälkeen (`subsc_end_date` siirtynyt kuluvan kuun loppuun) | Ei CR:ää |
@@ -211,7 +212,7 @@ Jokainen todennetaan live-ympäristössä: SQL-valinta lukukyselyllä ja map-vai
 | T10f | Sama kuin T10b, mutta hinta 0 tai ei linkkiä eikä ketjua (esim. B023198) | Ei `MISSED_MONTHS`-riviä: ohitus `ohitettu_hinta0_ei_tapaa` / `ohitettu_ei_linkkia` (ajoitusvirhe arvioidaan viimeisenä) |
 | T10g | Pyörä, jonka `subsc_end_date` on edellisen kuun 15. päivä, muuten jälkiveloitettava | Ei CR:ää, `END_NOT_MONTH_END`-rivi (ehto 13) |
 | T10c | Luodun CR:n `official_end_date` | = CR:n `end_date`. Done-käsittelyn jälkeen pyörän `subsc_end_date` = kuluvan kuun viimeinen |
-| T10d | Ilman linkkiä ja ilman ketjua (esim. B011223, B023198) / ilman linkkiä mutta ketjussa (B046667) | Ohitetaan, `ohitettu_ei_linkkia` / CR luodaan |
+| T10d | Ilman linkkiä ja ilman ketjua (esim. B023198, B031422) / ilman linkkiä mutta ketjussa (B046667) | Ohitetaan, `ohitettu_ei_linkkia` / CR luodaan |
 | T10e | Pidennys-CR tilassa Error tai Needs Review kuluvalle kuulle | Ei uutta CR:ää (ehto 5) |
 | T11 | Pyörä, jonka työnantaja on tyhjä | `NO_EMPLOYER`, ei CR:ää |
 | T12 | Hinta tyhjä tai negatiivinen | `NOT_PRICED`, ei CR:ää |
