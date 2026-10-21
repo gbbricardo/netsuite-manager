@@ -168,8 +168,9 @@ Luotu 21.10., ja se oli silloin Pending. Hyvitys-CR 7293 on samassa paketissa. V
 3. Hyvitys-CR 7293: tila ja syntynyt credit memo. Lokakuun laskutus kuuluu hyvittää, koska päättyminen on 30.9.
 4. IC-päivä `LAST_DAY(30.09.2026)` asettuu 2.0:n yöajossa, ja lokakuun RI-rivi ei saa jäädä Activeksi.
 5. Porttikvadrantin solu "2/3 + tuleva päättymispäivä" = 0.
+6. **T11:** 1199:n `handler_lunastus`-AUDIT-rivillä on `gbb_lunastus_lib=1.2.0`. Lisäksi 1480:n yöajossa 21.→22.10. on sama versio, ERROR-rivejä on 0 ja kirjoitusmäärä on normaali.
 
-**Valmis kun** kohdat 1–5 on kirjattu tähän, ja poikkeamat on viety T10:een tai T13:een.
+**Valmis kun** kohdat 1–6 on kirjattu tähän, ja poikkeamat on viety T10:een tai T13:een.
 
 ---
 
@@ -1049,6 +1050,14 @@ ennen päättymiskuuta ilman CR:ää (tarkistettu koodista 30.09.). **Jos jollek
 
 ### [ ] T11 — Kirjasto: päättymisajankohta = `subsc_end_date`
 
+> [!NOTE]
+> **21.10.2026: koodi valmis ja ladattu. Ajonaikainen todennus odottaa.** cr-scripts PR #12 (`c7b484a`, `ee7e1e8` + `3ae6040`): `gbb_lunastus_lib` **1.2.0** lukee vain `subsc_end_date`:n,
+> ja `handler_lunastus` ei enää hae poikkeuskenttiä (hälytys- ja H3-lokiteksti korjattu). Testit 98/98 (ajettu täältä).
+> *NetSuitesta todettu:* File Cabinet `gbb_lunastus_lib.js` (470259) on 21 949 B ja `handler_lunastus.js` (182583) 30 063 B, molemmat ladattu 21.10. klo 16:34, **tavulleen samat** kuin commit (CRLF).
+> Muut kirjaston lukijat eivät muuttuneet (`ue_gbb_redemption_decided_at` 14.10., `cr_lunastus_plan` 14.10.).
+> **Valmis kun:** lokissa näkyy `gbb_lunastus_lib=1.2.0`. Tarkistettavat: 1480:n yöajo 22.10. (0 ERROR-riviä, kirjoitusmäärä normaali), 1199:n
+> seuraava tyypin 2 CR (esim. CR 7292, T66) ja 1452/1453 viimeistään 1.11. Tämän repon kenttäsäännöt ja CLAUDE.md:n porttikysely päivitetty 21.10.
+
 > [!IMPORTANT]
 > **21.10.2026: T8 peruttiin, joten T11 ei riipu siitä.** Alla olevat "vasta T8:n jälkeen" -ehdot ovat vanhentuneet.
 > Edellytyksistä on jäljellä yksi (B044906 korjattu 21.10. arvoon 31.08.2026): istunnossa tarkistetaan, miten 15 päättyneen pyörän Ended-RI-rivit reagoivat päättymisajankohdan
@@ -1061,6 +1070,7 @@ ennen päättymiskuuta ilman CR:ää (tarkistettu koodista 30.09.). **Jos jollek
 > - **Vaikutus:** NetSuitessa `COALESCE` ≠ `subsc_end_date` enää 16 pyörällä: 14 status 2 (ei B044906, korjattu) ja B046739/B046740 (status tyhjä, T19).
 >   Kaikilla 14:llä on jo Ended-RI-rivi (raportointipäivät 9.8.–1.10.), ja kaikki päättyvät ≤ 30.09. *Koodista päätelty:* ri_creation ohjaa ne
 >   `ended_already_reported`-haaraan, eikä ri_update käsittele niitä (ei 1.11. rivejä). Muutos on niille neutraali, ja T11:n tarkistuskohta on näin hoidettu.
+> - **21.10.: tuoteomistaja päätti tehdä kirjaston nyt** (ei 2.11. jälkeen). Työohje on [`docs/cr-scripts-lunastus-lib-1-2-0-tyoohje.md`](docs/cr-scripts-lunastus-lib-1-2-0-tyoohje.md). Lataus ennen 28.10. iltaa.
 > - **Jäljellä cr-scripts-puoli:** `gbb_lunastus_lib.js:127-128` (1.1.0), `handler_lunastus.js:27-28` ja `ue_gbb_redemption_decided_at.js` lukevat yhä poikkeuskentät.
 >   Ei kiireellinen ennen 1.11.: ero koskee vain yllä olevia 16 pyörää, jotka ovat jo päättyneitä tai inaktivoitavia. Uusi tyypin 2 CR niille on epätodennäköinen (päätelty, ei estetty). Tehdään cr-scripts-istunnossa (kirjasto 1.2.0).
 

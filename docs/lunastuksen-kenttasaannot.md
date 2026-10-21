@@ -62,8 +62,8 @@ päättymisajankohta = custrecord_sta_subsc_end_date
 > `custrecord_gbb_exceptional_end_date` on historiaa, ja `custrecord_gbb_oomi_exceptional_end_date` on
 > vain Fleet-raportin näkyvyyskenttä, jota Fleet-CSV päivittää ja jota yksikään sääntö ei lue.
 > Kaikki päättymisen muutokset tulevat CR:n kautta. Status-sync 2.0 (1480) antaa kirjastolle vain
-> `subsc_end_date`:n. Kirjaston oma `COALESCE` poistuu T11:ssä; siihen asti se vaikuttaa vain
-> lukijoihin, jotka kutsuvat kirjastoa raakatietueella.
+> `subsc_end_date`:n. Kirjaston oma `COALESCE` poistui 21.10.2026 (`gbb_lunastus_lib` 1.2.0, T11), joten
+> kirjasto ei enää lue poikkeuskenttiä lainkaan, ei myöskään raakatietueesta.
 >
 > Aiempi sääntö oli `COALESCE(exceptional_end_date, oomi_exceptional_end_date, subsc_end_date)`.
 > Poikkeuskenttä, joka eroaa `subsc_end_date`:sta, on havainto (Fleet-CSV voi kirjoittaa sen
@@ -348,7 +348,7 @@ maksettua pääomaa ja **laskee** lunastushintaa.
 > [!WARNING]
 > **Käytöstä luovutaan** ([ADR 0010](adr/0010-keskenkauden-lunastus.md) kohta 8, 24.09.2026).
 > Kenttää ei kirjoiteta eikä se ole päättymisajankohta (§ 2). Status-sync 2.0 ei lue sitä, ja
-> kirjaston `COALESCE` poistuu T11:ssä. Vanhat arvot jäävät historiaksi. Alla oleva kuvaus on
+> kirjaston `COALESCE` poistui 21.10.2026 (1.2.0, T11). Vanhat arvot jäävät historiaksi. Alla oleva kuvaus on
 > historiaa. Sama koskee
 > `custrecord_gbb_oomi_exceptional_end_date`:a skriptien osalta, mutta Fleet-raportin CSV-viennit
 > päivittävät sitä edelleen näkyvyyden vuoksi.

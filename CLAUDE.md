@@ -45,7 +45,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```sql
 SELECT br.custrecord_sta_bike_status,
-       CASE WHEN COALESCE(br.custrecord_gbb_exceptional_end_date, br.custrecord_gbb_oomi_exceptional_end_date, br.custrecord_sta_subsc_end_date) >= TRUNC(CURRENT_DATE,'MM') + INTERVAL '1' MONTH
+       CASE WHEN br.custrecord_sta_subsc_end_date >= TRUNC(CURRENT_DATE,'MM') + INTERVAL '1' MONTH
             THEN 'end_future' ELSE 'end_now_or_past' END, COUNT(*)
 FROM customrecord_subscrption_change_request cr
 JOIN customrecord_sta_bike_register br ON cr.custrecord_cr_bike_registry = br.id
