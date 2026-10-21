@@ -21,7 +21,7 @@ Tämä dokumentti kertoo **missä mennään**. Suunnitelma kertoo mitä tehdää
 > [!IMPORTANT]
 > **24.09.2026: keskenkauden lunastuksen säännöt vahvistettu** ([ADR 0010](adr/0010-keskenkauden-lunastus.md),
 > kenttäsäännöt § 10). Kaksi syyskuun CSV:tä odottaa käyttäjän ajoa: T7 `decided_at`-historia ja
-> T8 poikkeuspäivät (33 pyörää, **ennen kirjastomuutosta**). Lokakuun tehtävät T9–T13 ovat
+> T8 poikkeuspäivät (33 pyörää, **ennen kirjastomuutosta**; *peruttu 21.10.2026, `subsc_end_date` on oikein, ADR 0010 k. 8*). Lokakuun tehtävät T9–T13 ovat
 > [`../TASKS.md`](../TASKS.md):ssä. Mitattu 24.09.:
 > - 19 Active-pyörää, joilla keskenkauden maksu ilman CR:ää
 > - Staria-hyvitysskripti yhä ajastettuna, 1 käsittelemätön pyörä (B031217)

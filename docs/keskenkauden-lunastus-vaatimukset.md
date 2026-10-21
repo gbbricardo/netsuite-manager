@@ -27,7 +27,7 @@ UE:n vartija (*"vain kun tapa muuttuu"*) voi laueta. H5:n arvon on silti oltava 
 
 | # | Vaatimus | Milloin |
 |---|---|---|
-| K1 | `paattymisajankohta(bike)` = `custrecord_sta_subsc_end_date`. Kentät `exceptional_end_date` ja `oomi_exceptional_end_date` poistetaan `COALESCE`:sta (`:126-130`, `:267-275`) | **lokakuu 2026, vasta kun** [`imports/2026-09-25-poikkeuspaivat-subsc/`](../imports/2026-09-25-poikkeuspaivat-subsc/README.md) on ajettu ja sen jälkitarkistus palauttaa 0 |
+| K1 | `paattymisajankohta(bike)` = `custrecord_sta_subsc_end_date`. Kentät `exceptional_end_date` ja `oomi_exceptional_end_date` poistetaan `COALESCE`:sta (`:126-130`, `:267-275`) | lokakuu 2026. ~~Vasta kun poikkeuspäivien CSV on ajettu~~: **CSV peruttiin 21.10.2026** (ADR 0010 k. 8). B044906 korjattu käsin 21.10., ei muita edellytyksiä |
 | K2 | Kirjaston versio nostetaan, ja kaikki lukijat (sweep 1440, RI-luonti ja -päivitys, statusportti, IC) ladataan uudelleen | K1:n yhteydessä |
 
 Kaikki SQL-kyselyt ja cf-gbb-tools käyttävät samaa `COALESCE`-muotoa (kenttäsäännöt § 2 ja § 8,

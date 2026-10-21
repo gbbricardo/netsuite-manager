@@ -394,7 +394,8 @@ vuokrakuukausilta, jotka alkavat sen sopimuskaudella päättymisajankohtaan menn
 pyörien vuokrat samalla laskulla tai samalta kaudelta estävät, ja erääntymätön lasku estää.
 Laskuttamatta jäänyt vuokrakuukausi ei estä: laskutuksen kattavuus ei ole kauppakirjan asia.
 
-Arvioidaan siitä alkaen, kun pyörä on merkitty lunastetuksi. Kerran todettu on lopullinen:
+Arvioidaan siitä alkaen, kun pyörä on merkitty lunastetuksi ja sen päättymisajankohta on mennyt
+(ADR 0018). Kerran todettu on lopullinen:
 myöhemmin syntyvä maksamaton lasku on perintää. Jälkiveloituslaskut ja lunastusmaksu eivät kuulu
 tähän, vaan velvoitteisiin.
 
