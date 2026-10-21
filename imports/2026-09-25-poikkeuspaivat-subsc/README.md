@@ -1,5 +1,10 @@
 # Poikkeuspäivät `subsc_end_date`:iin — CSV-import syyskuu 2026
 
+> [!CAUTION]
+> **PERUTTU 21.10.2026. Älä aja tätä importtia.** Tuoteomistaja totesi, että pyörien nykyiset `subsc_end_date`-arvot ovat oikein,
+> ja taloustiimin IC-lunastus on tehty niiden mukaan. Perustelut: [ADR 0010](../../docs/adr/0010-keskenkauden-lunastus.md) k. 8, *Kumottu 21.10.2026*.
+> Tiedostot jäävät historiaksi.
+
 > [!IMPORTANT]
 > **Muutettu 25.09.2026 (P1-päätös): 33 → 18 riviä.** D9:n 15 Active-pyörää on poistettu. Ilman CR:ää
 > Fleet-päivä ei päätä pyörää, joten niiden `subsc_end_date` jää ennalleen, ja T1c tyhjentää niiden

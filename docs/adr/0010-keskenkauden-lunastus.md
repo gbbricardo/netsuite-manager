@@ -129,11 +129,26 @@ kuin `subsc_end_date`. Ero on 34:llä:
 
 | Poikkeuspäivä | Pyöriä | Toimenpide |
 |---|---|---|
-| ≤ 30.09.2026 | **33** → **18** (D9 poistettu 25.09.) | CSV ennen kirjastomuutosta: `subsc_end_date` = nykyinen päättymisajankohta ([`imports/2026-09-25-poikkeuspaivat-subsc/`](../../imports/2026-09-25-poikkeuspaivat-subsc/README.md)). Päättymisajankohta ei muutu, joten kirjastomuutos on näille neutraali |
+| ≤ 30.09.2026 | **33** → **18** (D9 poistettu 25.09.) → 15 | **Kumottu 21.10.2026, ks. alla: CSV:tä ei ajeta.** Alkuperäinen: CSV ennen kirjastomuutosta: `subsc_end_date` = nykyinen päättymisajankohta ([`imports/2026-09-25-poikkeuspaivat-subsc/`](../../imports/2026-09-25-poikkeuspaivat-subsc/README.md)). Päättymisajankohta ei muutu, joten kirjastomuutos on näille neutraali |
 | > 30.09.2026 | **1** (B044504, 31.10.2026) | ei CSV:tä. Kirjastomuutoksen jälkeen pyörä seuraa `subsc_end_date`:a (01.04.2027). Jos Fleetin ennenaikainen päättyminen on todellinen, se tehdään CR:llä kuten kaikki lokakuusta alkaen |
 
-**Järjestys: CSV ensin, sitten kirjasto.** Jos kirjasto muuttuu ensin, 16 päättyneen pyörän
-päättymisajankohta siirtyy myöhemmäksi, ja RI-luonti voi alkaa tuottaa niille Active-rivejä.
+~~**Järjestys: CSV ensin, sitten kirjasto.** Jos kirjasto muuttuu ensin, 16 päättyneen pyörän
+päättymisajankohta siirtyy myöhemmäksi, ja RI-luonti voi alkaa tuottaa niille Active-rivejä.~~
+
+**Kumottu 21.10.2026 (tuoteomistaja): ≤ 30.09.2026 -rivin CSV:tä ei ajeta.** Kirjasto voi muuttua ilman sitä.
+Siirtymä oletti, että poikkeuspäivä on oikea päättymisajankohta ja `subsc_end_date` väärä. Jäljelle jääneillä
+15 pyörällä tilanne on päinvastainen: **`subsc_end_date` on oikein.** Tuoteomistaja vahvisti tämän, ja data tukee sitä (SuiteQL 21.10.):
+- Kaikki 15 ovat status 2 ja `ic_redemption_done` = T. 14:llä IC-päivä on `LAST_DAY(subsc_end_date)`, ei poikkeuspäivän kuu,
+  joten taloustiimin IC-lunastus on jo tehty `subsc_end_date`:n mukaan. CSV olisi aikaistanut päättymisen IC-lunastuksen ohi
+  (esim. B039536: poikkeuspäivä 31.5., `subsc_end_date` ja IC 30.6.).
+- Perusteena ollut riski on poistunut. Kaikkien 15:n `subsc_end_date` on ≤ 30.09.2026, joten kun päättyminen siirtyy
+  kirjastomuutoksessa myöhemmäksi, se on yhä menneisyydessä. Uusia Active-rivejä ei synny.
+- Status-sync 2.0 ei lue poikkeuskenttiä (ADR 0015 k. 3).
+
+Kirjastomuutos on näille pyörille tarkoituksellinen korjaus eikä neutraali. Päättymisajankohta muuttuu poikkeuspäivästä `subsc_end_date`:iin.
+**Poikkeus B044906:** `subsc_end_date` 31.07., `exceptional_end_date` 31.08. ja IC 31.08. Siinä IC seurasi poikkeuspäivää.
+~~Oikea päivä selvitetään, ja `subsc_end_date` korjataan tarvittaessa käsin ennen kirjastomuutosta.~~ **21.10.2026:** tuoteomistaja vahvisti
+31.08.2026 ja korjasi `subsc_end_date`:n käsin (todennettu). Kirjastomuutos on tälle pyörälle neutraali.
 
 ### 9. Tyyppi 10 (reklamaatio/peruutus) rajataan ulos (Q6, Q13)
 

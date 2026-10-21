@@ -31,11 +31,11 @@ Exportissa ovat status ja deployed-tieto. **Parametrit ja toistuvuus puuttuvat**
 1. T55: 1480:n ensimmäinen live-ajo (kohdat 1–5), K2-rajaus ja tila 6 2.0:n koodissa (T54).
 2. T30/T52: 1479:n klo 8 ajo ilman `RUN ABORTED`ia (ja su 11.10.).
 3. T9: ei uusia `scriptnote`-rivejä skriptille 966.
-4. Joukkokorjautumiset 2.0:n jälkeen: T1b (73 OOMI-pyörää → 0), T53 (13 pyörää tapa 2), T38 (`liab_settled_at` 336 → ?), T15 (`paid_at` 575 → ?), T41 (IC-kysely → 0), T35 (B012880).
+4. Joukkokorjautumiset 2.0:n jälkeen: T1b (73 OOMI-pyörää → 0), T53 (13 pyörää tapa 2), T38 (`liab_settled_at` 336 → 1, valmis 12.10.), T15 (`paid_at` 575 → ?), T41 (IC-kysely → 0), T35 (B012880).
 
 **B. Käyttäjän ajettavat importit ja UI-toimet (README:t kansioissa)**
 1. `imports/2026-10-09-p2-cr-luontipaivat/` → sitten T7 `imports/2026-09-25-decided-at-historia/01-decided-at-2026-10-09.csv`
-2. T8 `imports/2026-09-25-poikkeuspaivat-subsc/01-subsc-end-date-2026-10-09.csv` (ennen T11:n latausta)
+2. ~~T8 `imports/2026-09-25-poikkeuspaivat-subsc/01-subsc-end-date-2026-10-09.csv`~~ **peruttu 21.10.2026, ei ajeta**
 3. `imports/2026-10-09-pyorapaatokset/` (01 tavat, 02 CR 4692 Cancelled, 03 B023403)
 4. Inaktivoi B046830, B046739, B046740, B004339 ja B046741 (linkit tarkistettu). Varmista B046741, ettei se ole odottava OOMI-pyörä.
 5. T20: B036939:n `curr_subs_rent` → 59,76.
@@ -82,6 +82,29 @@ Vaatimukset: [`docs/extension-2-vaatimukset.md`](docs/extension-2-vaatimukset.md
 - Kiinnikurominen ei tuota yllätyksiä: ennen lokakuuta päättyneitä Active-pyöriä ilman tapaa on vain 2 (molemmat ennen 2026, ei linkkiä eikä ketjua), joten ne ohitetaan.
 - Ensimmäinen ajo on **ti 10.11.**
 Tähän on yhdistetty osion *Auki, ei päivää* kohta "Jälkiveloitusketju kirjoitetaan uudelleen". T54:n oletus extension-ajosta 1.11. klo 03:00 raukeaa.
+
+> [!NOTE]
+> **12.10.2026:** sisarrepossa ei vielä toteutusta (viimeisin commit 15.9.). Vaatimukset yhtenäistetty 9.10. päätösten ja koodin mukaisiksi
+> (`docs/extension-2-vaatimukset.md` § *Yhtenäistetty 12.10.2026*). Tärkein korjaus: `official_end_date` = CR:n `end_date`, koska
+> `handler_jalki.js:153-154` kirjoittaa sen `subsc_end_date`:ksi (tuotannossa 339/339 näin). Muut korjaukset: ei alarajaa,
+> ehto 5 CR:n loppupäivällä ja tiloilla 1/2/5/6, linkki- ja ketjuehto 5b K2:lla. Nykydatalla 367 ehdokasta, joista 4 ohitettaisiin ilman linkkiä.
+> Hyväksymistestien tavoite on ma 19.10.
+> **13.10.: päätöksen 7 tulkinta hyväksytty** (ohitetaan, jos ei linkkiä eikä K2-rajattua Done-pidennys-CR:ää). Määrittely on valmis
+> rakennettavaksi extension-repon istunnossa. B010533 ei ole marraskuun ehdokas (`subsc_end_date` siirretty käsin 30.11.:een 12.10.).
+> **13.10. toteutettu ja tarkistettu.** Määrittely muuttui samana päivänä ([ADR 0019](docs/adr/0019-extension-2-ei-kiinnikurontaa.md)): ei kiinnikurontaa,
+> vaan virherivi `MISSED_MONTHS`, ja tilalle tulivat testausparametrit (Q15). Sisarrepo `netsuite-subscription-extension` master `0115cac`
+> (`mr_subscription_extension.js` + `gbb_ext2_paatos.js`). Paikalliset testit 68/68 ok.
+> - *Koodista todettu:* SQL, ohitussäännöt 1–14, CR:n kentät (`official_end_date` = `end_date`) ja lokitus vastaavat määrittelyä.
+>   Ehdon 6 fragmentit tarkistetaan testissä merkki merkiltä 1480:tä vasten.
+> - *NetSuitesta todettu:* File Cabinetin tiedostot 372442 ja 505980 (13.10.) ovat tavuilleen samankokoiset kuin repossa, ja
+>   hintakirjastot ovat 1479:n kansiossa 40451. Testideployment `customdeploy_gbb_sub_extension_test` on olemassa. Molemmat deploymentit ovat `NOTSCHEDULED`.
+>   Dry run 13.10. lokakuun ikkunalla tuotti `ehdokkaita=0, ohitettu_ei_linkkia=2`, mikä täsmää omaan kyselyyn (B023198, B024908).
+> - **Aukko:** lokakuussa yksikään pyörä ei läpäise ehtoja 1–6. Siksi map-vaihetta (hinnoittelu, `record.create`, päivämääräkentät)
+>   ei voi ajaa NetSuitessa ennen marraskuuta, ei myöskään `bike_id`-rajauksella. Ne on todennettu vain paikallisessa simulaatiossa (350 CR:ää).
+>   Ehdotus: aja dry run testideploymentilla ma 2.11. (marraskuun ikkuna). Aja sen jälkeen yhden pyörän oikea ajo, esim. ma 9.11., pyörälle,
+>   jonka maksamattomuus on tarkistettu, ja seuraa sen CR 1199:n läpi. Tuotantoajo on 10.11.
+> - **Ennen 10.11.:** tuotantodeploymentin ajastus Monthly, päivä 10, klo 03:00, parametrit tyhjinä. Neljän vanhan parametrin
+>   poistoa ei voitu tarkistaa SuiteQL:llä, joten se tarkistetaan UI:sta.
 
 **Valmis kun** uusi skripti on ajanut marraskuussa ja jokaisella lokakuussa päättyneellä maksamattomalla ei-OOMI-pyörällä on tyypin 7 CR, eikä
 yksikään pyörä, jolla on tapa tai hinta 0, ole saanut CR:ää.
@@ -130,6 +153,23 @@ Yksi lista kaikista kysymyksistä, jotka odottavat taloustiimiä tai asiakaspalv
 - [ ] **T21 rekisteri-id 41345:** kumpi työnantaja on oikein, Serres Oy vai Paree Group Oy?
 - [ ] **T34 B046667:** maksulinkki alennetulla summalla (vakuutuskorvauspyörä, 2 kk sopimus) ennen 10.11.
 - [ ] **T10** 19 + 8 keskenkauden maksua ilman CR:ää. **T47** virheellisesti lähetetyt kauppakirjat (3). **T50** kieltolippujen syyt.
+
+---
+
+## 22.10.2026 (to)
+
+### [ ] T66 — CR 7292 (B036379, keskenkauden lunastus 2C) käsittelyn tarkistus
+
+Luotu 21.10., ja se oli silloin Pending. Hyvitys-CR 7293 on samassa paketissa. Virallinen päättymispäivä 30.09.2026 on menneisyydessä, ja pyörän
+`subsc_end_date` on 30.09.2027. B036379 on T10:n pyörä (maksu 14.09., ei CR:ää aiemmin). Tarkista CR-käsittelijän (1199) ajon jälkeen:
+1. CR 7292:n tila: Done, Needs Review (H1–H3) vai Error. Jos tila on 6 tai 5, lue `custrecord_cr_automation_logs`.
+2. Pyörä: `subsc_end_date` = 30.09.2026, status 2, tapa 1, ja `decided_at` = `liab_settled_at` = 21.10.2026 (CR:n luontipäivä, ADR 0008).
+   `paid_at` on 14.09., jos 2.0 on löytänyt maksun.
+3. Hyvitys-CR 7293: tila ja syntynyt credit memo. Lokakuun laskutus kuuluu hyvittää, koska päättyminen on 30.9.
+4. IC-päivä `LAST_DAY(30.09.2026)` asettuu 2.0:n yöajossa, ja lokakuun RI-rivi ei saa jäädä Activeksi.
+5. Porttikvadrantin solu "2/3 + tuleva päättymispäivä" = 0.
+
+**Valmis kun** kohdat 1–5 on kirjattu tähän, ja poikkeamat on viety T10:een tai T13:een.
 
 ---
 
@@ -184,7 +224,11 @@ testirivi B045304, sitten 14 riviä, asetuksena *Overwrite Missing Fields*. `SUM
 > **Aja jälkitarkistus jokaisen maanantain Fleet-importin jälkeen (ensimmäinen 28.09.)**, kunnes
 > T11 on tuotannossa. Fleet-CSV voi kirjoittaa päivän takaisin.
 
-### [ ] T1b — S4b: syyskuussa päättyneet OOMI-pyörät (käyttäjä ajaa, viimeistään 29.09., T1c:n jälkeen)
+### [x] T1b — S4b: syyskuussa päättyneet OOMI-pyörät (käyttäjä ajaa, viimeistään 29.09., T1c:n jälkeen) — **tehty 12.10.2026**
+
+> [!NOTE]
+> **Tulos 12.10.2026 (SuiteQL):** README:n tarkistuskysely palauttaa **0**. Kaikki 259 syyskuussa päättynyttä aktiivista OOMI-pyörää ovat
+> status 2/3, ja jokaisella on IC-päivä: status 2 tapa 1 251, tapa 7 6, tapa 8 1, status 3 tapa 5 1. Status-sync 2.0:n OOMI-haara hoiti joukon, eikä CSV:tä tarvittu.
 
 > [!NOTE]
 > **Tilanne 9.10.2026:** Tarkistuskysely palauttaa **73 riviä** (odotus 0). Kaikki 73 ovat status 1, ja IC-päivä on tyhjä. B041564 ja B044271 ovat jo status 2, joten ne poistetaan CSV:stä. **Päätös:** ajetaanko CSV, vai annetaanko 1480:n OOMI-haaran (dry run O=167) hoitaa nämä, kun se on livenä?
@@ -303,7 +347,12 @@ Siihen mennessä pyörät on tutkittava ja ratkaistava, ja T37:n skriptikorjaust
 sitä ennen, mutta lokakuun kohortti on jo leimattu, joten väliajoissa näkyvät vain T34–T36:n pyörät. Päätökset tekee tuoteomistaja.
 Korjaukset tehdään omistavassa repossa erillisessä istunnossa. (N) = todennettu NetSuitesta 2.10., (K) = laskettu tai päätelty.
 
-### [ ] T30 — Ajastuksen todennus
+### [x] T30 — Ajastuksen todennus — **tehty 12.10.2026**
+
+> [!NOTE]
+> **Tulos 12.10.2026 (`scriptnote`, `scripttype = 1479`):** kolme peräkkäistä ajastettua ajoa 10.10., 11.10. ja 12.10. klo 08:01–08:02
+> Helsingin aikaa (lokissa edellisenä päivänä klo 22:01–22:02). Jokaisessa on `dryRun=false`, `months_before=1`, `selected=2`, `jalkiveloitus=2`, `cr_2_10=0`, ja
+> `run complete` = `SKIP_IN_PROGRESS=2 unhandledMapErrors=0`. Yhtään RUN ABORTEDia tai ERROR-riviä ei ole. Kellonaika on Helsingin aikaa.
 
 > [!NOTE]
 > **Tilanne 9.10.2026:** **Ei läpi.** Export 9.10.: deployment `customdeploy_send_redemption_link` (internal 2188) on `SCHEDULED` ja deployed. Silti viimeinen lokirivi on 7.10. 02:44 (dry run), eikä 8.–9.10. ole yhtään ajoa. Toistuvuus ei näy exportissa eikä SuiteQL:ssä, joten **tarkista se käyttöliittymästä**. Script-id on `customscript_send_redemption_link`, ei `customscript_gbb_mr_eredem_paylink` kuten CLAUDE.md ja `schemas/script-inventory.md` väittävät (T63).
@@ -392,7 +441,7 @@ Skripti tulkitsee tallennetun hinnan 0 € käsirahaksi, eikä mikään automaat
 > [!NOTE]
 > **Tilanne 9.10.2026:** B010533, B046667, B016555 ja B029420 ovat Active ilman tapaa. B015132 on status 2 / tapa 1, ja sen maksu tuli muuta kautta kuin linkillä, joten tarkista lähde.
 
-- [ ] **B010533** — huoltosumma 265,93 € edellyttää 5 kk pidennystä. Pidennys on 4 kk = 2 kk huoltoa (2 pidennysriviä) + 2
+- [ ] **B010533** — **12.10.2026 (T53):** status-sync 2.0 ei kirjoittanut tapaa 2. Syy on todennäköisesti `NETTO_0`, koska huoltohyvitys ≥ hinta 49,40 €. Pyörä jää Activeksi 31.10. jälkeen. **Päätettävä ennen 1.11.:** tapa 3 käsin (huoltobudjetti kattaa) vai muu ratkaisu. — huoltosumma 265,93 € edellyttää 5 kk pidennystä. Pidennys on 4 kk = 2 kk huoltoa (2 pidennysriviä) + 2
   jälkiveloitus-CR:ää. Puuttuuko huoltopidennyksestä 3 kk (`sta_ue_bike_register_hook`), vai onko summa väärin? Hinta 49 €.
 - [ ] **B046667** — pidennys 1 kk, mutta Done-tilaisia tyypin 7 CR:iä on 2, ja huoltosumma on tyhjä. Onko toinen CR tupla, vai puuttuuko päivän siirto?
 - [ ] **B016555** — pidennys 2 kk, Done-tilaisia tyypin 7 CR:iä 3 (Fortaco, T1d, CR-6488 korjattu). Täsmääkö laskutus pidennykseen?
@@ -413,13 +462,16 @@ Skripti tulkitsee tallennetun hinnan 0 € käsirahaksi, eikä mikään automaat
 `end_red_so_created = T` tai linkitetty SO estää linkin pysyvästi. Selvitä jokaiselta, onko SO yhä voimassa oleva lunastusvaatimus
 ja kuka perii sen. Jos se ei ole voimassa, SO suljetaan, lippu tyhjennetään, ja pyörä saa linkin.
 
-- [ ] **B012880** — **maksettu**: Paylink 5765 completed, SO type 4 SOGBB0014688 tila G, `paid_at` 7.9. Silti **status 1 ilman tapaa**
+- [x] **B012880** — *korjaantunut, todettu 21.10.2026: status 2 / tapa 1 / `liab_settled_at` = `paid_at` 7.9. / IC 31.10. Status-sync 2.0 hoiti, CSV:tä ei tarvita.* — **maksettu**: Paylink 5765 completed, SO type 4 SOGBB0014688 tila G, `paid_at` 7.9. Silti **status 1 ilman tapaa**
   (osa A ohitti, vrt. maksuikkunalöydös 23.09.). `subsc_end` siirtyi 30.9. → 31.10. ilman CR:ää. Tarvitsee tavan 1 ja `liab_settled_at`:in
   (S1-malli), ja päivän siirron syy on selvitettävä.
 - [ ] **B001876** — SO type 4 SOGBB0000526, tila B, 30.9.2025. Jälki-CR:t 4738, 6442 ja 6892, `org_end` 30.4.2026.
 - [ ] **B019460** — SO type 4 SOGBB0000535, tila H (suljettu), 30.9.2025. Jälki-CR:t 6490 ja 6947. Suljettu SO estää silti linkin.
 - [ ] **B031422** — SO type 4 SOGBB0000529, tila B, 30.9.2025 (Netvisor-siirto, 1 171,01 €). Päättyy 31.10.2026.
-- [ ] **B011223** — SO type 3 (keskenkauden) SOGBB0002659, tila B, 10.12.2025. Ei tyypin 2 CR:ää, päättyy 31.10.2026. Kuuluuko T10:een?
+- [ ] **B011223** — **21.10.2026:** asiakaspalvelu teki keskenkauden CR:n 7250 (*Notion-555 - 2C*, Done 20.10.). Pyörä on nyt status 2 / tapa 1 / `liab_settled_at` 20.10.
+  Auki ovat yhä SO 1 040 € ja 13.10. lähetetty maksulinkki 161 €. **Päätettävä:** suljetaanko ne, ettei asiakas maksa kahdesti.
+  **21.10.: käyttäjä poisti SO:n SOGBB0002659** (todennettu: tranid ei enää löydy). Maksulinkki on yhä auki: pyyntörivi 20907, `pl_status` = `pending`,
+  `ns_status` = 6 *Pending payment*. Päätettävä: perutaanko linkki Paylinkissä. — SO type 3 (keskenkauden) SOGBB0002659, tila B, 10.12.2025. Ei tyypin 2 CR:ää, päättyy 31.10.2026. Kuuluuko T10:een?
 - [ ] **B036396** — SO type 3 SOGBB0002663, tila B, 10.12.2025. Jälki-CR:t 4772, 6509 ja 6970.
 
 B026671 (SKIP_LINKED_SO) on kunnossa: maksettu 30.9., status 2, tapa 1.
@@ -491,7 +543,20 @@ huoltosumma ilman pidennystä ei hyvity (3 linkkiä lokakuussa, 3 marraskuussa).
 **Valmis kun** korjaukset ovat tuotannossa, ja 30.11. kohortin koko dry run (`days_before` väliaikaisesti ≥ 30) ei näytä yhtään pyörää,
 jonka hinnassa on jälkiveloituskuukausia. Löydöksen jälkitarkistus palauttaa silloin vain ratchet-hyvityksiä.
 
-### [ ] T38 — 215 maksettua linkkiä ilman `liab_settled_at`:ia (osa T26:ta)
+### [x] T38 — 215 maksettua linkkiä ilman `liab_settled_at`:ia (osa T26:ta) — **valmis 12.10.2026**
+
+> [!IMPORTANT]
+> **Tarkistus 12.10.2026: ei korjaantunut. Kysely palauttaa yhä 336.** Status-sync 2.0 ei täydennä näitä, koska sen vastuuvaihe
+> (tapa ja `liab_settled_at`) koskee vain status 1 -pyöriä (Q28, `gbb_rss2_paatos.js` vaihe 2, ja joukko V vaatii statuksen Active).
+> Erittely:
+> - **335** on status 2 kauden lopun pyöriä (päättyvät 10/2026, `paid_at` 1.–5.10.2026, `SUM(id)` 5 457 579). Yksi niistä on order type 1 (B037265).
+> - **B035208** on status 1 ja päättyy 31.7.2027. Se on sallittu poikkeama (Q3, keskenkauden lunastus, jonka CR tulee myöhemmin), joten se **rajataan pois**.
+>
+> Tyypin 2/10 CR:ää ei ole yhdelläkään. **Korjaus: CSV, jossa `liab_settled_at` = `paid_at`, 335 riviä** (kenttäsäännöt § 9). Valmis kun kysely palauttaa vain B035208:n.
+>
+> **Valmis 12.10.2026: import ajettu ja todennettu 335/335.** T38-kysely palauttaa vain B035208:n. Importoiduilla 335:llä `liab_settled_at` = `paid_at`, tapa 1, status 2 ja päättyminen 31.10. ennallaan (`SUM(id)` 5 457 579).
+> CSV: `imports/2026-10-12-t38-liab-settled-at/` (testirivi B000988 + 334,
+> `SUM(id)` 5 457 579). Todennettu: 335/335:n `paid_at` = Paylinkin `custrecord_pl_paid_at`, päiväkohtaiset summat täsmäävät.
 
 > [!NOTE]
 > **Tilanne 9.10.2026:** 336 pyörää (`link_sent` = T, tapa 1, `paid_at` asetettu) on ilman `liab_settled_at`:ia.
@@ -573,6 +638,24 @@ Jos yksikin puuttuu tai on Ended, **pysäytä ennen CSV:tä**: se on puuttuva pa
 ### [ ] T28 — ri_update vaihe 1c: *Ended retrospectively* vertaa päättymispäivää eikä -kuuta ([löydös](findings/2026-10-01-turhat-ri-huomiot-kehitys.md) § Virhe 1)
 
 > [!NOTE]
+> **21.10.2026: koodi tehty, tarkistettu täältä, ei commitoitu eikä ladattu.** `netsuite-monthly-reporting` `dev` (HEAD `981000c` + työpuun muutokset). T28, T29 ja T11:n
+> monthly-reporting-osa on tehty samassa muutoksessa.
+> - *Koodista todettu (T28):* `applyStage1cToRow`:n Ended-haara vertaa nyt kuukausia Helsinki-osilla (`getHelsinkiDateParts`, `endIdx + 1 < repIdx`).
+>   `addDays` on poistettu (ei muita kutsujia). Active/New- ja Paused-haarat ovat ennallaan. Työohjeen § 1 mukainen.
+> - *Koodista todettu (T29):* `stripProlongationTexts` on lisätty identtisenä kumpaankin MR-tiedostoon. Sitä kutsutaan `convertActiveRowToEnded`:ssa (myös kun `can_be_updated` = F; lokilause lisätään)
+>   ja priority 0:n carryssa (tyhjä teksti → `carryNotificationTo` palauttaa true, ja rivi poistuu). UE-skripteihin on lisätty vain sopimuskommentit. Työohjeen § 2 mukainen.
+> - *NetSuitesta todettu:* syyskuun alusta raportoiduilla RI-riveillä C3-lause on 137:llä, ja kaikki ovat täsmälleen koodin merkkijono. C4-lause on 214:llä, ja kaikki 214 osuvat koodin säännölliseen lausekkeeseen (0 ohi).
+> - **21.10. commitoitu ja ladattu:** `dev` `f4640a0` (ei vielä pushattu, ahead 2). File Cabinet, kansio 33843: `mr_monthly_reporting_ri_creation.js` (394006) on 88 959 tavua ja
+>   `mr_monthly_reporting_ri_update.js` (394008) 106 538 tavua, molemmat ladattu 21.10. klo 13:41. Koot ovat **tavulleen samat** kuin commitissa (CRLF).
+>   UE-tiedostoja ei ladattu (15.9. versiot). Niiden muutos on pelkkä kommentti, joten ajettava koodi ei eroa.
+> - **21.10. kylvetty testi B017530:llä läpi** ([tulokset](imports/2026-10-21-t28-t29-testi-b017530/README.md)): T28 negatiivinen (päättyi 10/2026, ei lippua) ja positiivinen (päättyi 1/2025, lippu),
+>   T29 muunnos `can_be_updated` F ja T (C3/C4 pois, muu teksti säilyy, lokilause) sekä priority 0 -siirto Warning → Ended ilman C3/C4:ää. Virheitä 0.
+> - **Siivous 21.10. todennettu:** 117469 on taas status 4, ja testirivit 154181–154183 ovat status 6. B017530:n elävät rivit ovat samat kuin ennen testiä (117469 Ended ja Warningit 117470, 117571).
+>   Deploymenttien parametrit palautti käyttäjä (SuiteQL ei näe niitä). **Tarkista ennen 1.11. ajoa, että testipyörä-parametrit ovat tyhjät** (lokin ensimmäinen rivi ei saa olla `⚠ TEST SCOPE`).
+> - **Jäljellä:** 1.11. todennus (4). ~~(1) commit, (2) lataus File Cabinetiin, (3) kylvetty testi ja siivous~~ (ri_creation ja ri_update ovat `TESTING`-tilassa ja ajetaan käsin, joten latauksen voi tehdä ennen 27.10., mutta ei 1.11. yönä),
+>   (3) kylvetty testi B017530:llä (työohje § 3A) viimeistään 30.10., (4) 1.11. todennuskyselyt (§ 3B).
+
+> [!NOTE]
 > **9.10.2026:** Työohjeen oletukset hyväksytty: Ended-riviltä poistetaan vain jälkiveloituslauseet, Paused-rivit jäävät ennalleen, eikä "Ended voittaa Active" -koodilaajennusta tehdä (T23 → raportointi).
 
 > [!NOTE]
@@ -588,6 +671,9 @@ Jos yksikin puuttuu tai on Ended, **pysäytä ennen CSV:tä**: se on puuttuva pa
 1.11. mennessä, marraskuun ajossa tehdään sama import.
 
 ### [ ] T29 — Jälkiveloituksen teksti (C3 + C4) jää Ended-riville ([löydös](findings/2026-10-01-turhat-ri-huomiot-kehitys.md) § Virhe 2)
+
+> [!NOTE]
+> **21.10.2026: koodi tehty ja tarkistettu, ei commitoitu eikä ladattu.** Ks. T28:n merkintä. Seuraavat askeleet ovat samat kuin T28:ssa.
 
 > [!NOTE]
 > **9.10.2026:** Työohjeen oletukset hyväksytty (ks. T28). **Kuvaus korjattu:** `mergeIntoExistingRi` ei muuta Ended-riviä. Teksti siirtyy Ended-riville kahdessa kohdassa: `ri_creation.js` `convertActiveRowToEnded` (sääntö A5) ja `ri_update.js` priority 0 `carryNotificationTo`.
@@ -786,6 +872,22 @@ kirjataan pelkkä `paid_at`.
 ### [ ] T15 — 95 status 2/3 -pyörää ilman `paid_at`:ia (erillinen tehtävä, päätetty 30.09.)
 
 > [!NOTE]
+> **Tarkistus 21.10.2026 (SuiteQL):** B004026 ja B015557 ovat korjaantuneet. Pyyntörivit 20612 ja 20706 nousivat tilaan **3** 13.10.,
+> joten retry-skriptiä ei tarvitse selvittää. Molemmat ovat status 2 / tapa 1 / `paid_at` 9.10. / IC 31.10.
+> B004026:n `liab_settled_at` 9.10. = keskenkauden CR 7159:n luontipäivä (Done 9.10.), ja B015557:n 12.10. = CR-käsittelyn päivä (ADR 0008).
+> Tehtävästä on auki enää jäännös: noin 258 pyörää ilman Paylink-maksua, mikä on ADR 0010:n mukaan sallittua. Ehdotus: sulje T15.
+
+> [!NOTE]
+> **Tarkistus 12.10.2026: suurelta osin korjaantunut.** Status 2/3 -pyöristä, joilla on Done-tilainen tyypin 2 CR, ilman `paid_at`:ia
+> on enää **267/1 914** (9.10.: 575/1 908). Niistä 171 on status 2 ja 96 status 3. Valmistunut Paylink-maksu on vain yhdeksällä:
+> - **Seitsemän** on status 3 -pyöriä, ja niiden maksut ovat tuotteilla *Työsuhdepyörän palautus* (6) ja *Käytetyn polkupyörän myynti* (1). Ne eivät ole lunastusmaksuja, joten `paid_at` kuuluukin jäädä tyhjäksi.
+> - **B004026** (*loppulunastus*, 2 844 €, maksettu 9.10.) ja **B015557** (*kesken kauden lunastus*, 749 €, maksettu 9.10.): molemmat pyyntörivit (20612, 20706) ovat
+>   `ns_status` = **5 Pending Bike**, vaikka `pl_ns_bike_id` on asetettu. SO:ta ei siksi ole, eikä 2.0:n maksutodiste (`ns_status` = 3 ja SO type 3/4) täyty.
+>   Retry-skriptin pitäisi nostaa ne (paylink-order-tracking). **Seuraa:** kun rivit nousevat tilaan 3, 2.0 kirjoittaa `paid_at`:in yöllä. Jos ne ovat yhä tilassa 5 15.10., selvitä retry-skripti. B004026:n 2 844 € on loppulunastukseksi poikkeuksellisen suuri.
+>
+> Lopuilla noin 258:lla ei ole valmistunutta Paylink-maksua. ADR 0010:n mukaan CR riittää keskenkauden lunastuksen todisteeksi, joten tyhjä `paid_at` on niillä sallittu.
+
+> [!NOTE]
 > **Tilanne 9.10.2026:** Joukko on kasvanut: status 2/3 -pyöristä, joilla on Done-tilainen tyypin 2 CR, 575/1 908 on ilman `paid_at`:ia. Tarkista 1480:n live-ajon jälkeen, kattaako se nämä.
 
 Löytyi T4:n yhteydessä. 95 status 2/3 -pyörällä on syyskuun maksutodiste (Paylink tai maksettu
@@ -841,7 +943,10 @@ Active-tilaan, ja 1.11. extension loisi niille tyypin 7 CR:n.
 **Takaraja:** jos 2.0 ei ole valmis, vanha pysyy päällä vähintään 1.11. klo 00:30 ajon yli.
 Osan A tunnetut viat hoidetaan lokakuussa T26:lla.
 
-### [ ] T26 — Lokakuu: osan A viikkotarkistus CSV:llä, kunnes 2.0 on käytössä
+### [x] T26 — Lokakuu: osan A viikkotarkistus CSV:llä, kunnes 2.0 on käytössä — **rauennut 21.10.2026**
+
+> [!NOTE]
+> **21.10.2026:** valmis-ehto "2.0 on käytössä" täyttyi 12.10. (T54, T55), joten varasuunnitelmaa ei tarvita.
 
 > [!NOTE]
 > **Tilanne 9.10.2026:** 1440 on pois ajastuksesta (export 9.10.: `NOTSCHEDULED`). 1480 ajaa vielä vain dry runia (T54), joten **varasuunnitelma 28.10. on voimassa**, kunnes T55 menee läpi.
@@ -881,7 +986,20 @@ Joka maanantai (5.10., 12.10., 19.10., 26.10.) ja 30.10.:
 1 735 pyörää saa arvon `decided_at` = uusimman Done-tilaisen tyypin 2 CR:n luontipäivä. **Valmis
 kun** kenttäsääntöjen § 10:n kysely *Päätöspäivä ≠ CR:n luontipäivä* palauttaa 0.
 
-### [ ] T8 — Poikkeuspäivät `subsc_end_date`:iin CSV:llä
+### [x] T8 — Poikkeuspäivät `subsc_end_date`:iin CSV:llä — **peruttu 21.10.2026 (tuoteomistaja)**
+
+> [!IMPORTANT]
+> **Peruttu 21.10.2026. CSV:tä ei ajeta.** Tuoteomistajan mukaan nykyiset `subsc_end_date`-arvot ovat oikein. Data tukee tätä:
+> 14/15:llä taloustiimin IC-lunastus (done = T) on tehty `LAST_DAY(subsc_end_date)`:n mukaan, ei poikkeuspäivän. Syyskuun riski
+> (Active-RI-rivit päättyneille) on poistunut, koska kaikki 15 ovat status 2 ja päättyneet viimeistään 30.09.2026. Kirjattu ADR 0010 k. 8:aan (*Kumottu 21.10.2026*).
+> T11 ei enää riipu T8:sta. ~~**Jäljelle jää B044906.**~~ **B044906 hoidettu 21.10.:** tuoteomistaja vahvisti oikeaksi päivämääräksi 31.08.2026 ja korjasi
+> `subsc_end_date`:n käsin. Todennettu SuiteQL:llä: `subsc_end_date` = `exceptional_end_date` = IC-päivä = 31.08.2026, done = T, status 2.
+
+> [!NOTE]
+> **Esitarkistus 21.10.2026 (ennen perumista):** Kysely palauttaa 17 riviä, `SUM(id)` 718 024 ja MIN/MAX 37 520 / 46 740. Tämä on täsmälleen CSV:n 15 riviä
+> (`SUM(id)` 624 545) + B046739 + B046740 (T19:n inaktivointi on tekemättä). Kaikki 15 CSV-pyörää ovat status 2, ja niiden `subsc_end_date` = CSV:n `subsc_end_date_nyt`.
+> **IC-vaikutus on nolla:** kaikilla 15:llä `ic_redemption_done` = T, joten status-sync 2.0 ei korjaa IC-päivää eikä hintaa, vaikka `subsc_end_date` aikaistuu.
+> Sivuhuomio: B046675:llä on yhä tapa 8. 9.10. päätetty CSV (`imports/2026-10-09-pyorapaatokset/`, tapa 1) näyttää ajamattomalta.
 
 > [!NOTE]
 > **9.10.2026:** CSV:ssä on **15** riviä (`01-subsc-end-date-2026-10-09.csv`). B040468 on jo oikein (30.6.2026), joten se jätettiin pois. Käyttäjä ajaa.
@@ -931,6 +1049,21 @@ ennen päättymiskuuta ilman CR:ää (tarkistettu koodista 30.09.). **Jos jollek
 
 ### [ ] T11 — Kirjasto: päättymisajankohta = `subsc_end_date`
 
+> [!IMPORTANT]
+> **21.10.2026: T8 peruttiin, joten T11 ei riipu siitä.** Alla olevat "vasta T8:n jälkeen" -ehdot ovat vanhentuneet.
+> Edellytyksistä on jäljellä yksi (B044906 korjattu 21.10. arvoon 31.08.2026): istunnossa tarkistetaan, miten 15 päättyneen pyörän Ended-RI-rivit reagoivat päättymisajankohdan
+> muutokseen (ri_update *Ended retrospectively*, päätelty, ei todennettu). Pyörät: B037520, B037916, B038366, B038758, B039116, B039319, B039324,
+> B039536, B042527, B043381, B044906, B045099, B045901, B046201, B046675.
+
+> [!NOTE]
+> **21.10.2026: monthly-reporting-osa tehty (ei commitoitu eikä ladattu).** `ri_creation` ja `ri_update` eivät enää lue eivätkä välitä poikkeuskenttiä kirjastolle.
+> Kirjaston `COALESCE` antaa siksi niille aina `subsc_end_date`:n, vaikka kirjasto on yhä 1.1.0.
+> - **Vaikutus:** NetSuitessa `COALESCE` ≠ `subsc_end_date` enää 16 pyörällä: 14 status 2 (ei B044906, korjattu) ja B046739/B046740 (status tyhjä, T19).
+>   Kaikilla 14:llä on jo Ended-RI-rivi (raportointipäivät 9.8.–1.10.), ja kaikki päättyvät ≤ 30.09. *Koodista päätelty:* ri_creation ohjaa ne
+>   `ended_already_reported`-haaraan, eikä ri_update käsittele niitä (ei 1.11. rivejä). Muutos on niille neutraali, ja T11:n tarkistuskohta on näin hoidettu.
+> - **Jäljellä cr-scripts-puoli:** `gbb_lunastus_lib.js:127-128` (1.1.0), `handler_lunastus.js:27-28` ja `ue_gbb_redemption_decided_at.js` lukevat yhä poikkeuskentät.
+>   Ei kiireellinen ennen 1.11.: ero koskee vain yllä olevia 16 pyörää, jotka ovat jo päättyneitä tai inaktivoitavia. Uusi tyypin 2 CR niille on epätodennäköinen (päätelty, ei estetty). Tehdään cr-scripts-istunnossa (kirjasto 1.2.0).
+
 > [!NOTE]
 > **9.10.2026:** Agentti löysi, että `COALESCE` on **`gbb_lunastus_lib`:ssa cr-scripts-repossa** (`KENTAT.PAATTYMISAJANKOHTA`), ei monthly-reportingissa. T11 tehdään siis **cr-scripts-istunnossa yhdessä H1–H6:n kanssa** (T13). Työohjeen osio on tiedostossa `docs/monthly-reporting-korjaukset-t28-t29.md` § T11. Päivitettävät kyselyt: `docs/lunastuksen-kenttasaannot.md` rivit 31, 449, 521, 547, 560 ja 630.
 
@@ -969,13 +1102,78 @@ päätös ei riipu T11:n ajoituksesta. Pyörät ovat jumissa, kunnes päätös o
 > [!NOTE]
 > **Tilanne 9.10.2026:** Repossa `netsuite-subscrption-cr-scripts` ei ole H1–H6-committeja 24.9. jälkeen.
 
+> [!NOTE]
+> **Tilanne 13.10.2026:** **Ei aloitettu.** cr-scripts-repon HEAD on yhä `6c388c2` (28.9.), joten työohjeen rivinumerot pätevät sellaisinaan.
+> - Työohjeen kaikki avoimet kysymykset on päätetty (9.10.). Päätös 5 on toteutettu: status-sync 2.0:n `cr_2_10` laskee tilat 1, 2 ja 6
+>   (`netsuite-bike-redemption-status-sync-rss2/gbb-redemption-sync-2/gbb_mr_redemption_sync2.js:385`, PR #5).
+>   Työohjeen § 4 viittaa vanhaan haaraan `feat/status-sync-2`, mutta havainnot pätevät yhä.
+> - *Ennakkomittaus NetSuitesta 13.10.:* Pending-tilaisia tyypin 2 CR:iä on 0. 1.9. jälkeen luoduista 362 Done-tilaisesta tyypin 2 CR:stä
+>   **yhdeltäkään ei puutu virallista päättymispäivää tai luontipäivää** (H1 0, H2 0). Työohjeen historiallinen 521/2 495 ei siis kuvaa
+>   nykyistä virtaa. H3:a ei voi mitata jälkikäteen, koska Done-käsittely on jo siirtänyt pyörän päättymispäivän. Toista mittaus 26.10.
+>   ja käy erikseen läpi asiakaspalvelun käsin luomat keskenkauden CR:t (T10, 19 pyörää).
+> - **Edellytys T8 ei täyty:** yhdenkään CSV:n 15 pyörän (`01-subsc-end-date-2026-10-09.csv`) `subsc_end_date`:a ei ole muutettu. Kaikki 15 ovat tilassa 2.
+>   TASKS:n "16 pyörää" on virhe, sillä tiedostossa on 15 riviä. CSV on ajettava ennen 27.10. latausta.
+> - **Suositus:** tee T11:n kirjasto-osuus (`gbb_lunastus_lib` 1.2.0, `KENTAT.PAATTYMISAJANKOHTA`) samassa cr-scripts-istunnossa ja lataa se samana päivänä.
+>   H3 lukee `paattymisajankohta`:a, joten eri päivinä ladatut versiot antaisivat eri tuloksen (työohje § 8). Monthly-reportingin osuus T11:stä tehdään T28/T29:n kanssa.
+
+> [!NOTE]
+> **14.10.2026: toteutettu ja ladattu, tuotantoajo odottaa.** cr-scripts PR #10 (`cc88214`): uusi puhdas moduuli `cr_lunastus_plan.js`,
+> `handler_lunastus.js` ja UE:n kommentit. Testit 93/93 ok.
+> - *Koodista todettu:* kaikki tarkistukset ajetaan ennen ensimmäistä kirjoitusta.
+>   - H1–H3 vievät tilaan Needs Review ja kirjoittavat lokikenttään rivit `NEEDS REVIEW Hx: …`.
+>   - H5: `decided_at` kirjoitetaan samassa `submitFields`:ssä kuin tapa.
+>   - H6: CR kirjoittaa aina, ja vanhat arvot menevät lokikenttään `OVERWRITTEN …`.
+>   - Testiajon `execute()` tukee Needs Review'ta.
+>   - Dispatcher (`cr_dispatcher.js:85-95`) asettaa tilan 6 kaikille handlereille.
+> - **Uusi päätös 13.10. (tuoteomistaja), joka korvaa 9.10. päätöksen 4:** jos pyörällä on jo toinen Done-tilainen tyypin 2 CR, uusi CR menee
+>   **Error**-tilaan eikä kirjoita mitään. Ensimmäisen CR:n muutokset on purettava käsin. Historiassa tällaisia pyöriä on 6.
+> - *NetSuitesta todettu:* File Cabinetin tiedostot (14.10.) ovat tavuilleen samat kuin commitoitu versio: `handler_lunastus.js` 182583 29 392 B ja
+>   `cr_lunastus_plan.js` 507687 7 655 B. UE:n koko on sama kuin repossa. Kirjasto on yhä 1.1.0 (21.9.), eli T11:tä ei ole tehty.
+> - **H3 ja T11:** aktiivisella pyörällä ei ole poikkeuspäiväkenttiä. Kaikki 221 arvoa ovat OOMI-pyörillä, joiden tila on 2, 3 tai tyhjä.
+>   T11:n latauspäivä ei siis muuta H3:n tulosta, ja T13:n ei tarvinnut odottaa T8:aa. ~~T8 on yhä T11:n edellytys.~~ (T8 peruttu 21.10.)
+> - **Ei vielä ajettu tuotannossa:** viimeiset tyypin 2 CR:t (7205–7211) käsiteltiin 13.10. vanhalla koodilla.
+>   Ensimmäisestä uudesta ajosta tarkistetaan:
+>   - lokirivissä on `settled_at = decided_at = …`
+>   - `decided_at` = `liab_settled_at` = CR:n luontipäivä
+>   - työohjeen § 6 jälkitarkistukset palauttavat 0
+>   - porttikvadrantin solu "2/3 + tuleva päättymispäivä" on 0
+>   Needs Review -polku (tapaukset a–c) todentuu vain kylvetyllä testi-CR:llä (B017530). **Käyttäjä 14.10.: kylvettyä testiä ei tehdä,
+>   vaan odotetaan luonnollista CR-virtaa.** Needs Review -polku todentuu siis vasta ensimmäisestä oikeasta puutteellisesta CR:stä.
+> - Samassa yhteydessä yhdistettiin PR #11 (`cr_bike_register_apply`: tyypin 1 siirto kirjoittaa uuden sopimustunnuksen rekisteriin; CSV
+>   `docs/…/2026-10-14-contract-external-id-fix.csv`). Se ei kuulu T13:een, eikä sitä ole tarkistettu täältä.
+
+> [!NOTE]
+> **21.10.2026: ensimmäinen tuotantoajo todennettu (SuiteQL + `scriptnote` 1199).** 20.10. käsiteltiin 36 tyypin 2 CR:ää (7218–7290):
+> 24 × 2C → tapa 1 / status 2, 6 × 2D → tapa 5 / status 3, 6 × vakuutus → tapa 7 / status 2. Kaikki päättyvät 31.10.2026.
+> - Kaikilla 36:lla `decided_at` = `liab_settled_at` = CR:n luontipäivä 20.10.
+> - Työohjeen § 6 jälkitarkistukset 1 ja 2 palauttavat **0**. Needs Review- ja Error-tilaisia tyypin 2 CR:iä 14.10. jälkeen on **0**.
+> - Kaikki 36 `handler_lunastus`-AUDIT-riviä sisältävät `decided_at`:in. `has no custrecord_cr_created_date` -rivejä on 0, ja ERROR-rivejä 0.
+> - Porttikvadrantti: kaikki 36 ovat solussa "päättymiskuu nyt". Solu "2/3 + tuleva" on 0.
+> - Needs Review -polku on yhä todentamatta, koska yksikään CR ei ollut puutteellinen.
+> - **Seuraa:** CR 7292 (B036379, T10, 2C, Pending, luotu 21.10.). Virallinen päättymispäivä 30.09.2026 on menneisyydessä,
+>   mutta pyörän `subsc_end_date` on 30.09.2027. Tarkista seuraavan ajon jälkeen tila, päivät ja hyvitys-CR 7293.
+
 [Vaatimuslista](docs/keskenkauden-lunastus-vaatimukset.md). Toteutetaan `netsuite-subscrption-cr-scripts`:ssä.
 
 ---
 
 ## Lokakuu 2026 — status-sync 2.0:n rakennus ([ADR 0015](docs/adr/0015-status-sync-2-tarkennukset.md))
 
-### [ ] T54 — Rakenna ja ota käyttöön status-sync 2.0 (`netsuite-bike-redemption-status-sync`), **viimeistään 28.10.**
+### [x] T54 — Rakenna ja ota käyttöön status-sync 2.0 (`netsuite-bike-redemption-status-sync`), **viimeistään 28.10.** — **tehty 12.10.2026**
+
+> [!NOTE]
+> **Valmis 12.10.2026.** Tarkistettu paikallisesti ja NetSuitesta:
+> - **Koodi:** PR #4 (`ba1d5bc`) ja PR #5 (`58a1bdd`, K2-rajaus ja CR-tila 6) on yhdistetty `master`iin. `master`issa 61/61
+>   testiä läpi, ja `node --check` MR-tiedostolle on OK.
+> - **File Cabinet** (kansio 44267): `gbb_mr_redemption_sync2.js` 30 364 tavua (ladattu 12.10.) = `master` 29 769 tavua
+>   + 595 CRLF-merkkiä. `gbb_rss2_paatos.js` 24 828 tavua = 24 338 + 490.
+> - **Deploymentit:** `customdeploy_gbb_mr_redemption_sync2` on `SCHEDULED` (Audit). Vanha
+>   `customdeploy_gbb_redemption_sync` (1440) ja extension `customdeploy_gbb_sub_extension` ovat `NOTSCHEDULED`.
+> - **Ajot:** ei yhtään `ERROR`-riviä 1480:llä live-käyttöönoton (10.10.) jälkeen, ja T55 on hyväksytty.
+> - **Dokumentit:** `CLAUDE.md`, muisti, `schemas/script-inventory.md` ja `docs/lunastus-tilanne.md` kertovat id:n 1480.
+>
+> **Jälkiseuranta:** PR #5:n koodi ajaa ensimmäisen kerran yöllä 12.→13.10. Odotus: sama tulos kuin ilman muutosta
+> (joukko J 41), ja `run complete` 0 virhettä. Tarkista ti 13.10. aamulla.
 
 > [!NOTE]
 > **Tilanne 9.10.2026:** **Ei valmis.** Kaikki koko kannan ajot ovat olleet `tila=dry_run`, myös ajastettu ajo 9.10. klo 00:31 Helsingin aikaa (valittu 3 763, kirjoitettu 1 921 *suunniteltuina*). Ainoat live-ajot olivat 8.10. testipyörillä. Export 9.10.: `customdeploy_gbb_mr_redemption_sync2` on `SCHEDULED` ja deployed. Parametrit eivät näy exportissa. **Toimenpide (käyttäjä): kytke deploymentin dry_run-parametri pois ennen yön ajoa.** Siihen asti mikään skripti ei kirjoita maksuja, statuksia eikä IC-päiviä (1440 pois 6.10.).
@@ -1018,9 +1216,38 @@ Raportointi: status-sync 2.0:n jättämät ryhmät on lisätty T51:een (raportoi
 > **Ajastettu 8.10., ajo joka yö klo 00:30.** Täyttä live-ajoa ei ajettu käsin, joten **yön 8.→9.10. ensimmäinen ajastettu ajo on
 > täysi ajo** (noin 1 906 kirjoitusta). Tarkistus T55.
 
-### [ ] T55 — Status-sync 2.0:n ensimmäisen ajastetun ajon tarkistus (pe 9.10.)
+### [x] T55 — Status-sync 2.0:n ensimmäisen ajastetun ajon tarkistus (pe 9.10.) — **tehty 12.10.2026**
 
 > [!NOTE]
+> **Tulos 12.10.: hyväksytty.** Ensimmäinen live-ajo oli 10.10. klo 00:31–00:46 Helsingin aikaa (`tila=live`,
+> `tanaan=2026-10-10`, aikavyöhyke Helsinki, `hintakirjasto=ok`, **0 virhettä**).
+> - **10.10.:** kirjoitettu 1 944: `paid_at` 542, tapa 1 78, tapa 2 28, OOMI 167, `liab_settled_at` 273,
+>   status 2 275, IC asetettu 1 453 / korjattu 86 / tyhjennetty 2.
+> - **Idempotenssi:** 11.10. 18 kirjoitusta ja 12.10. 8 kirjoitusta, molemmat 0 virhettä. 5 pyörää kirjoitettiin kahtena yönä,
+>   ja syy oli aina uusi tieto (myöhemmin näkynyt maksu), ei uudelleenkirjoitus.
+> - **IC-laskuri:** käynnistyi joka yö. 10.10.: `Success: 1369 | Errors: 170`. Virheistä 169 johtuu siitä, että
+>   kustannuslähde puuttuu (FAM ja `ic_sale_price` tyhjiä → hinta −1, ADR 0011 k. 3), ja 1 tyhjästä `rent_months`-kentästä
+>   (B036864). Avoimia −1-hintoja on 171.
+> - **Todennuskyselyt 12.10.:** kaikki 0 seuraavin poikkeuksin. IC-ero 2 = B015557 (CR-käsittelijä käänsi sen tänään
+>   klo 10:01, 2.0 hoitaa ensi yönä) ja testipyörä B017530 (rajattu pois). Kvadrantti *2/3 + tuleva* = 0.
+> - **Pistokokeet:** B001876 tapa 2 / `liab_settled_at` 16.9. ✓, B037453 OOMI IC 30.9. ✓, B023943 IC tyhjä ✓,
+>   B024587 IC tyhjä ✓.
+> - **Kohta 7:** `date_to_non_active` täyttyi 10.10. käännetyille (275). Tyhjänä on 8, jotka käännettiin 12.10. yöllä tai
+>   aamulla (1458:n viive).
+> - **Kohta 6** raukesi (extension T61).
+>
+> Löydökset, jotka vaativat ihmistä (raportointiryhmä LU3/LU4):
+> - **B020053:** status 2, mutta tapa 5 (palautus, kohdestatus 3). Tapa ja `liab_settled_at` asetettiin 9.10.
+> - **B024587:** status 3 ilman tapaa.
+> - **B036864:** status tyhjä, tapa 1, päättyi 31.10.2025. IC-hinta −1, koska `rent_months` puuttuu.
+>
+> **T54 ei ole vielä valmis.** PR #4 yhdistettiin 12.10. (`ba1d5bc`). File Cabinetin tiedostot (8.10.) vastaavat
+> `master`ia: koko eroaa täsmälleen rivimäärän verran (CRLF). **12.10.: molemmat lisävaatimukset on toteutettu
+> [PR #5](https://github.com/GobybikeFinland/netsuite-bike-redemption-status-sync/pull/5):ssä, ja tarkistus antoi APPROVE.
+> Jäljellä: yhdistäminen ja `gbb_mr_redemption_sync2.js`:n lataus File Cabinetiin.** Alkuperäinen puute oli tämä: K2-rajaus (vain `subsc_org_end_date`:n jälkeen alkavat pidennys-CR:t, `gbb_mr_redemption_sync2.js:139-141`) ja
+> CR-tila 6 `cr_2_10`-ehtoon (`:380`, nyt vain 1 ja 2).
+>
+> *Aiempi tilanne:*
 > **Tilanne 9.10.2026:** **Hylätty, uusinta la 10.10.** Kohta 1 ei täyty: `tila=dry_run` (muuten `tanaan=2026-10-09`, `hintakirjasto=ok`, `virheet=0`, valittu M505 V94 O167 J72 S94 I3148). Kohtia 2–5 ei voi mitata ilman live-ajoa. Kohta 6: extension `customdeploy_gbb_sub_extension` on `NOTSCHEDULED`, ja sen viimeinen loki on 1.10. 01:02 Helsingin aikaa (ks. T61).
 > **Käyttäjä 9.10.:** dry run on kytketty pois päältä. Ensimmäinen live-ajo on yöllä 9.→10.10. klo 00:30. Tarkista kohdat 1–5 la 10.10. Kohta 6 (extension 03:00) raukeaa, koska extension on pois ajastuksesta tarkoituksella (T61).
 
@@ -1056,13 +1283,17 @@ Listalle tulevat täsmälleen IC-lunastettavissa olevat pyörät: velvoitteet ho
 asetettu, `ic_redemption_pr` asetettu (myös `-1`) ja `ic_redemption_done` ≠ T. Näkyviin hinta, IC-päivä ja done. IC-myynti,
 status ja IC-päivän kuukausi eivät rajaa. **Valmis kun** haun rivimäärä = vastaava SuiteQL-määrä.
 
-### [ ] T40 — Status-sync 2.0: IC-vaihe ADR 0011:n mukaan — **yhdistetty T54:ään 7.10.**
+### [x] T40 — Status-sync 2.0: IC-vaihe ADR 0011:n mukaan — **yhdistetty T54:ään 7.10., suljettu 21.10.2026 (T54 valmis 12.10., T41 = 0)**
 
 [Suunnitelman vaihe 3](docs/status-sync-2-tasmaytysajo.md#vaihe-3--ic-lista): kirjoitus, kun velvoitteet on hoidettu (myös status 1),
 korjaus poikkeavaan päivään + hinnan tyhjennys, tyhjennys kun velvoitteet eivät enää ole hoidettu, `done` = T jäädyttää.
 `summarize` käynnistää IC-laskurin (D4). Laskuriin ei tarvita muutosta (`-1` puuttuvalle kustannuslähteelle on jo koodissa).
 
-### [ ] T41 — Käyttöönoton esiajo ja ensimmäinen ajo
+### [x] T41 — Käyttöönoton esiajo ja ensimmäinen ajo — **tehty 21.10.2026**
+
+> [!NOTE]
+> **Tulos 21.10.2026 (SuiteQL):** valmis-ehdon kysely palauttaa **0**: aktiivinen tietue, tapa asetettu, `ic_redemption_done` ≠ T ja IC-päivä tyhjä tai ≠ `LAST_DAY(subsc_end_date)`.
+> Positiivinen kontrolli: joukossa on 3 592 pyörää, ja 3 591:llä IC-päivä on oikein. Ainoa poikkeava on testipyörä B017530.
 
 > [!NOTE]
 > **Tilanne 9.10.2026:** Live-ajoa ei ole vielä tullut (ks. T54).
@@ -1150,7 +1381,7 @@ T37:n K-a, K-b ja K-c pysyvät ennallaan. Lisäksi:
 
 **Valmis kun** dry run ei valitse yhtään pyörää, jolla on tyypin 2 tai 10 CR (Pending/Done).
 
-### [ ] T44 — Status-sync 2.0: tavan 2 kattavuus ADR 0012:n mukaan (K2) — **yhdistetty T54:ään 7.10.**
+### [x] T44 — Status-sync 2.0: tavan 2 kattavuus ADR 0012:n mukaan (K2) — **yhdistetty T54:ään 7.10., suljettu 21.10.2026 (PR #5 tuotannossa, T53 12/13)**
 
 > 7.10.: ADR 0015 k. 5 muuttaa laskennan muutospyyntötasolle (Done-tilaiset pidennys-CR:t, CR:n sulkemispäivä). Alla
 > alkuperäinen muotoilu.
@@ -1309,7 +1540,16 @@ kirjoitetaan ADR ennen kuin siitä tulee tarkistus. Luettelo taustoineen: `docs/
 
 **Valmis kun** jokaisesta on hyväksytty ADR ja vastaava tarkistus on lisätty luetteloon.
 
-### [ ] T53 — 14 jälkiveloituspyörää ilman loppulunastustilausta
+### [x] T53 — 14 jälkiveloituspyörää ilman loppulunastustilausta — **tehty 12.10.2026 (B010533 siirretty T34:ään)**
+
+> [!NOTE]
+> **Tulos 12.10.2026 (SuiteQL):** **12/13** odotetusta pyörästä on status 2 ja tapa 2, ja niiden IC-päivä on 31.10.2026. `liab_settled_at` on 1.10., paitsi B001876:lla ja B036396:lla 16.9. ja B029420:llä 9.7.
+> - **B046667** on status 1 ilman tapaa, kuten odotettiin: vain CR 6973 on *pidennys*, ja 63,75 € < 132,27 €.
+> - **B016555** on oikein myös K2-rajauksella: CR:t 6488 ja 6944 alkavat `org_end`in (31.8.) jälkeen, ja 2 × 63,75 € ≥ 84,46 €.
+> - **B010533 ei saanut tapaa 2.** Sillä on kaksi Done-tilaista *pidennys*-CR:ää (6480, 6931), hinta on 49,40 € ja huoltosumma 265,93 €. Päätelty koodista (`tapa2Ehdokas`, ei lokissa,
+>   koska 1480 lokittaa vain kirjoitukset): huoltohyvitys vie maksettavan nettosumman nollaan, joten tulos on `NETTO_0`, eikä tapaa kirjoiteta. 1479 taas ohittaa jälkiveloituspyörät. **Pyörä jää Activeksi 31.10. jälkeen,
+>   eikä mikään skripti päätä sitä.** Siirretty T34:ään.
+> - **B029420:** tapa 2 ja `liab_settled_at` 9.7.2026 (toisen pidennys-CR:n 4216 päivä). T34:n mukaan pyörä on maksamaton keskenkauden lunastus, ja taloustiimi päättää hyvityksistä (T64). Huomioi tämä vastauksessa.
 
 > [!NOTE]
 > **Tilanne 9.10.2026:** Ratkeaa ADR 0012:n kattavuussäännöllä, eikä tilausta tarvita. Kaikki 14 ovat status 1, ilman tapaa ja päättyvät 31.10.
@@ -1325,6 +1565,11 @@ B001876, B003230, B003531, B003679, B003698, B003714, B006432, B010533, B010817,
 > [!NOTE]
 > **Tilanne 9.10.2026:** 1479 ei ole ajanut 7.10. jälkeen (ks. T30). 7.10. tuli kaksi RUN ABORTEDia: `months_before` oli ensin tyhjä ja sitten 3.
 > **Käyttäjä 9.10.:** ajastus on päivittäin klo 8:00, `custscript_gbb_eredem_months_before` = 1 ja dry run on pois päältä. Seuraava ajo on la 10.10. klo 8:00. Lue sen `selection`- ja `run complete` -rivit.
+
+> [!NOTE]
+> **Luettu 21.10.2026 (ajot 14.–21.10. Helsingin aikaa, 8 kpl):** kaikissa `dryRun=false`, `months_before=1`, `selected=1` ja
+> `run complete` = `SKIP_LINKED_SO=1 unhandledMapErrors=0`. ERROR-, ABORT-, `STAMP_FAILED`-, `EMAIL_FAILED`- ja `NOT_PRICED`-rivejä ei ole.
+> Linkkejä ei lähtenyt, koska marraskuun kohortin lähetyspäivä ei ole vielä tullut (`suodatettu lahetyspaiva=0`). Seuraava merkittävä ajo on kohorttiajo 31.10.
 
 A-julkaisu poistaa digestin. Lue jokaisen ajon jälkeen `scriptnote` (`scripttype = 1479`): `log.error`-rivit (`ERROR`, `STAMP_FAILED`, `EMAIL_FAILED`),
 `NOT_PRICED`, `SKIP_*`, sekä rivit, joilla `eheys` ei ole tyhjä. Lokin säilytys on noin 30 päivää. Rakenna kysely `queries/`-kansioon A:n ensimmäisen ajon jälkeen.

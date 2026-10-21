@@ -122,8 +122,11 @@ Jos jokin kysely palauttaa rivejä, tee 1.11. sama CSV-import kuin 1.10. (`impor
 ## T11: COALESCE pois kirjastosta
 
 **Tausta:** TASKS.md T11, vaatimus K1 (`keskenkauden-lunastus-vaatimukset.md`), ADR 0010 k. 8, ADR 0015. Päättymisajankohta luetaan jatkossa vain
-`custrecord_sta_subsc_end_date`:sta. **Ehto:** T8:n CSV (16 pyörän päättymispäivät, `imports/2026-09-25-poikkeuspaivat-subsc/`) ajetaan ja sen jälkitarkistus
-palauttaa 0 **ennen** uuden kirjaston latausta. Muuten 16 päättynyttä pyörää saa takaisin myöhemmän päättymispäivän ja RI-luonti voi tehdä niille Active-rivejä.
+`custrecord_sta_subsc_end_date`:sta. ~~**Ehto:** T8:n CSV ajetaan ennen uuden kirjaston latausta.~~ **T8 peruttiin 21.10.2026** (ADR 0010 k. 8):
+nykyiset `subsc_end_date`-arvot ovat oikein, eikä CSV:tä ajeta. Kirjaston voi ladata ilman sitä.
+- 15 päättyneen pyörän päättymisajankohta muuttuu poikkeuspäivästä `subsc_end_date`:iin. Muutos on tarkoituksellinen, ja kaikki päivät ovat ≤ 30.09.2026.
+- **Tarkista istunnossa:** tuottaako muutos näiden 15:n Ended-RI-riveille huomion tai muutoksen (ri_update, *Ended retrospectively*). Tämä on päätelty, ei todennettu.
+- B044906: korjattu 21.10. käsin arvoon 31.08.2026 (= poikkeuspäivä), joten se ei muutu. Muutos koskee siis 14 pyörää.
 
 **Havainto (eroaa toimeksiannon sanamuodosta):** `COALESCE` ei ole monthly-reportingissa vaan jaetussa kirjastossa `gbb_lunastus_lib`, joka asuu repossa
 `../netsuite-subscrption-cr-scripts` (`src/FileCabinet/SuiteScripts/gbb-lib/gbb_lunastus_lib.js`, versio 1.1.0, testit `tests/gbb_lunastus_lib.test.js`).

@@ -107,6 +107,8 @@ The Paylink pipeline state machine, on `custrecord_pl_ns_status`.
 | 3 | Completed | Terminal; never reprocessed |
 | 4 | Error | Admin email sent; admin resets to Pending |
 | 5 | Pending Bike | Awaiting `custrecord_pl_ns_bike_id`; retry script promotes it |
+| 6 | Pending payment | Seen 21.10.2026 on an unpaid end-redemption link (row 20907); added after the export |
+| 7 | Payment cancelled | Added after the export (SuiteQL 21.10.2026) |
 
 > **`netsuite-paylink-order-tracking/CLAUDE.md` names this list `customlist_paylink_ns_status`,
 > which does not exist in NetSuite.** The internal IDs it documents are correct; only the list
