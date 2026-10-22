@@ -36,7 +36,7 @@ Exportissa ovat status ja deployed-tieto. **Parametrit ja toistuvuus puuttuvat**
 **B. Käyttäjän ajettavat importit ja UI-toimet (README:t kansioissa)**
 1. `imports/2026-10-09-p2-cr-luontipaivat/` → sitten T7 `imports/2026-09-25-decided-at-historia/01-decided-at-2026-10-09.csv`
 2. ~~T8 `imports/2026-09-25-poikkeuspaivat-subsc/01-subsc-end-date-2026-10-09.csv`~~ **peruttu 21.10.2026, ei ajeta**
-3. `imports/2026-10-09-pyorapaatokset/` (01 tavat, 02 CR 4692 Cancelled, 03 B023403)
+3. ~~`imports/2026-10-09-pyorapaatokset/` (01 tavat, 02 CR 4692 Cancelled, 03 B023403)~~ **ajettu ja todennettu 22.10.2026** (B046675:n `liab_settled_at` 01.09.2026 asetettu käsin)
 4. Inaktivoi B046830, B046739, B046740, B004339 ja B046741 (linkit tarkistettu). Varmista B046741, ettei se ole odottava OOMI-pyörä.
 5. T20: B036939:n `curr_subs_rent` → 59,76.
 6. T48: haun 793 ehdot UI:sta **ennen T59:n latausta**.

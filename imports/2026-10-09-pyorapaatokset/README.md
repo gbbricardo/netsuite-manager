@@ -3,6 +3,18 @@
 **Tietue:** `customrecord_sta_bike_register` (tiedosto 01) ja `customrecord_subscrption_change_request` (tiedosto 02) · **Data Handling:** `UPDATE` · avain Internal ID.
 Tuoteomistajan päätökset 9.10.2026. Nykyarvot haettu NetSuitesta 9.10. (vain luku).
 
+> [!IMPORTANT]
+> **Ajettu 22.10.2026 klo 10:47–10:50 (käyttäjä). Tarkistettu SuiteQL:llä: kaikki paitsi B046675:n päivä.**
+> - B037996, B045683 → tapa 5 ✅ · B045304 → tapa 7, `liab_settled_at` 31.07.2026 ✅ · B036124 oli jo tapa 5 (muokattu 12.10.) ✅
+> - CR 4692 → **7 Cancelled** ✅. Jonossa on enää CR 4652 (tyyppi 13, Error 25.07.).
+> - B023403 `sta_redemption_date` tyhjä ✅ (`cm_processed` T jää, hyvitys jää asiakkaalle päätöksen mukaan)
+> - Uusia tai muuttuneita RI-rivejä ei ole (0). Statukset ennallaan.
+> - ❌ **B046675:** tapa on 1, mutta `liab_settled_at` on **tyhjä** (odotus 01.09.2026). Tietuetta ei muokattu importissa: `lastmodified` on 21.10.2026 11:17,
+>   joten tapa 1 oli asetettu jo ennen importtia, ja importin rivi ei kirjoittanut mitään. Korjaus: aseta `custrecord_gbb_liab_settled_at` = 01.09.2026 käsin,
+>   tai aja rivi uudelleen niin, että `loppuvastuut_hoidettu` on mapattu. Tarkista samalla importin tulosraportista, miksi rivi ohitettiin.
+> - ✅ **Korjattu 22.10.2026 klo 11:02 käsin (käyttäjä):** B046675 `liab_settled_at` = 01.09.2026, tapa 1, status 2, IC 30.09.2026 (SuiteQL). README:n jälkitarkistus palauttaa nyt 0.
+>   Sivuhuomio: `decided_at` = 21.10.2026 (UE leimasi, kun tapa 1 asetettiin 21.10.). Kauden lopun lunastuksessa kenttää ei lueta (ADR 0009), joten arvo on harmiton.
+
 ## Tiedostot
 
 | Tiedosto | Rivejä | Sisältö |
