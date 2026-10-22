@@ -188,13 +188,16 @@ Luotu 21.10., ja se oli silloin Pending. Hyvitys-CR 7293 on samassa paketissa. V
 
 **Valmis kun** kohdat 1–6 on kirjattu tähän, ja poikkeamat on viety T10:een tai T13:een.
 
-### [ ] T67 — 20 pyörää: syyskuu raportoitu Active, päättymisestä ei tietoa työnantajalle (tuoteomistaja päättää)
+### [x] T67 — 20 pyörää: syyskuu raportoitu Active, päättymisestä ei tietoa työnantajalle — **tehty 22.10.2026**
+
+> [!NOTE]
+> **22.10.2026: kaikille 17 työnantajalle on ilmoitettu virheistä (käyttäjä).** Koodikorjausta ei tehdä. Jäljelle jää 1.11. tarkistus, joka on siirretty T28:aan.
 
 [Löydös](findings/2026-10-22-raportoitu-paattymisen-jalkeen.md), luokka A. Pyörät päättyivät 30.06.–31.08.2026, mutta syyskuun Active-rivi on raportoitu.
 Ended-rivi syntyi item Q -backfillissä 04.09., ja se pidettiin tarkoituksella pois asiakasaineistosta. Lokakuun riviä ei ole, ja mikään automaatio
-ei tuota oikaisupyyntöä myöhemminkään. Syyskuun vähennykset ovat yhteensä noin 1 606 € netto (≈ 2 016 € brutto).
+ei tuota oikaisupyyntöä myöhemminkään. Syyskuun vähennykset ovat yhteensä 2 015,59 € brutto (CSV).
 - **Päätettävä:** ilmoitetaanko työnantajille käsin ("tarkastakaa syyskuun vähennys"), vai korjataanko rivit monthly-reporting-istunnossa, niin että seuraava ajo kantaa viestin?
-- Tarkista ensin, olivatko työnantajat D8-pidätyksessä syyskuussa. Silloin riviä ei lähtenyt, eikä oikaisua tarvita.
+- ~~Tarkista ensin, olivatko työnantajat D8-pidätyksessä syyskuussa.~~ **Tarkistettu 22.10.: eivät olleet.** Yhdelläkään 17 työnantajasta ei ollut syyskuun Warning-riviä CSV-hetkellä (01.09. klo 03:10, RI-data + `systemnote`). Kaikki 20 riviä lähtivät siis palkka-aineistossa. **Todennettu itse CSV:stä** (Shared drive Archive `2026-09-01_03-10`): 20/20 `Kaikki_aktiiviset`-tiedostossa, yhteensä 2 015,59 € brutto, eikä yksikään esiinny lokakuun tiedostoissa. Työnantajakohtainen lista on löydöksessä (§ *Esitarkistus*). **Odottaa tuoteomistajan päätöstä.**
 - **1.11.:** luokan C 11 marraskuun Ended-riviä saavat lipun (kysely löydöksessä), ja B020053 saa myöhästyneen Ended-rivin. Lisää T28:n todennukseen.
 
 ---
@@ -678,6 +681,7 @@ Jos yksikin puuttuu tai on Ended, **pysäytä ennen CSV:tä**: se on puuttuva pa
 >   T29 muunnos `can_be_updated` F ja T (C3/C4 pois, muu teksti säilyy, lokilause) sekä priority 0 -siirto Warning → Ended ilman C3/C4:ää. Virheitä 0.
 > - **Siivous 21.10. todennettu:** 117469 on taas status 4, ja testirivit 154181–154183 ovat status 6. B017530:n elävät rivit ovat samat kuin ennen testiä (117469 Ended ja Warningit 117470, 117571).
 >   Deploymenttien parametrit palautti käyttäjä (SuiteQL ei näe niitä). **Tarkista ennen 1.11. ajoa, että testipyörä-parametrit ovat tyhjät** (lokin ensimmäinen rivi ei saa olla `⚠ TEST SCOPE`).
+> - **1.11. lisäksi (T67, [löydös](findings/2026-10-22-raportoitu-paattymisen-jalkeen.md)):** luokan C 11 marraskuun Ended-riviä saavat tekstin *Tarkastakaa…* (kysely löydöksessä, odotus 11/11), ja B020053 saa myöhästyneen Ended-rivin.
 > - **Jäljellä:** 1.11. todennus (4). ~~(1) commit, (2) lataus File Cabinetiin, (3) kylvetty testi ja siivous~~ (ri_creation ja ri_update ovat `TESTING`-tilassa ja ajetaan käsin, joten latauksen voi tehdä ennen 27.10., mutta ei 1.11. yönä),
 >   (3) kylvetty testi B017530:llä (työohje § 3A) viimeistään 30.10., (4) 1.11. todennuskyselyt (§ 3B).
 

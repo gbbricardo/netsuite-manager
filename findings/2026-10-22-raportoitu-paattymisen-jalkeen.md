@@ -56,9 +56,60 @@ Näillä 20:llä oli kuitenkin jo syyskuun Active-rivi, ja ne tulivat mukaan var
 
 **Rahassa:** 20 × syyskuun vuokra = 1 606 € netto ≈ 2 016 € brutto (× 1,255).
 
+**Hoidettu 22.10.2026:** kaikille 17 työnantajalle on ilmoitettu (käyttäjä). Alla oleva ehdotus jää historiaksi.
+
 **Ehdotus (tuoteomistaja päättää):** työnantajille ilmoitus käsin (pyörä, päättymispäivä, "tarkastakaa syyskuun vähennys"),
 tai syyskuun Active-rivin muuttaminen niin, että seuraava ajo kantaa tiedon. Jälkimmäinen vaatii monthly-reporting-istunnon,
 koska status Deleted ei kanna viestiä (D12). Pelkkä Active → Deleted -muutos ei korjaa mitään asiakkaan päässä.
+
+### Esitarkistus 22.10.2026: D8-pidätys ei koske yhtäkään (T67)
+
+D8 (`netsuite-monthly-reporting` archive/TASKS.md D8): jos työnantajalla on kaudelle yksikin Warning-rivi, sen koko aineisto jätetään pois CSV:stä.
+Syyskuussa CSV ajettiin kerran, **01.09.2026 klo 03:10** (tiedostot 438691–438694, kansiot 33842/33844, ei uusintoja syyskuussa).
+CSV-tiedostoa ei voitu lukea (MCP: kansio ei ole sallituissa poluissa), joten tila CSV-hetkellä päätellään RI-riveistä:
+
+- **Syyskuun Warning-rivejä** ei nyt ole yhdelläkään 17 työnantajasta (0).
+- **14 työnantajaa:** yhtään ennen 03:10 luotua syyskuun riviä ei ole muutettu 03:10 jälkeen. Tila CSV-hetkellä on siis sama kuin nyt, eli ei Warningia.
+- **3 työnantajaa** (KELA 2, Kouvola 1, Lappi 37 muutettua riviä). `systemnote` (suodatin validoitu riviin 117469, jonka tunnetut statusmuutokset 21.10. näkyvät):
+  Lapin 37 riviä: vain `lease_fee_vat0`-korjaus 01.10. (OOMI-hinta-alihanke). KELA: yksi Ended → Active 28.09. Kouvola: rivi 93812 siirretty
+  Veljekset Ovaska Oy:ltä 25.09. **Yksikään muutos ei ole Warning → muu.**
+- Pyörien omat syyskuun Active-rivit on muokattu viimeksi 27.08.–31.08., eli ne olivat Active CSV-hetkellä.
+
+**Varmistettu palkka-aineistosta 22.10.2026** (Shared drive `…/Kuukausiraportointi_lähtötiedostosta_asiakkaille/Archive/`, luettu paikallisesti):
+- `2026-09-01_03-10/Kaikki_aktiiviset_…csv` (34 146 riviä): **kaikki 20 RI-riviä löytyvät.** `Kuukausivuokra` on 6 × 100,00, 1 × 99,86 ja 13 × 101,21,
+  yhteensä **2 015,59 € brutto**.
+- Syyskuun `paattyneet_ja_tauotetut` ja `uudet`: 0 osumaa. Lokakuun `2026-10-01_04-03` kaikki kolme tiedostoa: 0 osumaa.
+- **Syy näkyy CSV:stä:** CSV:n `Vuokrakausi päättyy` oli 1.9. vain 6 pyörällä 31.08.2026 tai aiemmin (B019294, B026252, B006689, B002971, B008961, B025101).
+  Muilla 14:llä se oli tulevaisuudessa (esim. B038735 24.02.2029, B044644 21.05.2027, B023575 31.12.2029). Päättyminen kirjattiin siis rekisteriin
+  vasta CSV:n jälkeen (takautuvasti), ja item Q -backfill teki siitä syyskuun Ended-rivin ilman oikaisupyyntöä. Kuudella päättymispäivä oli jo
+  CSV-hetkellä mennyt, mutta rivi oli silti Active (ri_creationin vanha sääntö ennen 4.9. korjausta).
+- B008579 ja B011961 kantoivat jo syyskuussa huomiot *"Työsuhteen muutostilanteen käsittely on kesken"* / *"Pyörän lunastus tai palautus on myöhässä"*.
+
+**Johtopäätös (aiemmin päätelty, nyt todennettu):** kaikki 20 syyskuun Active-riviä lähtivät 01.09. palkka-aineistossa, joten syyskuun vähennys on raportoitu
+17 työnantajalle. Ks. varmistus palkka-aineistosta yllä.
+
+| Työnantaja | Pyörät | Netto € |
+|---|---|---|
+| Etelä-Karjalan hyvinvointialue | B037859 | 79,57 |
+| Eurajoen kunta | B044437 | 80,65 |
+| Heila Oy | B008961 | 79,68 |
+| Härmämedi Oy | B038940 | 79,68 |
+| Kansaneläkelaitos - KELA | B042269 | 80,65 |
+| Kouvolan kaupunki | B044644 | 79,68 |
+| Käsivarren Kuljetus Oy | B002971 | 80,65 |
+| Lapin Hyvinvointialue | B038735, B042350 | 160,33 |
+| Medimanageri Oy | B026252 | 80,65 |
+| Metsäliitto Osuuskunta, Metsä Wood | B008579, B023575 | 160,33 |
+| Nuorten Ystävät ry | B044561 | 80,65 |
+| Oy Daniel Ab | B006689 | 80,65 |
+| Planmeca Oy | B019294 | 80,65 |
+| Pörhön Autoliike Oy | B039962, B046071 | 161,29 |
+| Rinnekodit Oy | B025101 | 80,65 |
+| Tribedo Oy | B024022 | 80,65 |
+| Widni Oy | B011961 | 79,68 |
+
+Lapin rivien hinnat korjattiin 01.10. jälkikäteen. Korjattu syyskuun palkka-aineisto toimitettiin alihankkeessa (V1–V6) NetSuiten ulkopuolella,
+eikä sen sisältöä ole tarkistettu täältä.
 
 ## Luokka D
 
