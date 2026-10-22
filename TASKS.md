@@ -148,11 +148,11 @@ Yksi lista kaikista kysymyksistä, jotka odottavat taloustiimiä tai asiakaspalv
 - [ ] **T39** haun 797 ehdot ja **T48** haun 793 ehdot käyttöliittymästä (käyttäjä tai NetSuite-ylläpito). **Haku 793 ensin, ennen T59:n latausta.**
 
 **Asiakaspalvelu**
-- [ ] **T35 B011223:** SO SOGBB0002659 1 040 € (10.12.2025, Kattava Oy / Toni Leinonen, maksamaton). Siirto-CR 5748 tehtiin 27.8.2026. Onko keskenkauden lunastus rauennut? Samasta erästä maksamatta myös B036396 (Jani Saarinen, 750,98 €) ja Huy Nguyen (1 667 €).
+- [x] **T35 B011223:** **22.10.: linkki pidetään avoinna, SO poistettu 21.10.; B036396:n SO poistettu 22.10.** SO SOGBB0002659 1 040 € (10.12.2025, Kattava Oy / Toni Leinonen, maksamaton). Siirto-CR 5748 tehtiin 27.8.2026. Onko keskenkauden lunastus rauennut? Samasta erästä maksamatta myös B036396 (Jani Saarinen, 750,98 €) ja Huy Nguyen (1 667 €).
 - [ ] **T16 B044504:** muutospyyntö keskenkauden päättymisestä (Paylink-tilauksen mukaan).
-- [ ] **T21 rekisteri-id 41345:** kumpi työnantaja on oikein, Serres Oy vai Paree Group Oy?
-- [ ] **T34 B046667:** maksulinkki alennetulla summalla (vakuutuskorvauspyörä, 2 kk sopimus) ennen 10.11.
-- [ ] **T10** 19 + 8 keskenkauden maksua ilman CR:ää. **T47** virheellisesti lähetetyt kauppakirjat (3). **T50** kieltolippujen syyt.
+- [x] **T21 rekisteri-id 41345:** **ratkennut 22.10.: Serres** (siirto-CR 6888, laskutus Serresille 1.11. alkaen).
+- [x] **T34 B046667:** maksulinkki alennetulla summalla. **Hoidettu: 166 € maksettu 15.10.**
+- [x] **T10** siirretty cf-gbb-toolsin KL2-raporttiin (T69 aukko). **T47** hyväksytty. **T50** nykytila riittää. (22.10.)
 
 ---
 
@@ -187,6 +187,14 @@ Luotu 21.10., ja se oli silloin Pending. Hyvitys-CR 7293 on samassa paketissa. V
 6. **T11:** 1199:n `handler_lunastus`-AUDIT-rivillä on `gbb_lunastus_lib=1.2.0`. Lisäksi 1480:n yöajossa 21.→22.10. on sama versio, ERROR-rivejä on 0 ja kirjoitusmäärä on normaali.
 
 **Valmis kun** kohdat 1–6 on kirjattu tähän, ja poikkeamat on viety T10:een tai T13:een.
+
+### [ ] T69 — KL2 ei näe työnantajan laskulla maksettua keskenkauden lunastusta (cf-gbb-tools, erillinen istunto)
+
+Löydetty 22.10. T10:n siirrossa. KL2 (`cf-gbb-tools/src/app/lib/tools/netsuite-reporting/checks/kl2.ts`) hakee maksun vain `customrecord_payment_requests`:sta
+(`kesken kauden` ja `ns_status` = 3). Keskenkauden lunastus voidaan maksaa myös työnantajalle tehdyllä laskulla (esim. B046429, INVGBB1009935,
+2M-IT Oy, 1 172 €, maksettu 10.06.2026, `custbody_sta_bike_id` = pyörä). Silloin pyörällä on `paid_at`, mutta KL2 ei listaa sitä.
+**Tehtävä cf-gbb-toolsissa:** lisää KL2:een toinen maksulähde (maksettu `CustInvc`, jolla `custbody_sta_bike_id` = pyörä ja keskenkauden lunastuksen nimike),
+tai lue pyörän `custrecord_gbb_redemption_paid_at`. Tarkista nimikkeen id ennen toteutusta. **Valmis kun** KL2 listaa B046429:n (tai sen CR on tehty).
 
 ### [ ] T68 — Metsä Boardin konsernisiirto 1.10.: lokakuun vähennys raportoitiin vanhalle työnantajalle (selvitettävä)
 
@@ -489,12 +497,17 @@ Skripti tulkitsee tallennetun hinnan 0 € käsirahaksi, eikä mikään automaat
 
 - [ ] **B010533** — **12.10.2026 (T53):** status-sync 2.0 ei kirjoittanut tapaa 2. Syy on todennäköisesti `NETTO_0`, koska huoltohyvitys ≥ hinta 49,40 €. Pyörä jää Activeksi 31.10. jälkeen. **Päätettävä ennen 1.11.:** tapa 3 käsin (huoltobudjetti kattaa) vai muu ratkaisu. — huoltosumma 265,93 € edellyttää 5 kk pidennystä. Pidennys on 4 kk = 2 kk huoltoa (2 pidennysriviä) + 2
   jälkiveloitus-CR:ää. Puuttuuko huoltopidennyksestä 3 kk (`sta_ue_bike_register_hook`), vai onko summa väärin? Hinta 49 €.
-- [ ] **B046667** — pidennys 1 kk, mutta Done-tilaisia tyypin 7 CR:iä on 2, ja huoltosumma on tyhjä. Onko toinen CR tupla, vai puuttuuko päivän siirto?
+- [x] **B046667** — *22.10.2026: maksettu. Loppulunastus 166 € (Paylink 20616, SO SOGBB0015689 type 4) 15.10., status 2, tapa 1, `paid_at` = `liab_settled_at` 15.10. Alennetun linkin pyyntö (T64) on hoidettu.* — pidennys 1 kk, mutta Done-tilaisia tyypin 7 CR:iä on 2, ja huoltosumma on tyhjä. Onko toinen CR tupla, vai puuttuuko päivän siirto?
 - [ ] **B016555** — pidennys 2 kk, Done-tilaisia tyypin 7 CR:iä 3 (Fortaco, T1d, CR-6488 korjattu). Täsmääkö laskutus pidennykseen?
 - [x] **B029420** — *päätetty 9.10.2026: ratkaistu T34:ssä (taloustiimi päättää hyvitykset, T64).* — — 5 kk jälkiveloitusta, hinta 110 €, kattavuuslistalla 185,20 € ≥ 110 €. Päättyykö tavalla 2 (K2)?
-- [ ] **B015132** — NOT_PRICED 1.10., nyt status 2 tapa 1. Mikä maksu kirjattiin ja millä summalla, kun linkkiä ei lähetetty?
+- [x] **B015132** — NOT_PRICED 1.10., nyt status 2 tapa 1. Mikä maksu kirjattiin ja millä summalla, kun linkkiä ei lähetetty? **22.10.2026:** Paylink 19037 *Työsuhdepyörän loppulunastus* 164,97 € completed 2.10. (SO SOGBB0015264 type 4), `paid_at` 1.10. ⚠ `liab_settled_at` on tyhjä, vaikka tapa on 1. Sama ilmiö kuin vanhan osan A tapa ilman päivää. Lisätään 1.11. tarkistukseen.
 
-### [ ] T35 — Ohitetut pyörät, joilla on vanha SO (ei linkkiä eikä omistajaa)
+### [x] T35 — Ohitetut pyörät, joilla on vanha SO (ei linkkiä eikä omistajaa) — **tehty 22.10.2026**
+
+> [!NOTE]
+> **22.10.2026 (käyttäjä, todennettu SuiteQL:llä):** SOGBB0000526 (B001876) ja SOGBB0002663 (B036396) poistettu, eikä pyörillä ole enää myyntitilauksia.
+> Molemmat ovat jo päättyneet tavalla 2. B031422:n SO poistettiin aiemmin, ja linkki lähtee 23.10. B011223:n avoin maksulinkki (161 €, Paylink 20907) **pidetään avoinna** (käyttäjä).
+> B019460 ja B012880 kunnossa. Kaikki kohdat käsitelty.
 
 > [!NOTE]
 > **Tilanne ja päätökset 9.10.2026:**
@@ -511,14 +524,14 @@ ja kuka perii sen. Jos se ei ole voimassa, SO suljetaan, lippu tyhjennetään, j
 - [x] **B012880** — *korjaantunut, todettu 21.10.2026: status 2 / tapa 1 / `liab_settled_at` = `paid_at` 7.9. / IC 31.10. Status-sync 2.0 hoiti, CSV:tä ei tarvita.* — **maksettu**: Paylink 5765 completed, SO type 4 SOGBB0014688 tila G, `paid_at` 7.9. Silti **status 1 ilman tapaa**
   (osa A ohitti, vrt. maksuikkunalöydös 23.09.). `subsc_end` siirtyi 30.9. → 31.10. ilman CR:ää. Tarvitsee tavan 1 ja `liab_settled_at`:in
   (S1-malli), ja päivän siirron syy on selvitettävä.
-- [ ] **B001876** — SO type 4 SOGBB0000526, tila B, 30.9.2025. Jälki-CR:t 4738, 6442 ja 6892, `org_end` 30.4.2026.
-- [ ] **B019460** — SO type 4 SOGBB0000535, tila H (suljettu), 30.9.2025. Jälki-CR:t 6490 ja 6947. Suljettu SO estää silti linkin.
+- [x] **B001876** — *22.10.2026: SO poistettu (käyttäjä), pyörä päättynyt tavalla 2.* SO type 4 SOGBB0000526, tila B, 30.9.2025. Jälki-CR:t 4738, 6442 ja 6892, `org_end` 30.4.2026.
+- [x] **B019460** — *22.10.2026: ei toimenpiteitä. Pyörä on päättynyt tavalla 2 (status 2, `liab_settled_at` 1.10.), joten linkkiä ei enää tarvita.* SO type 4 SOGBB0000535, tila H (suljettu), 30.9.2025. Jälki-CR:t 6490 ja 6947. Suljettu SO estää silti linkin.
 - [x] **B031422** — SO type 4 SOGBB0000529, tila B, 30.9.2025 (Netvisor-siirto, 1 171,01 €). Päättyy 31.10.2026. **22.10.2026: SO poistettu (käyttäjä).** Rekisterissä `end_red_so_created` F, `link_sent` F, ei tapaa, ei muita SO:ita. 1479 ohitti pyörän 21.10. asti tilalla `SKIP_LINKED_SO`, joten 23.10. klo 8 ajo lähettää linkin (eräpäivä = päättymispäivä 31.10.).
-- [ ] **B011223** — **21.10.2026:** asiakaspalvelu teki keskenkauden CR:n 7250 (*Notion-555 - 2C*, Done 20.10.). Pyörä on nyt status 2 / tapa 1 / `liab_settled_at` 20.10.
+- [x] **B011223** — *22.10.2026: avoin maksulinkki 20907 pidetään avoinna (käyttäjä).* **21.10.2026:** asiakaspalvelu teki keskenkauden CR:n 7250 (*Notion-555 - 2C*, Done 20.10.). Pyörä on nyt status 2 / tapa 1 / `liab_settled_at` 20.10.
   Auki ovat yhä SO 1 040 € ja 13.10. lähetetty maksulinkki 161 €. **Päätettävä:** suljetaanko ne, ettei asiakas maksa kahdesti.
   **21.10.: käyttäjä poisti SO:n SOGBB0002659** (todennettu: tranid ei enää löydy). Maksulinkki on yhä auki: pyyntörivi 20907, `pl_status` = `pending`,
   `ns_status` = 6 *Pending payment*. Päätettävä: perutaanko linkki Paylinkissä. — SO type 3 (keskenkauden) SOGBB0002659, tila B, 10.12.2025. Ei tyypin 2 CR:ää, päättyy 31.10.2026. Kuuluuko T10:een?
-- [ ] **B036396** — SO type 3 SOGBB0002663, tila B, 10.12.2025. Jälki-CR:t 4772, 6509 ja 6970.
+- [x] **B036396** — *22.10.2026: SO poistettu (käyttäjä), pyörä päättynyt tavalla 2.* SO type 3 SOGBB0002663, tila B, 10.12.2025. Jälki-CR:t 4772, 6509 ja 6970.
 
 B026671 (SKIP_LINKED_SO) on kunnossa: maksettu 30.9., status 2, tapa 1.
 
@@ -738,7 +751,12 @@ Ended-riville (`ue_reporting_item_late_redemption_prolongation.js:281-290`), ja 
 **Valmis kun** Ended-rivit eivät enää kanna tekstiä, ja Active-jälkiveloitusrivit säilyttävät sen.
 Tarkistetaan 1.11. ajossa.
 
-### [ ] T21 — Rekisteri-id 41345: työnantaja rekisterissä ≠ sopimusrivit (ri_creation-Warning 1.10.)
+### [x] T21 — Rekisteri-id 41345: työnantaja rekisterissä ≠ sopimusrivit (ri_creation-Warning 1.10.) — **ratkennut 22.10.2026**
+
+> [!NOTE]
+> **22.10.2026 (SuiteQL):** Asiakaspalvelu teki 30.9. siirtopaketin Paree Group → Serres (Notion-1405 - 2A: CR 6888 tyyppi 1, 6889 tyyppi 11, 6890 tyyppi 7, kaikki Done).
+> Paree Groupin vuokrarivi 97714 päättyy 31.10.2026, ja Serresin rivi 116443 (A005326) alkaa 1.11.2026. RI: lokakuu Ended (Paree) ja Active/New (Serres).
+> Siirron päiväjako on oikein (siirtopäivä vs. laskutuksen alku). Verovapaus F rekisterissä ja lokakuun riveillä (tyyppi 1 päättää verovapauden). Oikea työnantaja on siis Serres.
 
 > [!NOTE]
 > **Tuoteomistaja 9.10.2026:** Kootaan yhteen kaikki, mikä pitää selvittää muilta tahoilta. Ks. osio *Kysymykset muille tahoille* tiedoston alussa.
@@ -1110,7 +1128,13 @@ välein, eikä se osaa tehdä hyvityksiä oikein. Tyypin 11 CR on ainoa hyvitysp
 B031217 (`sta_redemption_date` 30.11.2025, `cm_processed` F). **Valmis kun** `scriptnote` ei näytä
 uusia ajoja (`scripttype = 966`).
 
-### [ ] T10 — 19 keskenkauden maksua ilman CR:ää, yksitellen
+### [x] T10 — 19 keskenkauden maksua ilman CR:ää, yksitellen — **siirretty 22.10.2026 cf-gbb-toolsin poikkeamaraporttiin**
+
+> [!IMPORTANT]
+> **22.10.2026 (käyttäjä): ei seurata enää tässä repossa.** Keskenkauden maksut ilman CR:ää nousevat cf-gbb-toolsin `netsuite-reporting`-poikkeamaraportille
+> tarkistuksena **KL2** (*Keskenkauden maksu ilman tyypin 2 CR:ää*, `src/app/lib/tools/netsuite-reporting/checks/kl2.ts`). Ehto ajettiin 22.10.: **45 pyörää**,
+> joista T10:n 13 jäljellä olevasta 12. **Aukko:** B046429 puuttuu, koska se on maksettu työnantajan laskulla (INVGBB1009935, 2M-IT Oy, 1 172 €, maksettu),
+> ja KL2 lukee vain Paylinkiä. Ks. T69.
 
 > [!NOTE]
 > **Tilanne 9.10.2026:** Pending-tilaisia tyypin 2 CR:iä on 0. T4:n kahdeksan pyörää on lisätty tähän. B036379 (maksu 14.09., ei CR:ää) kuuluu myös tähän.
@@ -1515,7 +1539,10 @@ Ei määritelty. Erillinen skripti, joka käyttää samaa hintakirjastoa kuin 14
 Määritelty 6.10.2026 tavoitetilana. Nykytila ja poikkeamat N1–N8: [löydös](findings/2026-10-06-kauppakirja-nykytila.md).
 Skriptimuutoksista päätetään erikseen.
 
-### [ ] T47 — Virheellisesti lähetetyt asiakaspalvelulle
+### [x] T47 — Virheellisesti lähetetyt asiakaspalvelulle — **tehty 22.10.2026**
+
+> [!NOTE]
+> **22.10.2026 (käyttäjä): lähetykset hyväksytään.** B045683 (status 3), B004255 (kieltolippu T) ja B002716 (tapa 7) saivat kauppakirjan. Ei jatkotoimia.
 
 B045683 (status 3) ja B004255 (kieltolippu T), sekä tapa 7 -pyörä (N3). Lähetettyä ei voi perua, vaan asiakaspalvelu päättää jatkosta.
 **Valmis kun** asiakaspalvelu on kuitannut kaikki kolme.
@@ -1532,7 +1559,11 @@ SuiteQL ei näe tallennettuja hakuja. Kirjaa ehdot ja hintasarakkeen liitos löy
 Ei-OOMI: tavoitetilan mukaan nämä saavat kauppakirjan, kun vuokrat on maksettu. OOMI: vain jos työntekijän maksu löytyy.
 Lisäksi 601 lähetettyä OOMI-pyörää: tarkista, onko niillä työntekijän maksu.
 
-### [ ] T50 — Kieltolippujen syyt (N7) ja tapa 8 -pyörät (N4)
+### [x] T50 — Kieltolippujen syyt (N7) ja tapa 8 -pyörät (N4) — **tehty 22.10.2026**
+
+> [!NOTE]
+> **22.10.2026 (käyttäjä): nykytila riittää.** Kieltolippuja on 18 (9.10.: 15), eikä yhdelläkään ole syytä. Active niistä B013813, B031921 ja B036155.
+> Tapa 8 -OOMI-pyöriä, jotka saivat kauppakirjan, on 96. Syitä ei kerätä.
 
 15 kieltolipulle syy asiakaspalvelulta. 96 tapa 8 -OOMI-pyörää: asiakaspalvelu korjaa selvitystavan, jos se on 5–7.
 
