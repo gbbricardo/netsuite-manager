@@ -140,10 +140,10 @@ Aja `node tools/export-schemas.mjs scripts` ja diffaa ennen committia.
 Yksi lista kaikista kysymyksistä, jotka odottavat taloustiimiä tai asiakaspalvelua. Merkitse vastaus tähän ja siirrä se tehtävään.
 
 **Taloustiimi**
-- [ ] **T1d ProMet Oy (konkurssi):** B023198, B024587 ja B024908. Kenen hallussa pyörät ovat, mistä päivästä raportointi lopetetaan, ja valvotaanko saamiset? Varasuunnitelma: RI-rivit 104318–104320 Endediksi ennen 1.11.
-- [ ] **T35 B031422:** SO SOGBB0000529, 1 171,01 € (Netvisor-siirto 30.9.2025, "Lunastukset (loppuvastuut)", Vaasan kaupunki / Isla Varpula). Mitä summa sisältää, ja onko se voimassa?
-- [ ] **T34 B029420** (Päijät-Hämeen hyvinvointialue): mitkä laskut hyvitetään? Keskenkauden lunastusta ei koskaan maksettu, ja sopimuksen olisi pitänyt päättyä 31.08.2025. Laskuja 1.9.2025 jälkeen on 11, yhteensä noin 1 653 € brutto. Niistä 6 tavallista vuokralaskua 12/2025–5/2026 (1 072 €, maksettu) ja 5 jälkiveloituslaskua 6–10/2026 (116,21 € kpl, joista 9/2026 ja 10/2026 avoinna, yhteensä 233 €). Erittely: `findings/2026-10-09-b029420-hyvitettavat-ja-b036939.md`.
-- [ ] **T58** Oomin toukokuun 2026 laskujen tuloutuskausi 2025-05 → 2026-05: 332 laskua, joista 12 avointa (lista `findings/2026-10-09-t58-oomi-toukokuu-tuloutuskausi.csv`). Onko **INVGBF1043393** (16.9.2026, 75 350,05 €) kaksoislasku laskulle INVGBF1026370 (75 350,03 €)?
+- [ ] **T1d ProMet Oy (konkurssi):** **22.10.: tehty (lokakuun RI-rivit Ended käyttöliittymästä, todennettu).** Kysymykset 2–3 yhä taloustiimille. B023198, B024587 ja B024908. Kenen hallussa pyörät ovat, mistä päivästä raportointi lopetetaan, ja valvotaanko saamiset? Varasuunnitelma: RI-rivit 104318–104320 Endediksi ennen 1.11.
+- [x] **T35 B031422:** **22.10.: SO poistettu (käyttäjä), todennettu. Maksulinkkiskripti (1479) valitsee pyörän 23.10. klo 8 ajossa: hinta 100,81 € netto, huoltosumma 0.** SO SOGBB0000529, 1 171,01 € (Netvisor-siirto 30.9.2025, "Lunastukset (loppuvastuut)", Vaasan kaupunki / Isla Varpula). Mitä summa sisältää, ja onko se voimassa?
+- [x] **T34 B029420** (Päijät-Hämeen hyvinvointialue): **päätetty 22.10.2026 (käyttäjä): mitään ei hyvitetä, ellei asiakas pyydä hyvitystä.** Mitkä laskut hyvitetään? Keskenkauden lunastusta ei koskaan maksettu, ja sopimuksen olisi pitänyt päättyä 31.08.2025. Laskuja 1.9.2025 jälkeen on 11, yhteensä noin 1 653 € brutto. Niistä 6 tavallista vuokralaskua 12/2025–5/2026 (1 072 €, maksettu) ja 5 jälkiveloituslaskua 6–10/2026 (116,21 € kpl, joista 9/2026 ja 10/2026 avoinna, yhteensä 233 €). Erittely: `findings/2026-10-09-b029420-hyvitettavat-ja-b036939.md`.
+- [x] **T58** (suljettu 22.10.) Oomin toukokuun 2026 laskujen tuloutuskausi 2025-05 → 2026-05: 332 laskua. **11 avointa korjattu 22.10. (käyttäjä)**, joten 321 maksettua jää, ja ne eivät estä. **Kiireellinen:** kaksi väärää lippua ja kauppakirjaa 17.10. (B038995, B045780). ~~Kaksoislasku INVGBF1043393?~~ **Ratkaistu 22.10.:** uudelleenlaskutus Oomille, alkuperäinen hyvitetty 28.9.
 
 - [ ] **T39** haun 797 ehdot ja **T48** haun 793 ehdot käyttöliittymästä (käyttäjä tai NetSuite-ylläpito). **Haku 793 ensin, ennen T59:n latausta.**
 
@@ -309,6 +309,12 @@ Kerro taloustiimille, että laskuri (`customdeploy_gbb_ic_redemption_pr`, Not Sc
 ajettava ja `-1`-rivit käytävä läpi ennen 30.09.
 
 ### [ ] T1d — Q4: neljä pysähtynyttä sopimusta taloustiimille (vastaus ennen 30.09.)
+
+> [!NOTE]
+> **22.10.2026 klo 13:38: tehty käyttöliittymästä ja todennettu (104318–104320 → Ended).** Jäljellä 1.11. tarkistus: ei marraskuun riviä näille pyörille.
+> **22.10.2026: käyttäjä päätti, että ProMet-pyörät asetetaan Endediksi.** Import [`imports/2026-10-22-promet-ri-ended/`](imports/2026-10-22-promet-ri-ended/README.md):
+> lokakuun RI-rivit 104318–104320 → Ended (3 riviä, `SUM(id)` 312 957). Peruste tarkistettu: rivit ovat Active, ja pyörät olivat syys- ja lokakuun palkka-CSV:ssä.
+> Ilman muutosta 1.11. syntyisi uusi Active-rivi. Kysymykset 2–3 (liikaa raportoidut kuukaudet ja saatavien valvonta) jäävät taloustiimille.
 
 > [!NOTE]
 > **Tilanne 9.10.2026:** B016555 on hoidettu (CR 6488 Done 15.09., tyypin 7 CR 6944 Done 1.10.). ProMet-pyörät B023198, B024587 ja B024908 ovat yhä status 1/1/3 ilman tapaa. Ne odottavat taloustiimin päätöstä.
@@ -503,7 +509,7 @@ ja kuka perii sen. Jos se ei ole voimassa, SO suljetaan, lippu tyhjennetään, j
   (S1-malli), ja päivän siirron syy on selvitettävä.
 - [ ] **B001876** — SO type 4 SOGBB0000526, tila B, 30.9.2025. Jälki-CR:t 4738, 6442 ja 6892, `org_end` 30.4.2026.
 - [ ] **B019460** — SO type 4 SOGBB0000535, tila H (suljettu), 30.9.2025. Jälki-CR:t 6490 ja 6947. Suljettu SO estää silti linkin.
-- [ ] **B031422** — SO type 4 SOGBB0000529, tila B, 30.9.2025 (Netvisor-siirto, 1 171,01 €). Päättyy 31.10.2026.
+- [x] **B031422** — SO type 4 SOGBB0000529, tila B, 30.9.2025 (Netvisor-siirto, 1 171,01 €). Päättyy 31.10.2026. **22.10.2026: SO poistettu (käyttäjä).** Rekisterissä `end_red_so_created` F, `link_sent` F, ei tapaa, ei muita SO:ita. 1479 ohitti pyörän 21.10. asti tilalla `SKIP_LINKED_SO`, joten 23.10. klo 8 ajo lähettää linkin (eräpäivä = päättymispäivä 31.10.).
 - [ ] **B011223** — **21.10.2026:** asiakaspalvelu teki keskenkauden CR:n 7250 (*Notion-555 - 2C*, Done 20.10.). Pyörä on nyt status 2 / tapa 1 / `liab_settled_at` 20.10.
   Auki ovat yhä SO 1 040 € ja 13.10. lähetetty maksulinkki 161 €. **Päätettävä:** suljetaanko ne, ettei asiakas maksa kahdesti.
   **21.10.: käyttäjä poisti SO:n SOGBB0002659** (todennettu: tranid ei enää löydy). Maksulinkki on yhä auki: pyyntörivi 20907, `pl_status` = `pending`,
@@ -1526,7 +1532,30 @@ Lisäksi 601 lähetettyä OOMI-pyörää: tarkista, onko niillä työntekijän m
 
 15 kieltolipulle syy asiakaspalvelulta. 96 tapa 8 -OOMI-pyörää: asiakaspalvelu korjaa selvitystavan, jos se on 5–7.
 
-### [ ] T58 — Oomin toukokuun 2026 laskujen tuloutuskausi (taloustiimi, ennen T59:n käyttöönottoa)
+### [x] T58 — Oomin toukokuun 2026 laskujen tuloutuskausi (taloustiimi, ennen T59:n käyttöönottoa) — **suljettu 22.10.2026**
+
+> [!NOTE]
+> **Suljettu 22.10.2026 (käyttäjä).** 11 avointa laskua korjattu kaudelle 2026-05. Maksettuja 321:tä ei korjata, koska ne eivät estä lippuja.
+> **B038995 ja B045780:** jo lähteneet kauppakirjat (17.10.) **hyväksytään** (käyttäjä 22.10.). Toukokuun laskut peritään normaalisti.
+
+> [!WARNING]
+> **22.10.2026: korjausta ei ole tehty, ja riski on toteutunut kahdesti.** Laskuja, joiden kausi on 2025-05, on yhä **332**, ja niistä avoinna **11**
+> (INVGBF1026421 maksettu 9.10. jälkeen). Lease fees check ei näe 2025-05-kautta pyörän kaudella (alku 2026-05), joten:
+> - **B038995** (Noptel Oy, avoinna INVGBF1026569 1 394,28 €) ja **B045780** (PRM-Trade Oy, avoinna INVGBF1026603 352,20 €) olivat WAITING 12.–15.10.
+>   muun laskun takia. Kun se maksettiin, ne saivat **lipun T 16.10.**, ja **kauppakirja lähti 17.10.** (`bill_of_sale_sent_to_user` = T). Lippua ja lähetystä ei voi perua (ADR 0016 k10).
+> - Muilla yhdeksällä asiakkaalla on avoinna myös muita vuokralaskuja (1–6 kpl), joten niiden pyörät ovat yhä WAITING. **Sama toistuu, kun ne maksavat
+>   muut laskut ennen toukokuun laskua.** Eniten vaikuttaa CGI Suomi Oy (INVGBF1026402, 27 571,66 €, satoja WAITING-rivejä).
+> - Avoimet: INVGBF1026386 AktiaDuetto, 1026390 Alteams Finland, 1026391 Alteams, 1026402 CGI Suomi, 1026533 LTC-Otso (1.5.) sekä 1026382 3F Group,
+>   1026413 Ellappi, 1026486 Kemin Satama, 1026569 Noptel, 1026603 PRM-Trade, 1026693 Visionwise Invest (7.5.).
+> - **Kaksoislaskuepäily on ratkaistu datasta:** INVGBF1026370 (Etelä-Karjalan hyvinvointialue, 1.5.) hyvitettiin kokonaan 28.9. (CRMGBF0003982, −75 350,03 €,
+>   *"Odotetaan tilinumeroa"*), ja toukokuu laskutettiin uudelleen Oomi Oy:ltä 16.9. (INVGBF1043393). Kyse ei ole kaksoiskirjauksesta.
+> - **Pienin korjaus heti:** kausi 2026-05 vain 11 avoimelle laskulle. Ne ratkaisevat liput, ja maksetut 321 laskua eivät estä mitään.
+>
+> **✅ 22.10.2026 klo 13:05–13:25: 11 avointa laskua korjattu (käyttäjä), todennettu SuiteQL:llä.** Kaikki 124 vuokrariviä (tuote 30/31/33) on nyt kaudella
+> 1.5.–31.5.2026, eikä yhtään 2025-05-riviä jäänyt. Summat ennallaan (yhteensä 35 663,33 €), ja laskut ovat yhä avoimia. Lease fees check näkee nyt toukokuun laskun,
+> ja näiden asiakkaiden pyörät pysyvät WAITING-tilassa, kunnes se on maksettu. **Jäljellä:** 321 maksettua laskua, joiden kausi on yhä 2025-05 (avoimia 0).
+> Ne eivät estä mitään, joten valmis-ehdon täyttävä korjaus (kysely → 0) on kirjanpidon siisteyttä, ei lippujen kannalta tarpeellinen.
+> B038995:n ja B045780:n jo lähteneistä kauppakirjoista päätetään erikseen (tuoteomistaja).
 
 > [!NOTE]
 > **9.10.2026:** Lista on valmis: `findings/2026-10-09-t58-oomi-toukokuu-tuloutuskausi.csv` (332 laskua, 6 346 riviä; avoinna **12**, ei 13) ja saate (.md). Mukana yksi lisälasku **INVGBF1043393** (Oomi Oy 16.9.2026, 75 350,05 €, maksettu), joka muistuttaa laskua INVGBF1026370 (75 350,03 €). Mahdollinen kaksoislasku, kysytään taloustiimiltä (T64). Laskuilla ei ole `custbody_sta_bike_id`:tä.
@@ -1587,7 +1616,9 @@ toimii `N/search`-suodattimena (tai käytä `N/query`:a). **Valmis kun** muutos 
 > **Tulos 22.10.2026** (`scriptnote` 1432 + SuiteQL, kysely [`queries/lease-fees-vaarat-liput.md`](queries/lease-fees-vaarat-liput.md)):
 > - **Ajot:** live 12.10. alkaen päivittäin noin klo 16 Helsingin aikaa, `virheet=0` jokaisessa. Viimeisin näkyvä yhteenveto 20.10.: `PAID=4 WAITING=107 NO_CUSTOMER=2`.
 >   21.10. selection-rivi näkyy (`alkupaiva=2026-06-01 jono=117`), mutta run complete ei näy MCP:n kautta.
-> - **Ei yhtään väärää T:tä:** 841 live-PAID-pyörää (332 asiakasta) verrattiin kaikkiin 3 821 avoimeen asiakas- ja vuokrakuukausiryhmään skriptin omalla ehdolla. **0 osumaa.**
+> - **Ei yhtään väärää T:tä skriptin omalla säännöllä:** 841 live-PAID-pyörää (332 asiakasta) verrattiin kaikkiin 3 821 avoimeen asiakas- ja vuokrakuukausiryhmään. **0 osumaa.**
+>   ⚠ **Korjattu samana päivänä:** sääntö ei näe T58:n laskuja (kausi 2025-05), ja tarkistus toisti saman sokean pisteen. **2 väärää T:tä:** B038995 ja B045780,
+>   joille kauppakirja lähti 17.10. Ks. T58.
 > - **Portti pitää:** kaikki 841 ovat status 2, ja `subsc_end_date` < ajopäivä. Jokaisella lippu on T.
 > - **`NO_CUSTOMER`** (2 pyörää live-ajoissa): lippu F.
 > - **B006141 ja B034775:** lippu T. OOMI-pyörät, joiden status on 2 ja jotka päättyivät syys–lokakuussa ennen 22.10.: 321 T ja 85 F. Niistä 81 on WAITING (avoin Oomi-lasku, esim. INVGBF1042709),
@@ -1798,7 +1829,7 @@ todennettu NetSuitessa 28.09., syyt ovat päätelmiä ellei toisin sanota.
 
 **Jälkiveloituksen kattavuus (K2, approksimaatio)**
 
-- [ ] **B029420** — maksetut tyypin 7 laskut 185,20 € netto ≥ lunastushinta 110 €, päättyy 30.09.
+- [x] **B029420** — *päätetty 22.10.2026: laskuja ei hyvitetä, ellei asiakas pyydä.* Pyörä on päättynyt tavalla 2 (status 2, `subsc_end_date` 31.10.2026, IC 31.10.2026). — maksetut tyypin 7 laskut 185,20 € netto ≥ lunastushinta 110 €, päättyy 30.09.
   Päättyykö lunastettuna (tapa 2)?
 - [x] **B031624** — *korjaantunut 9.10.2026: maksu tuli 1.10., status 2 / tapa 1.* — 185,20 € ≥ 100 €, päättyy 31.10.2026. Sama kysymys.
 - [ ] **B046508** — lunastushinta 0, ehto täyttyy tyhjänä. Onko hinta oikeasti 0 vai puuttuuko se?

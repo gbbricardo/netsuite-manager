@@ -29,6 +29,9 @@ Vertailu: jokaiselle `PAID <pyörä>` -riville ja jokaiselle sen asiakkaalle osu
 **Tarkistukset:** ryhmiä luettiin 3 821/3 821 (kaikki sivut). Kysely 1 palautti 8 764 riviä 8 853:sta (MCP jättää osan pois), joten live-PAID-joukko
 voi olla vajaa. Puuttuvat rivit ovat todennäköisesti 21.10. ajon rivejä.
 **Huomiot:**
+- ⚠ **Sokea piste (22.10.):** tarkistus käyttää samaa `revrec_start`-sääntöä kuin skripti, joten se ei näe laskuja, joiden kausi on kirjattu väärin (T58: kausi 2025-05
+  laskuilla, jotka on päivätty 2026). Aja lisäksi T58-kysely (`findings/2026-10-09-t58-oomi-toukokuu-tuloutuskausi.md`) ja vertaa sen avoimien laskujen asiakkaita PAID-pyöriin.
+  22.10. tämä löysi 2 väärää T:tä (B038995, B045780).
 - REST-integraatio (`tools/netsuite-auth.mjs`) ei pysty lukemaan `transactionline`-kyselyä (*Invalid or unsupported search*), mutta MCP pystyy.
   Siksi kysely 2 ajetaan MCP:llä.
 - Tulos kertoo nykyhetken. Lippua ei palauteta F:ksi (ADR 0016 k10), joten myöhemmin luotu lasku kaudelle olisi uusi löydös, ei skriptin virhe.

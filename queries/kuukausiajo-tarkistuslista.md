@@ -152,7 +152,7 @@ WHERE ri.custrecord_gbb_ri_reporting_status = 4 AND ri.custrecord_gbb_ri_reporti
   AND br.name IN ('B003182','B007696','B024380','B027918','B029495','B030544','B033466','B036379','B040768','B043365','B044884')
 ```
 **B020053:** saa myöhästyneen Ended-rivin (`ended_created_late`) ja lipun. Syys- ja lokakuu raportoitiin Active-tilaisina, vaikka `subsc_end_date` on 31.08.
-**ProMet (T1d):** jos taloustiimi ei ole vastannut, RI-rivit 104318–104320 muutetaan Endediksi ennen CSV:tä (varasuunnitelma).
+**ProMet (T1d):** lokakuun RI-rivit 104318–104320 asetettiin Endediksi 22.10. Marraskuun riviä ei saa syntyä B023198:lle, B024587:lle eikä B024908:lle (kysely `imports/2026-10-22-promet-ri-ended/README.md`). Poista ne kohdan 3 tunnetuista.
 **B036939 (T20):** marraskuun rivin `lease_fee_vat0` on 59,76 (rekisteri korjattu 22.10.).
 
 ## Havainto (ei tarkistus): Metsä Boardin konsernisiirto kesken lokakuun ajon
