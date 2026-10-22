@@ -140,7 +140,7 @@ Aja `node tools/export-schemas.mjs scripts` ja diffaa ennen committia.
 Yksi lista kaikista kysymyksistä, jotka odottavat taloustiimiä tai asiakaspalvelua. Merkitse vastaus tähän ja siirrä se tehtävään.
 
 **Taloustiimi**
-- [ ] **T1d ProMet Oy (konkurssi):** **22.10.: tehty (lokakuun RI-rivit Ended käyttöliittymästä, todennettu).** Kysymykset 2–3 yhä taloustiimille. B023198, B024587 ja B024908. Kenen hallussa pyörät ovat, mistä päivästä raportointi lopetetaan, ja valvotaanko saamiset? Varasuunnitelma: RI-rivit 104318–104320 Endediksi ennen 1.11.
+- [x] **T1d ProMet Oy (konkurssi):** **22.10.: tehty (lokakuun RI-rivit Ended, todennettu). Taloustiimi: raportointia ei korjata, saatavia ei valvota.** B023198, B024587 ja B024908. Kenen hallussa pyörät ovat, mistä päivästä raportointi lopetetaan, ja valvotaanko saamiset? Varasuunnitelma: RI-rivit 104318–104320 Endediksi ennen 1.11.
 - [x] **T35 B031422:** **22.10.: SO poistettu (käyttäjä), todennettu. Maksulinkkiskripti (1479) valitsee pyörän 23.10. klo 8 ajossa: hinta 100,81 € netto, huoltosumma 0.** SO SOGBB0000529, 1 171,01 € (Netvisor-siirto 30.9.2025, "Lunastukset (loppuvastuut)", Vaasan kaupunki / Isla Varpula). Mitä summa sisältää, ja onko se voimassa?
 - [x] **T34 B029420** (Päijät-Hämeen hyvinvointialue): **päätetty 22.10.2026 (käyttäjä): mitään ei hyvitetä, ellei asiakas pyydä hyvitystä.** Mitkä laskut hyvitetään? Keskenkauden lunastusta ei koskaan maksettu, ja sopimuksen olisi pitänyt päättyä 31.08.2025. Laskuja 1.9.2025 jälkeen on 11, yhteensä noin 1 653 € brutto. Niistä 6 tavallista vuokralaskua 12/2025–5/2026 (1 072 €, maksettu) ja 5 jälkiveloituslaskua 6–10/2026 (116,21 € kpl, joista 9/2026 ja 10/2026 avoinna, yhteensä 233 €). Erittely: `findings/2026-10-09-b029420-hyvitettavat-ja-b036939.md`.
 - [x] **T58** (suljettu 22.10.) Oomin toukokuun 2026 laskujen tuloutuskausi 2025-05 → 2026-05: 332 laskua. **11 avointa korjattu 22.10. (käyttäjä)**, joten 321 maksettua jää, ja ne eivät estä. **Kiireellinen:** kaksi väärää lippua ja kauppakirjaa 17.10. (B038995, B045780). ~~Kaksoislasku INVGBF1043393?~~ **Ratkaistu 22.10.:** uudelleenlaskutus Oomille, alkuperäinen hyvitetty 28.9.
@@ -308,7 +308,11 @@ päättymisajankohdasta).
 Kerro taloustiimille, että laskuri (`customdeploy_gbb_ic_redemption_pr`, Not Scheduled) on
 ajettava ja `-1`-rivit käytävä läpi ennen 30.09.
 
-### [ ] T1d — Q4: neljä pysähtynyttä sopimusta taloustiimille (vastaus ennen 30.09.)
+### [x] T1d — Q4: neljä pysähtynyttä sopimusta taloustiimille (vastaus ennen 30.09.) — **tehty 22.10.2026**
+
+> [!NOTE]
+> **Taloustiimin päätös 22.10.2026:** ProMetin liikaa raportoituja kuukausia (syys- ja lokakuu) **ei korjata**, eikä saatavia konkurssipesältä **valvota**.
+> Lokakuun RI-rivit ovat Ended (ks. alla). Ainoa jäljellä oleva toimenpide on 1.11. tarkistus, ettei marraskuun riviä synny (kuukausiajon tarkistuslista).
 
 > [!NOTE]
 > **22.10.2026 klo 13:38: tehty käyttöliittymästä ja todennettu (104318–104320 → Ended).** Jäljellä 1.11. tarkistus: ei marraskuun riviä näille pyörille.

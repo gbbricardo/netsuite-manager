@@ -30,7 +30,7 @@ UTF-8 ilman BOM:ia, erotin `;`, CRLF. Mappaa `internal_id` → **Internal ID** j
 **Ei tässä importissa:**
 - Pyörärekisterin status ja tapa jäävät ennalleen.
 - Syyskuun rivit (raportoitu Active) jäävät ennalleen.
-- Liikaa raportoitujen kuukausien oikaisu ja saatavien valvonta (T1d kysymykset 2–3) jäävät taloustiimille.
+- Liikaa raportoitujen kuukausien oikaisu ja saatavien valvonta: **taloustiimi päätti 22.10., ettei kumpaakaan tehdä.**
 
 ## Esitarkistus (odotus 3 riviä, kaikki status 1)
 
