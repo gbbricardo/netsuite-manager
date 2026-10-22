@@ -145,7 +145,7 @@ Yksi lista kaikista kysymyksistä, jotka odottavat taloustiimiä tai asiakaspalv
 - [x] **T34 B029420** (Päijät-Hämeen hyvinvointialue): **päätetty 22.10.2026 (käyttäjä): mitään ei hyvitetä, ellei asiakas pyydä hyvitystä.** Mitkä laskut hyvitetään? Keskenkauden lunastusta ei koskaan maksettu, ja sopimuksen olisi pitänyt päättyä 31.08.2025. Laskuja 1.9.2025 jälkeen on 11, yhteensä noin 1 653 € brutto. Niistä 6 tavallista vuokralaskua 12/2025–5/2026 (1 072 €, maksettu) ja 5 jälkiveloituslaskua 6–10/2026 (116,21 € kpl, joista 9/2026 ja 10/2026 avoinna, yhteensä 233 €). Erittely: `findings/2026-10-09-b029420-hyvitettavat-ja-b036939.md`.
 - [x] **T58** (suljettu 22.10.) Oomin toukokuun 2026 laskujen tuloutuskausi 2025-05 → 2026-05: 332 laskua. **11 avointa korjattu 22.10. (käyttäjä)**, joten 321 maksettua jää, ja ne eivät estä. **Kiireellinen:** kaksi väärää lippua ja kauppakirjaa 17.10. (B038995, B045780). ~~Kaksoislasku INVGBF1043393?~~ **Ratkaistu 22.10.:** uudelleenlaskutus Oomille, alkuperäinen hyvitetty 28.9.
 
-- [ ] **T39** haun 797 ehdot ja **T48** haun 793 ehdot käyttöliittymästä (käyttäjä tai NetSuite-ylläpito). **Haku 793 ensin, ennen T59:n latausta.**
+- [x] **T39** ja **T48** hakujen ehdot luettu 22.10. (käyttäjä). Ks. tehtävät. **797:n päivä 30.09. on vaihdettava 31.10.:ksi ennen 29.10. IC-ajoa.**
 
 **Asiakaspalvelu**
 - [x] **T35 B011223:** **22.10.: linkki pidetään avoinna, SO poistettu 21.10.; B036396:n SO poistettu 22.10.** SO SOGBB0002659 1 040 € (10.12.2025, Kattava Oy / Toni Leinonen, maksamaton). Siirto-CR 5748 tehtiin 27.8.2026. Onko keskenkauden lunastus rauennut? Samasta erästä maksamatta myös B036396 (Jani Saarinen, 750,98 €) ja Huy Nguyen (1 667 €).
@@ -1405,7 +1405,21 @@ ja `docs/lunastus-tilanne.md`. Seuraavien öiden ajojen pitää olla pieniä (id
 
 Määritelty 6.10.2026. Sanasto on `CONTEXT.md` § *IC-käsitteet*. Korjaukset tehdään omistavissa repoissa erillisessä istunnossa.
 
-### [ ] T39 — Haun 797 ehdot (taloustiimi tai NetSuite-ylläpito)
+### [x] T39 — Haun 797 ehdot (taloustiimi tai NetSuite-ylläpito) — **luettu 22.10.2026**
+
+> [!NOTE]
+> **Ehdot käyttöliittymästä 22.10.2026 (käyttäjä):** `IC REDEMPTION PROCESSED` is false · `CONTRACT FINANCIER` is any of none, GoByBike Finance Oy ·
+> `ASSET ID : Asset Status` is not Disposed · `IC REDEMPTION DATE` is on or before **30.09.2026**.
+>
+> **Vertailu ADR 0011 k4:ään (SuiteQL 22.10.):** IC-päivä asetettu ja done ≠ T = **3 597** pyörää. Kaikilla on tapa ja hinta, joten ADR:n joukko on sama 3 597.
+> Haku 797 näyttää näistä vain osan:
+> - **Päivä on kovakoodattu 30.09.2026.** Sillä haku antaa **572** riviä. Lokakuun IC-ajoa (29.10.) varten päivä on vaihdettava 31.10.2026:ksi, jolloin rivejä on **1 542**.
+>   ADR:n mukaan tuleva päivä ei estä listalle nousua, ja taloustiimi rajaa kuukauden itse. Kovakoodattu päivä on taloustiimin tapa rajata, mutta se on päivitettävä joka kuukausi.
+> - **1 953 pyörää rajautuu pois `Disposed`-ehdolla:** FAM-omaisuus on luovutettu, mutta `ic_redemption_done` on yhä F. Ne eivät näy listalla, ja ADR 0011 k6:n mukaan
+>   2.0 voi yhä muuttaa niiden IC-päivää ja hintaa, koska done ei ole T. Taloustiimin päätettäväksi: merkitäänkö ne done = T?
+> - **10 pyörää** rajautuu pois rahoittajaehdolla (GoByBike Finland Oy tai Siemens Financial Services). Tämä on tarkoituksellinen liiketoimintarajaus.
+> - Tapa- ja hintaehtoja ei ole haussa, mutta niitä ei tarvita, koska 2.0 ja IC-laskuri pitävät ne täytettyinä (0 puuttuu).
+> **Valmis-ehto:** haun rivimäärän käyttöliittymässä pitäisi nyt olla 572. Jos luku on eri, ero johtuu FAM-liitoksesta (pyörä ilman omaisuutta).
 
 > [!NOTE]
 > **9.10.2026:** Siirretty T64:ään: tallennettu haku näkyy vain käyttöliittymässä (käyttäjä tai taloustiimi).
@@ -1552,7 +1566,19 @@ Skriptimuutoksista päätetään erikseen.
 B045683 (status 3) ja B004255 (kieltolippu T), sekä tapa 7 -pyörä (N3). Lähetettyä ei voi perua, vaan asiakaspalvelu päättää jatkosta.
 **Valmis kun** asiakaspalvelu on kuitannut kaikki kolme.
 
-### [ ] T48 — Haun 793 ehdot käyttöliittymästä
+### [x] T48 — Haun 793 ehdot käyttöliittymästä — **luettu 22.10.2026**
+
+> [!NOTE]
+> **Ehdot käyttöliittymästä 22.10.2026 (käyttäjä):** `BIKE STATUS` is Redeemed · *Kauppakirja lähetetty käyttäjälle* is false · *Ei saa lähettää kauppakirjaa käyttäjälle* is false ·
+> *Kaikki vuokrat maksettu* is true · `SUBSCRIPTION END DATE` is before 1 days ago · liitos *Transaction (Bike id)*: Main Line is true, Status is **Invoice:Paid In Full**,
+> *[STA] Sales Order Type* is any of **Mid-contract redemption, End redemption**.
+>
+> **Päätelty ketju (löydös 6.10.) kumoutuu osittain:** ehto ei ole pelkkä status 2 + kielto F + lippu T. Lisäksi vaaditaan **maksettu lunastuslasku** (SO-tyyppi 3 tai 4, Paid In Full).
+> - **Seuraus:** pyörä, jolla ei ole omaa lunastuslaskua, ei saa kauppakirjaa koskaan. Tällaisia ovat tapa 2 (jälkiveloitus kattaa), tapa 3/4 (huoltobudjetti tai hinta 0),
+>   OOMI ilman työntekijän maksua ja työnantajan laskulla maksetut, jos laskulla ei ole SO-tyyppiä. Tämä selittää T49:n sokean pisteen.
+> - **Hinta PDF:ssä:** liitoksessa on main line- ja SO-tyyppiehto, joten *Transaction (Bike ID) : Amount* on lunastuslaskun summa, eikä se osu ostolaskuun (löydöksen avoin kohta suljettu).
+>   Jos pyörällä on kaksi tällaista maksettua laskua (keskenkauden ja loppulunastus), haku palauttaa kaksi riviä (päätelty, ei todennettu).
+> - Päättymisportti on kaksinkertainen: lease fees check asettaa lipun vasta päättymisen jälkeen (ADR 0018 k2), ja haku vaatii lisäksi päättymispäivän ennen eilistä.
 
 > [!NOTE]
 > **9.10.2026:** Siirretty T64:ään: tallennettu haku näkyy vain käyttöliittymässä (käyttäjä).
@@ -1560,6 +1586,10 @@ B045683 (status 3) ja B004255 (kieltolippu T), sekä tapa 7 -pyörä (N3). Lähe
 SuiteQL ei näe tallennettuja hakuja. Kirjaa ehdot ja hintasarakkeen liitos löydökseen ja vahvista tai kumoa päätelty ketju.
 
 ### [ ] T49 — Sokea piste: 176 ei-OOMI- ja 120 OOMI-pyörää ilman kauppakirjaa (N1, N5)
+
+> [!NOTE]
+> **22.10.2026:** Syy selvisi T48:ssa. Haku 793 vaatii maksetun lunastuslaskun (SO-tyyppi 3/4), joten pyörät ilman omaa lunastuslaskua (tavat 2–4, OOMI ilman maksua) eivät nouse listalle.
+> Korjaus kuuluu kauppakirjarepoon (`netsuite-send-bill-of-sale-pdf`) ADR 0013:n mukaan.
 
 Ei-OOMI: tavoitetilan mukaan nämä saavat kauppakirjan, kun vuokrat on maksettu. OOMI: vain jos työntekijän maksu löytyy.
 Lisäksi 601 lähetettyä OOMI-pyörää: tarkista, onko niillä työntekijän maksu.
