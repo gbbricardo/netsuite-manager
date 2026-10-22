@@ -24,6 +24,7 @@ väittää muuta.
 | Tiedosto | Tarkoitus | Käyttäjät | Todennettu | Rivejä todennuksessa |
 |---|---|---|---|---|
 | [`pyoran-sopimusrivit.md`](pyoran-sopimusrivit.md) | Yhden pyörän kaikki sopimusrivit emosopimuksen asiakkaan, nimikkeen ja statuksen nimillä | sopimusriviauditoija, ri-auditoija | 2026-09-18 | 6 (pyörä 5296) |
+| [`kuukausiajo-tarkistuslista.md`](kuukausiajo-tarkistuslista.md) | Kuun 1. päivän tarkistukset ri_creationin ja ri_updaten jälkeen ennen palkka-CSV:tä (Active/Ended-kattavuus, D8, lokit, T28/T29) | pääsessio, ri-auditoija | 2026-10-22 | kohdat 1–4, 6 `<D>` = 2026-10-01 |
 | [`sopimusrivien-aukot.md`](sopimusrivien-aukot.md) | Pyörän sopimusrivien vierekkäisyys per nimike: aukko- ja päällekkäisyyspäivät `LAG`-ikkunalla | sopimusriviauditoija | 2026-09-18 | 6 (pyörä 5296, yksi pyörä) |
 
 ## Kirjastomerkinnän muoto

@@ -37,8 +37,8 @@ Exportissa ovat status ja deployed-tieto. **Parametrit ja toistuvuus puuttuvat**
 1. `imports/2026-10-09-p2-cr-luontipaivat/` → sitten T7 `imports/2026-09-25-decided-at-historia/01-decided-at-2026-10-09.csv`
 2. ~~T8 `imports/2026-09-25-poikkeuspaivat-subsc/01-subsc-end-date-2026-10-09.csv`~~ **peruttu 21.10.2026, ei ajeta**
 3. ~~`imports/2026-10-09-pyorapaatokset/` (01 tavat, 02 CR 4692 Cancelled, 03 B023403)~~ **ajettu ja todennettu 22.10.2026** (B046675:n `liab_settled_at` 01.09.2026 asetettu käsin)
-4. Inaktivoi B046830, B046739, B046740, B004339 ja B046741 (linkit tarkistettu). Varmista B046741, ettei se ole odottava OOMI-pyörä.
-5. T20: B036939:n `curr_subs_rent` → 59,76.
+4. ~~Inaktivoi B046830, B046739, B046740, B004339 ja B046741~~ **tehty 22.10.2026 (käyttäjä), todennettu: kaikki `isinactive` = T.**
+5. ~~T20: B036939:n `curr_subs_rent` → 59,76.~~ **tehty 22.10.2026.**
 6. T48: haun 793 ehdot UI:sta **ennen T59:n latausta**.
 
 **C. Kehitysistunnot omistavissa repoissa ennen 1.11. (työohjeet valmiina)**
@@ -187,6 +187,13 @@ Luotu 21.10., ja se oli silloin Pending. Hyvitys-CR 7293 on samassa paketissa. V
 6. **T11:** 1199:n `handler_lunastus`-AUDIT-rivillä on `gbb_lunastus_lib=1.2.0`. Lisäksi 1480:n yöajossa 21.→22.10. on sama versio, ERROR-rivejä on 0 ja kirjoitusmäärä on normaali.
 
 **Valmis kun** kohdat 1–6 on kirjattu tähän, ja poikkeamat on viety T10:een tai T13:een.
+
+### [ ] T68 — Metsä Boardin konsernisiirto 1.10.: lokakuun vähennys raportoitiin vanhalle työnantajalle (selvitettävä)
+
+Löydetty 22.10. tarkistuslistan todennuksessa ([havainto](queries/kuukausiajo-tarkistuslista.md#havainto-ei-tarkistus-metsä-boardin-konsernisiirto-kesken-lokakuun-ajon)).
+8 pyörää (B007427, B008050, B008338, B008794, B009475, B010178, B026174, B034821) siirtyi Metsä Board Oyj → Metsä Fibre Oy tyypin 13 paketeilla, jotka käsiteltiin 1.10. klo 10.
+Lokakuun palkka-CSV:ssä (04:03) oli vain Metsä Boardin Active-rivi. Ended-rivi (Board) ja New-rivi (Fibre) eivät lähteneet.
+**Päätettävä:** tarvitaanko ilmoitus (sama konserni, voi olla harmiton)? **1.11.:** tarkistuslistan kohta 6 näyttää, jääkö Boardille tuplarivejä.
 
 ### [x] T67 — 20 pyörää: syyskuu raportoitu Active, päättymisestä ei tietoa työnantajalle — **tehty 22.10.2026**
 
@@ -682,6 +689,7 @@ Jos yksikin puuttuu tai on Ended, **pysäytä ennen CSV:tä**: se on puuttuva pa
 > - **Siivous 21.10. todennettu:** 117469 on taas status 4, ja testirivit 154181–154183 ovat status 6. B017530:n elävät rivit ovat samat kuin ennen testiä (117469 Ended ja Warningit 117470, 117571).
 >   Deploymenttien parametrit palautti käyttäjä (SuiteQL ei näe niitä). **Tarkista ennen 1.11. ajoa, että testipyörä-parametrit ovat tyhjät** (lokin ensimmäinen rivi ei saa olla `⚠ TEST SCOPE`).
 > - **1.11. lisäksi (T67, [löydös](findings/2026-10-22-raportoitu-paattymisen-jalkeen.md)):** luokan C 11 marraskuun Ended-riviä saavat tekstin *Tarkastakaa…* (kysely löydöksessä, odotus 11/11), ja B020053 saa myöhästyneen Ended-rivin.
+> - **1.11. tarkistuslista:** [`queries/kuukausiajo-tarkistuslista.md`](queries/kuukausiajo-tarkistuslista.md) (22.10.) kokoaa kaikki 1.11. tarkistukset: T28/T29, T11:n lokiversio, T67, D8 ja kattavuus.
 > - **Jäljellä:** 1.11. todennus (4). ~~(1) commit, (2) lataus File Cabinetiin, (3) kylvetty testi ja siivous~~ (ri_creation ja ri_update ovat `TESTING`-tilassa ja ajetaan käsin, joten latauksen voi tehdä ennen 27.10., mutta ei 1.11. yönä),
 >   (3) kylvetty testi B017530:llä (työohje § 3A) viimeistään 30.10., (4) 1.11. todennuskyselyt (§ 3B).
 
@@ -842,7 +850,11 @@ Rivit 116352–116356 luotiin 18.09. klo 14:32, fee 0, ilman automaatiolokia. Se
 korjaa koodipolku niin, että puuttuva hinta tuottaa Warningin eikä 0:aa (omistava repo:
 `netsuite-monthly-reporting`).
 
-### [ ] T19 — Siivoa pyörärekisteristä vahinko- ja peruttujen tilausten tietueet
+### [x] T19 — Siivoa pyörärekisteristä vahinko- ja peruttujen tilausten tietueet — **tehty 22.10.2026**
+
+> [!NOTE]
+> **22.10.2026:** B046830, B046739, B046740 sekä B004339 ja B046741 inaktivoitu (käyttäjä, klo 11:30–11:31, todennettu). Viittaukset tarkistettiin
+> juuri ennen inaktivointia: 0 CR:ää, 0 sopimusriviä, 0 RI-riviä (myös Deleted) ja 0 Paylink-pyyntöä (`ns_bike_id` tai `notes` = externalid).
 
 > [!NOTE]
 > **9.10.2026:** Linkit tarkistettu: kolmella tietueella ei ole CR-, sopimusrivi-, RI- eikä Paylink-viittauksia. **Käyttäjä inaktivoi B046830, B046739 ja B046740.**
@@ -858,7 +870,12 @@ B046740 ovat peruttuja tilauksia (status tyhjä, `oomi_exc` 31.5.2026). Inaktivo
 ne eivät toistu auditoinneissa. Tarkista ensin, ettei niillä ole RI-, sopimus- tai CR-linkkejä
 (30.09.: ei lokakuun RI-rivejä).
 
-### [ ] T20 — B036939: kumpi hinta on oikea, 59,76 vai 79,68?
+### [x] T20 — B036939: kumpi hinta on oikea, 59,76 vai 79,68? — **tehty 22.10.2026**
+
+> [!NOTE]
+> **22.10.2026 klo 11:33 (käyttäjä, todennettu SuiteQL:llä):** `curr_subs_rent` 79,68 → **59,76** ja `curr_subs_admin` 11,95 → **15,94**.
+> Molemmat vastaavat nyt ainoita voimassa olevia sopimusrivejä (70263 vuokra 59,76, 70264 admin 15,94; 11,95:n rivi 70324 on inaktiivinen).
+> Ennen muutosta tarkistettu: syys- ja lokakuun RI-rivit (79402, 143851) olivat jo 59,76. **Seuraa:** palauttaako skripti 860 arvot kuun lopussa.
 
 > [!NOTE]
 > **9.10.2026:** Rivi 70263 (59,76, 1.1.2026–31.12.2029) on ainoa voimassa oleva item 30 -rivi. 70323 inaktivoitiin 30.9. Skripti 860 on SCHEDULED, mutta `scriptnote`:ssa ei ole sille yhtään riviä, joten ajoja ei voi todentaa. **Toimenpide (käyttäjä):** aseta `custrecord_sta_curr_subs_rent` = 59,76 käsin tai CSV:llä ja tarkista kuun lopussa, palauttaako jokin sen arvoon 79,68. Löydös: `findings/2026-10-09-b029420-hyvitettavat-ja-b036939.md`.
