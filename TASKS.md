@@ -158,7 +158,23 @@ Yksi lista kaikista kysymyksistä, jotka odottavat taloustiimiä tai asiakaspalv
 
 ## 22.10.2026 (to)
 
-### [ ] T66 — CR 7292 (B036379, keskenkauden lunastus 2C) käsittelyn tarkistus
+### [x] T66 — CR 7292 (B036379, keskenkauden lunastus 2C) käsittelyn tarkistus — **tehty 22.10.2026**
+
+> [!NOTE]
+> **Tulos 22.10.2026 (SuiteQL + `scriptnote` 1199/1480):**
+> 1. CR 7292 **Done**, käsitelty 21.10. lokiajassa 06:01 (≈ 16:01 Helsinki). `automation_logs` tyhjä, ei Needs Review- tai Error-tilaa.
+> 2. Pyörä: `subsc_end_date` 30.09.2026 (`org_end` 30.09.2027), status 2, tapa 1, `decided_at` = `liab_settled_at` = 21.10.2026,
+>    `paid_at` 14.09.2026 (2.0 löysi maksun), `date_to_non_active` 21.10.2026 (1458). Sopimusrivit 16508/51213 suljettu 30.11.2026 (laskutettu marraskuuhun asti).
+> 3. CR 7293 **Done** → CM **CRMGBF0004167** 21.10., Nordcloud Oy, −232,42 € (rent 80,65 + admin 11,95 × 10/2026 ja 11/2026 + ALV 25,5 %).
+> 4. IC-päivä **30.09.2026** asetettu 2.0:n yöajossa 21.→22.10. (`ic_asetettu=6`). Lokakuun RI-rivi 143495 on Active (raportoitu 1.10.).
+>    UE loi marraskuun rivin 154184 `Ended` (CR 7292, `lease_end` 30.09.2026). ~~Poikkeama~~ **Korjattu 22.10.:** tämä on suunniteltu polku.
+>    `ri_update` 1c lisää marraskuun Ended-riville 1.11. tekstin *"Tarkastakaa työntekijän palkoista tehdyt vähennykset."*, ja työnantaja oikaisee
+>    lokakuun. Todennetaan 1.11. ([löydös](findings/2026-10-22-raportoitu-paattymisen-jalkeen.md), luokka C).
+> 5. Porttikvadrantti (tyypin 2 Done-CR:t 20.10. alkaen): 31 × status 2 ja 6 × status 3, kaikki "nyt tai mennyt". Solu "2/3 + tuleva" = **0**.
+> 6. **1480:** yöajo 21.→22.10. (`tanaan=2026-10-22`) lokittaa `gbb_lunastus_lib=1.2.0`, `kirjoitettu=30` (19.10.: 18, 20.10.: 46), `virheet=0`.
+>    ERROR-rivejä 1199:llä ja 1480:llä 20.10. jälkeen: 0. **1199:** CR 7292 ajettiin vielä kirjastolla **1.1.0**, koska se käsiteltiin ennen
+>    latausta (File Cabinet 470259 muokattu 21.10. klo 16:34 lokiaikaa). Latauksen jälkeen ei ole käsitelty tyypin 2 CR:ää
+>    (jonossa 1 × tyyppi 10 Pending, 1 × tyyppi 13 Error), joten 1199:n 1.2.0-todennus siirtyy T11:een. B036379:lla ei ole poikkeuspäiviä, joten versioero ei muuta tulosta.
 
 Luotu 21.10., ja se oli silloin Pending. Hyvitys-CR 7293 on samassa paketissa. Virallinen päättymispäivä 30.09.2026 on menneisyydessä, ja pyörän
 `subsc_end_date` on 30.09.2027. B036379 on T10:n pyörä (maksu 14.09., ei CR:ää aiemmin). Tarkista CR-käsittelijän (1199) ajon jälkeen:
@@ -171,6 +187,15 @@ Luotu 21.10., ja se oli silloin Pending. Hyvitys-CR 7293 on samassa paketissa. V
 6. **T11:** 1199:n `handler_lunastus`-AUDIT-rivillä on `gbb_lunastus_lib=1.2.0`. Lisäksi 1480:n yöajossa 21.→22.10. on sama versio, ERROR-rivejä on 0 ja kirjoitusmäärä on normaali.
 
 **Valmis kun** kohdat 1–6 on kirjattu tähän, ja poikkeamat on viety T10:een tai T13:een.
+
+### [ ] T67 — 20 pyörää: syyskuu raportoitu Active, päättymisestä ei tietoa työnantajalle (tuoteomistaja päättää)
+
+[Löydös](findings/2026-10-22-raportoitu-paattymisen-jalkeen.md), luokka A. Pyörät päättyivät 30.06.–31.08.2026, mutta syyskuun Active-rivi on raportoitu.
+Ended-rivi syntyi item Q -backfillissä 04.09., ja se pidettiin tarkoituksella pois asiakasaineistosta. Lokakuun riviä ei ole, ja mikään automaatio
+ei tuota oikaisupyyntöä myöhemminkään. Syyskuun vähennykset ovat yhteensä noin 1 606 € netto (≈ 2 016 € brutto).
+- **Päätettävä:** ilmoitetaanko työnantajille käsin ("tarkastakaa syyskuun vähennys"), vai korjataanko rivit monthly-reporting-istunnossa, niin että seuraava ajo kantaa viestin?
+- Tarkista ensin, olivatko työnantajat D8-pidätyksessä syyskuussa. Silloin riviä ei lähtenyt, eikä oikaisua tarvita.
+- **1.11.:** luokan C 11 marraskuun Ended-riviä saavat lipun (kysely löydöksessä), ja B020053 saa myöhästyneen Ended-rivin. Lisää T28:n todennukseen.
 
 ---
 
@@ -970,7 +995,22 @@ Joka maanantai (5.10., 12.10., 19.10., 26.10.) ja 30.10.:
 
 ## Syyskuu, käyttäjä ajaa (ADR 0010)
 
-### [ ] T7 — `decided_at`-historia CSV:llä
+### [x] T7 — `decided_at`-historia CSV:llä — **tehty 22.10.2026**
+
+> [!NOTE]
+> **Tulos 22.10.2026:** P2 ja `01-decided-at-2026-10-22.csv` (1 749 riviä) ajettu (käyttäjä). Kenttäsääntöjen § 10:n kysely *Päätöspäivä ≠ CR:n luontipäivä*
+> palauttaa **1**: B023943, jonka vakuutuslunastus on peruttu tyypin 10 CR:llä 7152. Tämä on odotettu väärä positiivinen. Myös LU11 näyttää sen.
+> Uusia RI-rivejä ei syntynyt. Statuksia ei muutettu (status 1 -pyörät B011627 ja B043001 ennallaan).
+
+> [!IMPORTANT]
+> **22.10.2026: valmis ajettavaksi, käyttäjä ajaa P2 → T7.** Peruste on tarkistettu tämän päivän datalla: poikkeava joukko on täsmälleen 9.10. CSV
+> (1 750 / 37 171 556), eikä uusia poikkeamia ole syntynyt, koska käsittelijä kirjoittaa `decided_at`:in 14.10. alkaen. Uusi tiedosto on
+> `imports/2026-09-25-decided-at-historia/01-decided-at-2026-10-22.csv`: **1 749 riviä, `SUM(id)` 37 147 613**. **B023943** on poistettu, koska sen
+> vakuutuslunastus on peruttu tyypin 10 CR:llä 7152. P2:n `SUM(id)` on 22 902 (README:n 18 902 oli laskuvirhe). Jälkitarkistuksen odotus on 1 (B023943).
+> Ohjeet: kummankin kansion README, § *Päivitys 22.10.2026*.
+>
+> **22.10.2026 klo 10: P2 ajettu ja todennettu.** Päivät ja nimet ovat oikein, jälkitarkistukset palauttavat 0, eikä uusia RI-rivejä syntynyt.
+> T7:n esitarkistus P2:n jälkeen on 1 750 / 37 171 556 / 114 / 46 560, kuten odotettiin. **Seuraavaksi T7:n CSV.**
 
 > [!NOTE]
 > **9.10.2026:** Importit valmiina: `imports/2026-10-09-p2-cr-luontipaivat/` (5 + 3 riviä) ja `imports/2026-09-25-decided-at-historia/01-decided-at-2026-10-09.csv` (1 750 riviä, SUM(id) täsmää). **Käyttäjä ajaa järjestyksessä P2 → T7.** P2-haussa löytyi 39 muuta CR:ää, joiden luontipäivä on taannehtiva. Tyypin 2 CR:iä niiden joukossa ei ole, joten ne eivät vaikuta T7:ään. Ne on listattu P2:n README:hen.
@@ -1035,6 +1075,16 @@ uusia ajoja (`scripttype = 966`).
 
 > [!NOTE]
 > **Tilanne 9.10.2026:** Pending-tilaisia tyypin 2 CR:iä on 0. T4:n kahdeksan pyörää on lisätty tähän. B036379 (maksu 14.09., ei CR:ää) kuuluu myös tähän.
+>
+> **22.10.2026: B036379 hoidettu CR:llä 7292 + 7293 (T66).** Lokakuun Active-rivin oikaisu tulee suunnitellusti marraskuun Ended-rivin lipulla 1.11.
+> ([löydös](findings/2026-10-22-raportoitu-paattymisen-jalkeen.md)).
+>
+> **Nykytila 22.10. (28 pyörää, SuiteQL):**
+> - **13 CR:llä, päättyy 31.10.:** lokakuu Active ja marraskuu Ended, oikein. B001220, B010162, B014289, B023083, B024292, B026437, B026911, B027393, B031196, B040304,
+>   B042663, B045628, B046058.
+> - **2 CR:llä, päättyminen jo raportoidun kuukauden takana:** B036379 (30.09.) ja B029495 (31.08., syys- ja lokakuu Active, tapa 6). Lippu tulee marraskuun Ended-riville 1.11.
+> - **13 yhä ilman CR:ää** (asiakaspalvelu): B005492, B013550, B014042, B020743, B021319, B027471, B029483, B032764, B040838, B041610, B043416, B044011, B046429.
+>   Aikaisin päättyy B021319 (31.01.2027). Jokainen kuukausi ilman CR:ää on raportoitu Active-tilaisena, ja CR:n myöhempi virallinen päättymispäivä tuottaa takautuvan oikaisun.
 
 Omistaja on asiakaspalvelu. Lista on [löydöksessä](findings/2026-09-24-keskenkauden-maksu-ilman-cr.md)
 (A1 12 kpl, A2 7 kpl). CR:t tehdään käsin, ei importilla. Luontipäivä on todellinen luontipäivä.
@@ -1057,6 +1107,9 @@ ennen päättymiskuuta ilman CR:ää (tarkistettu koodista 30.09.). **Jos jollek
 > Muut kirjaston lukijat eivät muuttuneet (`ue_gbb_redemption_decided_at` 14.10., `cr_lunastus_plan` 14.10.).
 > **Valmis kun:** lokissa näkyy `gbb_lunastus_lib=1.2.0`. Tarkistettavat: 1480:n yöajo 22.10. (0 ERROR-riviä, kirjoitusmäärä normaali), 1199:n
 > seuraava tyypin 2 CR (esim. CR 7292, T66) ja 1452/1453 viimeistään 1.11. Tämän repon kenttäsäännöt ja CLAUDE.md:n porttikysely päivitetty 21.10.
+>
+> **22.10.2026:** ✅ **1480** lokittaa `gbb_lunastus_lib=1.2.0` (yöajo 21.→22.10., 30 kirjoitusta, 0 virhettä). ⏳ **1199:** CR 7292 ajettiin vielä
+> 1.1.0:lla, koska se käsiteltiin ennen latausta (T66). Odotetaan seuraavaa tyypin 2 CR:ää. Jäljellä ovat siis 1199 ja 1452/1453.
 
 > [!IMPORTANT]
 > **21.10.2026: T8 peruttiin, joten T11 ei riipu siitä.** Alla olevat "vasta T8:n jälkeen" -ehdot ovat vanhentuneet.

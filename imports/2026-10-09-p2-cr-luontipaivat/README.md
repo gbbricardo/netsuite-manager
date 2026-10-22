@@ -1,6 +1,10 @@
 # P2: kopioitujen keskenkauden lunastus -CR:ien luontipäivät ja nimet (CSV-import)
 
-Tuoteomistajan päätös 9.10.2026. Valmisteltu 9.10.2026, **ei ajettu**. Ajaja: käyttäjä.
+Tuoteomistajan päätös 9.10.2026. Valmisteltu 9.10.2026. **Ajettu 22.10.2026 klo 10:00 (käyttäjä), jälkitarkistus läpi.**
+
+> [!NOTE]
+> **Tulos 22.10.2026 (SuiteQL):** kaikilla viidellä CR:llä `cr_created_date` = `created`-päivä (20.07. ×3, 24.07. ×2), ja kolmen CR:n nimi on `B012845 - 2C…`.
+> Kumpikin jälkitarkistus palauttaa 0. Uusia RI-rivejä ei syntynyt (CR:ien ainoat RI-rivit ovat 29.07. luotuja Deleted-rivejä). T7:n esitarkistus P2:n jälkeen: 1 750 / 37 171 556 / 114 / 46 560.
 
 ## Tarkoitus
 
@@ -20,7 +24,7 @@ saavat `decided_at`-arvon, joka ei vastaa CR:n korjattua päivää.
 
 | Tiedosto | Rivejä | `SUM(id)` | Mitä kirjoitetaan |
 |---|---|---|---|
-| `01-cr-created-date.csv` | **5** | 18 902 | vain `custrecord_cr_created_date` |
+| `01-cr-created-date.csv` | **5** | 22 902 | vain `custrecord_cr_created_date` |
 | `02-altname.csv` | **3** | 13 885 | vain `altname` (Name) |
 
 UTF-8 ilman BOM:ia, erotin `;`, päivämäärät `dd.mm.yyyy`, CRLF.
@@ -63,7 +67,7 @@ Loppuosa (`2C`, `Hyvitys`) säilyy, koska monthly-reporting reitittää nimen lo
 
 ## Esitarkistus
 
-Odotus: 5 riviä, `SUM(id)` 18 902.
+Odotus: 5 riviä, `SUM(id)` 22 902 (korjattu 22.10.2026, aiemmin laskuvirhe 18 902; tarkistettu NetSuitesta ja CSV:stä 22.10.).
 
 ```sql
 SELECT COUNT(*) AS rivit, SUM(cr.id) AS id_summa

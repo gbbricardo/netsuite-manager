@@ -208,3 +208,51 @@ Koska CSV:n arvot vastaavat P2:n jälkeistä tilaa, jälkitarkistuskyselyn odotu
 Esitarkistuskysely palauttaa 1 750 / 37 171 556 / 114 / 46 560 myös ennen P2:ta (kysely lukee vanhat CR-päivät).
 Päivittäinen CR-ajo lisää uusia rivejä: jos luvut eroavat, tee poiminta uudelleen. Muut ohjeet (muoto, mappaus,
 poikkeamat 1–6) pätevät sellaisenaan.
+
+## Päivitys 22.10.2026: uusi CSV `01-decided-at-2026-10-22.csv` (ajettava versio)
+
+> [!NOTE]
+> **Ajettu 22.10.2026 (käyttäjä), P2:n jälkeen.** Jälkitarkistus palauttaa **1** (B023943), kuten odotettiin. Tänään muuttuneiden CR-pyörien statusjakauma
+> sisältää CSV:n 2 / 1 659 / 88 (status 1 -summa 54 628 = B011627 + B043001). Uusia RI-rivejä ei syntynyt tänään (0).
+
+> [!IMPORTANT]
+> **Aja tämä, ei 9.10. eikä 24.09. versiota.** Ajojärjestys on ennallaan: **P2 ensin** (`../2026-10-09-p2-cr-luontipaivat/`,
+> esitarkistus 22.10.: 5 riviä, `SUM(id)` **22 902**, nimiä 3), **sitten tämä**.
+
+**Perusteen tarkistus tämän päivän datalla (22.10.2026, REST-poiminta, kaikki 1 986 Done-tilaista tyypin 2 CR:ää / 1 979 pyörää):**
+- Poikkeava joukko P2:n korjatuilla päivillä on **täsmälleen 9.10. CSV**: 1 750 pyörää, `SUM(id)` 37 171 556. Jokaisella rivillä on sama
+  kohdearvo ja sama lähde-CR. Sarake `decided_at_nyt` vastaa nykyarvoa kaikilla riveillä. Uusia poikkeamia ei ole syntynyt, koska
+  `handler_lunastus` kirjoittaa `decided_at` = CR:n luontipäivä 14.10. alkaen (T13 H5). 20.–21.10. käsitellyt 37 CR:ää eivät ole joukossa.
+- Muita kopioituja tyypin 2 CR:iä (`cr_created_date` yli 3 pv ennen `created`ia) ei ole P2:n neljän lisäksi.
+- `decided_at`:ia ei lue mikään automaatio. 2.0 ei lue eikä kirjoita sitä (`gbb_mr_redemption_sync2.js:42`), ja `handler_lunastus` käyttää
+  vanhaa arvoa vain `OVERWRITTEN`-lokitekstiin. Ainoa lukija on cf-gbb-toolsin tarkistus LU11, ja se odottaa juuri tätä arvoa.
+  Ylikirjoituksella ei siis ole seurauksia laskutukseen, raportointiin eikä IC:hen.
+
+**Muutos 9.10. versioon: B023943 poistettu (1 750 → 1 749).** Pyörän vakuutuslunastus-CR 5405 on peruttu tyypin 10 CR:llä 7152
+(*Vakuutuslunastuksen peruminen*, Done). Pyörä on status 1, tapaa ei ole, ja `subsc_end_date` on 31.08.2028. Päätöspäivää ei ole, joten
+`decided_at` jää tyhjäksi. Samasta syystä §10:n kysely ja LU11 näyttävät B023943:n poikkeamana myös importin jälkeen (väärä positiivinen):
+kyselyt eivät huomioi tyypin 10 perumista.
+
+| | Uusi CSV | NetSuite 22.10. |
+|---|---|---|
+| Rivejä | **1 749** | 1 750 − B023943 |
+| `SUM(id)` | **37 147 613** | 37 171 556 − 23 943 |
+| `MIN(id)` / `MAX(id)` | 114 / 46 560 | 114 / 46 560 |
+| Rivejä, joilla on jo arvo (ylikirjoitetaan) | 36 | 36 |
+
+Status-jakauma: 2 = 1 659, 3 = 88, 1 = 2 (B011627 ja B043001, lykätyt lunastukset). Inaktiivisia 0.
+
+**Ylikirjoitettavat 36 arvoa** ovat UE:n leimaamia ajopäiviä.
+- **24 myöhempää kuin CR:n päivä:** 23:lla arvo on 21.09. ja CR:n päivä 17.–18.09. B011615:llä arvo on 28.09. ja CR:n päivä 07.09.
+  UE leimasi käsittelypäivän, ei luontipäivää.
+- **12 aiempaa kuin CR:n päivä:** arvot ovat 21.09.–3.10., ja CR:t on luotu 22.09.–6.10. UE leimasi päivän, kun vanha osa A kirjoitti
+  tavan maksusta ennen CR:ää. ADR 0008:n mukaan CR voittaa, joten arvo korvataan CR:n päivällä.
+
+**Usean Done-CR:n pyörät (6, kaikilla `decided_at` tyhjä):** CSV käyttää uusinta CR:ää (ADR 0010 k. 4 ja LU11). 9.10. päätös 4
+("ensimmäinen CR:n arvo säilyy") koski käsittelijää, ja 13.10. päätös korvasi sen (toinen CR → Error). Erot ovat 1–7 päivää:
+B008391 (29.04. / **30.04.**), B012538 (02.04. / **09.04.**), B012635 (12.07. / **13.07.**), B017206 (11.08. / **14.08.**),
+B021702 (23.07. / **24.07.**) ja B042228 (24.08. / **31.08.**).
+
+**Esitarkistus juuri ennen importtia:** README:n kysely (*Tarkistussumma*) palauttaa **1 750 / 37 171 556 / 114 / 46 560** sekä ennen
+P2:ta että sen jälkeen (B023943 on mukana, CSV:ssä ei). Jos luvut eroavat, tee poiminta uudelleen.
+**Jälkitarkistus:** README:n jälkitarkistuskysely palauttaa **1** (B023943). Mikä tahansa muu rivi on poikkeama.

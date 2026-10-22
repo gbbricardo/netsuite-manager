@@ -542,7 +542,7 @@ WHERE br.custrecord_gbb_liab_settle_method IS NOT NULL
 ```
 
 12.10.2026: **1 713**. Tämä on `decided_at`-historian CSV:n (T7) ajamaton joukko (24.09.: 1 711), eikä
-uusi virhe. Luku putoaa lähelle nollaa, kun T7 on ajettu.
+uusi virhe. Luku putoaa lähelle nollaa, kun T7 on ajettu. **T7 ajettu 22.10.2026:** § 10:n kysely *Päätöspäivä ≠ CR:n luontipäivä* palauttaa 1 (B023943, vakuutuslunastus peruttu tyypin 10 CR:llä 7152; kysely ei huomioi perumista).
 
 **Jumiin jäänyt lunastus sovittu** — tunnistuspäivä ohitettu, status ei vaihtunut:
 
