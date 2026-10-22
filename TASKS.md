@@ -815,7 +815,11 @@ demotoi Active-rivin Warningiksi. Selvitä, kumpi UE-polku jättää vanhan rivi
 `netsuite-monthly-reporting`-repoon. Sitä ennen tarkista käsin kuukausiajon edellä pyörät, joilla on samassa kuussa
 Done-CR:t tyypeille 7 (pidennys) ja 2.
 
-### [ ] T16 — B044504 ja B044271: asiakaspalvelun CR (lokakuu)
+### [x] T16 — B044504 ja B044271: asiakaspalvelun CR (lokakuu) — **tehty 22.10.2026**
+
+> [!NOTE]
+> **22.10.2026 (SuiteQL):** **B044504:** keskenkauden CR 7165 (tyyppi 2, Done) ja hyvitys 7166 (Done), status 2, tapa 1, päättyy 31.10.2026, lokakuu Active ja marraskuu Ended.
+> **B044271:** tuoteomistajan mukaan kunnossa ilman CR:ää: status 2, tapa 1, Paylink *kesken kauden lunastus* completed, lokakuu Ended.
 
 > [!NOTE]
 > **Tuoteomistaja 9.10.2026:** **B044271 on kunnossa:** keskenkauden lunastukselta puuttui CR, mutta päättymispäivä ehti tulla, maksu on saapunut ja kausi on päättynyt. **B044504 tarvitsee yhä muutospyynnön:** Paylink-tilaus osoittaa, että sopimus päättyy kesken kauden (tilaus näkyy NetSuitessa vain CR:n kautta). Lisätty listaan *Kysymykset muille tahoille*.
@@ -916,7 +920,11 @@ kirjataan pelkkä `paid_at`.
 > ennakkokyselyt juuri ennen importtia. **Valmis kun** jälkitarkistukset a) ja b) palauttavat 0 ja
 > poimintakysely palauttaa enää B046580:n. B003280 ja B003403 ovat kunnossa (29.09.).
 
-### [ ] T15 — 95 status 2/3 -pyörää ilman `paid_at`:ia (erillinen tehtävä, päätetty 30.09.)
+### [x] T15 — 95 status 2/3 -pyörää ilman `paid_at`:ia (erillinen tehtävä, päätetty 30.09.) — **suljettu 22.10.2026**
+
+> [!NOTE]
+> **Suljettu 22.10.2026 (käyttäjä hyväksyi 21.10. ehdotuksen).** Oikeat tapaukset B004026 ja B015557 korjaantuivat 13.10. Jäljelle jäävät noin 258 pyörää
+> ilman Paylink-maksua ovat ADR 0010:n mukaan sallittuja, koska CR on keskenkauden lunastuksen todiste ja tyhjä `paid_at` kuuluu silloin jättää tyhjäksi.
 
 > [!NOTE]
 > **Tarkistus 21.10.2026 (SuiteQL):** B004026 ja B015557 ovat korjaantuneet. Pyyntörivit 20612 ja 20706 nousivat tilaan **3** 13.10.,
@@ -1528,7 +1536,11 @@ Lisäksi 601 lähetettyä OOMI-pyörää: tarkista, onko niillä työntekijän m
 (lasku, asiakas, tila) ja anna se taloustiimille. **Valmis kun** yhdelläkään tuotteen 30/31/33 rivillä ei ole kautta 2025-05
 laskulla, jonka päiväys on 2026.
 
-### [ ] T59 — Lease fees check ADR 0016:n mukaan (omistava repo `netsuite-br-lease-fees-check`, erillinen istunto)
+### [x] T59 — Lease fees check ADR 0016:n mukaan (omistava repo `netsuite-br-lease-fees-check`, erillinen istunto) — **tehty 22.10.2026 (T60 todennettu)**
+
+> [!NOTE]
+> **22.10.2026:** Valmis-ehto täyttyy: muutos on tuotannossa (live 12.10.) ja T60 on todennettu. **Jäljellä (käyttäjä, UI):** haun 796 inaktivointi (työohje § 3 k6).
+> SuiteQL ei näe tallennettuja hakuja, joten tilaa ei voitu tarkistaa täältä. T58 on yhä auki: WAITING-pyörät odottavat, ja 26.10. raja tuoteomistajalle on voimassa.
 
 > [!NOTE]
 > **12.10.2026: Toteutuksen päätökset tehty** ([ADR 0018](docs/adr/0018-lease-fees-check-tarkennukset.md), grilling Q1–Q17). Työohje on kirjoitettu uudelleen.
@@ -1569,7 +1581,18 @@ Ei Oomi Part A/B:tä, ei luokkaa 2 (jälkiveloitus), ei vaatimusta laskusta joka
 Sisarrepon §7 *Manual Override* ja dokumenttien eräpäiväväite korjataan. Varmista ensin, että `custcol_sta_so_revrec_start`
 toimii `N/search`-suodattimena (tai käytä `N/query`:a). **Valmis kun** muutos on tuotannossa ja T60 on todennettu.
 
-### [ ] T60 — Ensimmäisen ajon todennus T59:n jälkeen
+### [x] T60 — Ensimmäisen ajon todennus T59:n jälkeen — **tehty 22.10.2026**
+
+> [!NOTE]
+> **Tulos 22.10.2026** (`scriptnote` 1432 + SuiteQL, kysely [`queries/lease-fees-vaarat-liput.md`](queries/lease-fees-vaarat-liput.md)):
+> - **Ajot:** live 12.10. alkaen päivittäin noin klo 16 Helsingin aikaa, `virheet=0` jokaisessa. Viimeisin näkyvä yhteenveto 20.10.: `PAID=4 WAITING=107 NO_CUSTOMER=2`.
+>   21.10. selection-rivi näkyy (`alkupaiva=2026-06-01 jono=117`), mutta run complete ei näy MCP:n kautta.
+> - **Ei yhtään väärää T:tä:** 841 live-PAID-pyörää (332 asiakasta) verrattiin kaikkiin 3 821 avoimeen asiakas- ja vuokrakuukausiryhmään skriptin omalla ehdolla. **0 osumaa.**
+> - **Portti pitää:** kaikki 841 ovat status 2, ja `subsc_end_date` < ajopäivä. Jokaisella lippu on T.
+> - **`NO_CUSTOMER`** (2 pyörää live-ajoissa): lippu F.
+> - **B006141 ja B034775:** lippu T. OOMI-pyörät, joiden status on 2 ja jotka päättyivät syys–lokakuussa ennen 22.10.: 321 T ja 85 F. Niistä 81 on WAITING (avoin Oomi-lasku, esim. INVGBF1042709),
+>   ja 4 päättyi 21.10. (eivät vielä jonossa). Löydöksen "131" laskettiin vanhalla logiikalla eikä vastaa suoraan nykyistä jakoa.
+> - Lokissa näkyy 8 764 riviä 8 853:sta, joten live-PAID-joukko voi olla muutaman pyörän vajaa.
 
 > [!NOTE]
 > **12.10.2026:** Odotukset on päivitetty ADR 0018:n mukaan työohjeen §4:ään. Jonossa on noin 9 200 pyörää, joista 2 293 saa tuloksen `NO_CUSTOMER`. Lippu T vain pyörille, joiden `subsc_end_date` < ajopäivä.
