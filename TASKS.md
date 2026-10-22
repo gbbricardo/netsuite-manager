@@ -196,7 +196,12 @@ Löydetty 22.10. T10:n siirrossa. KL2 (`cf-gbb-tools/src/app/lib/tools/netsuite-
 **Tehtävä cf-gbb-toolsissa:** lisää KL2:een toinen maksulähde (maksettu `CustInvc`, jolla `custbody_sta_bike_id` = pyörä ja keskenkauden lunastuksen nimike),
 tai lue pyörän `custrecord_gbb_redemption_paid_at`. Tarkista nimikkeen id ennen toteutusta. **Valmis kun** KL2 listaa B046429:n (tai sen CR on tehty).
 
-### [ ] T68 — Metsä Boardin konsernisiirto 1.10.: lokakuun vähennys raportoitiin vanhalle työnantajalle (selvitettävä)
+### [x] T68 — Metsä Boardin konsernisiirto 1.10.: lokakuun vähennys raportoitiin vanhalle työnantajalle — **hyväksytty 22.10.2026**
+
+> [!NOTE]
+> **22.10.2026 (käyttäjä): ei toimenpiteitä.** Metsä Boardilla ja Metsä Fibrellä on yhteinen palkanlaskenta, joten lokakuun vähennys Metsä Boardin
+> aineistossa on hyväksyttävä. Laskutus on jo oikein: lokakuu on hyvitetty Boardille ja laskutettu Fibreltä (esim. B007427: CRMGBF0004023 −115,46 € / INVGBF1043531 +115,46 €).
+> 1.11. tarkistuslistan kohta 6 näyttää yhä, jääkö Boardille tuplarivejä marraskuulle.
 
 Löydetty 22.10. tarkistuslistan todennuksessa ([havainto](queries/kuukausiajo-tarkistuslista.md#havainto-ei-tarkistus-metsä-boardin-konsernisiirto-kesken-lokakuun-ajon)).
 8 pyörää (B007427, B008050, B008338, B008794, B009475, B010178, B026174, B034821) siirtyi Metsä Board Oyj → Metsä Fibre Oy tyypin 13 paketeilla, jotka käsiteltiin 1.10. klo 10.

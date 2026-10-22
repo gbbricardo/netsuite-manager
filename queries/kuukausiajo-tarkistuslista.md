@@ -161,5 +161,5 @@ Kahdeksan Metsä Board Oyj:n pyörää (B007427, B008050, B008338, B008794, B009
 paketeilla 1.10. (CR 6974–6981 → 9 *Siirto konserni*, `start_date` 01.11., + 11 + 7). Lokakuun rivit: Active Metsä Board (luotu 01:17–02:38),
 Ended Metsä Board (04:01, teksti *"…siirtynyt toiselle konserniyhtiölle 30.09.2026"*) ja Active/New Metsä Fibre (10:01–10:02).
 **Lokakuun palkka-CSV:ssä (04:03, Shared drive Archive) oli vain Metsä Boardin Active-rivi.** Ended- ja New-rivit eivät lähteneet. Lokakuun vähennys
-on siis raportoitu Metsä Boardille, vaikka raportoinnin työnantaja vaihtui 1.10. Selvitettävä, tarvitaanko ilmoitus (sama konserni, voi olla harmiton).
+on siis raportoitu Metsä Boardille, vaikka raportoinnin työnantaja vaihtui 1.10. **Hyväksytty 22.10.2026 (T68): yhteinen palkanlaskenta, ei toimenpiteitä.**
 Ei kirjattu aiemmin mihinkään. Marraskuussa pyörien pitäisi olla Active Metsä Fibrellä, ja kohta 6 näyttää, jäävätkö Metsä Boardin rivit tuplaksi.
