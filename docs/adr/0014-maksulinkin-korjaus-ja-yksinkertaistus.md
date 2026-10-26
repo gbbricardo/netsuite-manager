@@ -7,6 +7,8 @@
 - **Kumoaa:** maksulinkkirepon `docs/DEPLOYMENT.md` § *Settled specifics* -kohdat: eräpäivä 14 päivää, digestisähköposti,
   `paylink_url` testi/tuotanto-valintana, `not_before`-lattia ja tuotenimiparametri
 - **Toteutusmäärittely:** [`docs/maksulinkki-1479-muutosspeksi.md`](../maksulinkki-1479-muutosspeksi.md)
+- **Laajennettu 26.10.2026:** OOMI-pyörät maksulinkin piiriin (k. 20–28). Tarkentaa [ADR 0009](0009-kauden-lopun-lunastus.md) k. 6:ta
+  ja [ADR 0012](0012-loppulunastushinta-ja-kattavuus.md) k. 1:tä.
 
 ## Konteksti
 
@@ -85,8 +87,41 @@ Tämä ADR päättää, miten skripti muutetaan niiden mukaiseksi, ja samalla, m
 19. **Hintakirjasto** `lib_gbb_redemption_price.js` pysyy 1479:n repossa. Status-sync 2.0 ja raportointi lataavat sen
     File Cabinet -polusta. Siirto ADR 0003:n jaettuun kirjastoon päätetään erikseen. (Q9)
 
+### OOMI-pyörät (lisätty 26.10.2026)
+
+Tuoteomistaja, grilling-istunto 26.10.2026 (Q1–Q19). Tausta: OOMI-pyörien loppulunastuslinkit on tähän asti lähetetty käsin noin
+2 kk etukäteen. Marraskuun OOMI-pyöristä 220 sai käsin tehdyn linkin ja leiman `link_sent` = T (import
+[`2026-10-26-oomi-link-sent-marraskuu`](../../imports/2026-10-26-oomi-link-sent-marraskuu/README.md)). B046669 jäi ilman linkkiä, koska sen
+`end_redemption_price` oli tyhjä. Toteutus: [muutosmäärittely, julkaisu C](../maksulinkki-1479-muutosspeksi.md#julkaisu-c--oomi-pyörät-26102026).
+
+20. **OOMI-rajaus poistetaan pysyvästi** sekä valinnasta että map-vaiheesta. OOMI-pyörät käsitellään samoilla säännöillä kuin muut pyörät,
+    lukuun ottamatta k. 22:n hyvitystä. (Q1)
+21. **Sama `months_before` kaikille pyörille.** Koodi otetaan käyttöön arvolla 1. **Ma 2.11.2026** arvo vaihdetaan 2:ksi, ja samana päivänä
+    cf-gbb-toolsin ML4:n `MONTHS_BEFORE` vaihdetaan 2:ksi. Kahden ajon piikki on k. 16:n mukainen. (Q2, Q10)
+22. **OOMI-pyörän huoltohyvitys on vain negatiivinen huoltosumma:** jos summa on 0 tai alle, hyvitys on −summa ilman kattoa. Positiivinen summa ei tuota
+    hyvitystä, eikä huoltoportaita lueta. Hinta on vähintään 0, ALV lisätään lopuksi, eikä hintaa pyöristetä täysiin euroihin
+    (käsin tehdyt linkit pyöristettiin). Tämä on OOMI-poikkeus [ADR 0012](0012-loppulunastushinta-ja-kattavuus.md) k. 1:een. (Q4, Q11)
+23. **Tavat 3 ja 4 kirjoitetaan OOMI-pyörille samoin kuin muille**, ja `liab_settled_at` on ajopäivä. Status-sync 2.0:n sääntö 2a kirjoittaa
+    tavan 1 vain, jos tapaa ei ole, joten tapa 3 tai 4 jää voimaan ([ADR 0009](0009-kauden-lopun-lunastus.md) k. 6). Maksuton pyörä ei saa
+    linkkiä eikä viestiä. Joulukuussa 2026 tällaisia OOMI-pyöriä on 15. (Q5, Q18)
+24. **Brevo-pohja 65 säilyy yhteisenä.** Asiakaspalvelu saa muuttaa sen tekstiä. Kaikille pyörille lähetetään kaksi uutta parametria (Q13, Q15–Q17):
+    - `kayttamaton_huoltobudjetti` = max(0, −`maintenance_sum`) × (1 + ALV), samassa muodossa kuin `lunastus_hinta` (`formatEuro`, esim. B044624: 105,98 × 1,255 = "133,00 €").
+      Tyhjä summa lasketaan nollaksi. Arvo on huoltosumma eikä hinnasta vähennetty hyvitys: ei-OOMI-pyörän porrashyvitys ei näy siinä.
+    - `kayttamaton_huoltobudjetti_num` = sama luku numerona (esim. 133), jotta pohjassa voi käyttää ehtoa.
+    - Parametrit eivät estä pohjan käyttöä, eli pohja toimii myös ilman niitä.
+25. **B046669 lähetetään skriptillä, ei käsin.** 1480 kirjoittaa pyörälle tavan 1 ja statuksen 2 yöllä 1.11. klo 00.30, joten 1479:n on
+    käsiteltävä se viimeistään la 31.10. Jos tämä ei onnistu, varasuunnitelma on 1.11. ajettava CSV, joka palauttaa statuksen 1 ja tyhjentää tavan sekä
+    `liab_settled_at`:n, minkä jälkeen 1479 ajetaan `test_bike_id`:llä. Skriptiin ei tehdä poikkeusta OOMI-pyörille, joilla on jo tapa 1. (Q3, Q9)
+26. **Raportointi:** cf-gbb-toolsin ML4 ja ML1 laajennetaan OOMI-pyöriin. EX1 jää ennalleen, koska OOMI-pyöriä ei jälkiveloiteta. (Q7)
+27. **Marraskuun käsin tehdyt OOMI-linkit eivät kuulu muutokseen.** 17 pyörän linkissä negatiivista huoltosummaa ei vähennetty. Ne ratkaistaan
+    erillisenä tehtävänä (TASKS T82). (Q12)
+28. **Todentaminen:** dry run tuotannossa ennen ensimmäistä live-ajoa sekä `test_bike_id`-dry runit uusille poluille (muutosmäärittely C5). (Q19)
+
 ## Vaihtoehdot, joita ei valittu
 
+- **OOMI-pyörille oma Brevo-pohja** (26.10.). Torjuttu: asiakaspalvelu muokkaa yhteistä pohjaa tarvittaessa.
+- **OOMI-pyörille oma `months_before`-parametri** (26.10.). Torjuttu: kaikki pyörät siirtyvät samaan 2 kuukauteen.
+- **B046669:n linkki käsin** (26.10.). Torjuttu: skriptin on lähetettävä kaikki linkit, joiden olisi pitänyt lähteä.
 - **Testitila (`mode = TEST`) Paylinkin testiympäristöä vasten.** Torjuttu: integraatio on todennettu tuotannossa. Testitila jättäisi
   parametreja, jotka muuttavat käyttäytymistä mutta joita ei ajeta tuotannossa.
 - **Digesti, jossa vain uudet poikkeamat, ja täysi lista maanantaisin.** Torjuttu: viikonpäiväsäännöt ja "uusi poikkeama" -muisti

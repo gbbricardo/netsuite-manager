@@ -1,4 +1,4 @@
-# Maksulinkki (1479): muutosmäärittely julkaisuille A ja B
+# Maksulinkki (1479): muutosmäärittely julkaisuille A, B ja C
 
 Luovutus omistavan repon `netstuite-send-end-redemption-payment-link` istunnolle. Päätökset: [ADR 0014](adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md)
 (sekä [ADR 0012](adr/0012-loppulunastushinta-ja-kattavuus.md)). Taustat: [logiikkavirheet ja tavoitetila 5.10.](../findings/2026-10-05-maksulinkki-logiikkavirheet-ja-tavoitetila.md).
@@ -143,6 +143,71 @@ eheys=<S9,S10,HYVITYS_YLI_PORTAAN tai tyhjä>
 1. Testit kattavat `sendDate`n B1:n testitapaukset sekä karkausvuoden ja tavallisen vuoden helmikuun.
 2. Dry run arvolla 1 ja arvolla 2: valitut pyörät vastaavat ikkunaa, ja `eraapaiva` = `subsc_end_date` jokaisella rivillä.
 3. Ensimmäisessä live-ajossa Paylink hyväksyy noin kahden kuukauden päässä olevan eräpäivän. Paylinkin dokumentaatio ei kerro ylärajaa (`docs/PAYLINK_API.md:75`).
+
+---
+
+## Julkaisu C — OOMI-pyörät (26.10.2026)
+
+Päätökset: [ADR 0014](adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k. 20–28. Rivinumerot ovat versiosta HEAD `33cd887` (13.10.2026, luettu
+koodista 26.10.). **Takaraja:** tuotannossa ja dry runilla todennettu niin, että B046669 käsitellään viimeistään la 31.10. (TASKS T79).
+
+### C1. OOMI-rajaus pois
+
+- Valinta: rivi `:375` `AND (br.custrecord_sta_bike_order_type IS NULL OR … <> ${ORDER_TYPE_OOMI})` poistetaan. Kommentti `:341` päivitetään.
+- Map: `:523` ehto `|| Number(bike.order_type) === ORDER_TYPE_OOMI` poistetaan. `NOT_ELIGIBLE` jää koskemaan vain muuta kuin Active-statusta.
+- `ORDER_TYPE_OOMI` (`:88`) säilyy, koska hinnoittelu (C2) tarvitsee sitä. `bike.order_type` haetaan jo (`:454`).
+- Muut ohitukset (S4, S5, cr_2_10, `link_sent`, tapa, `end_red_so_created`, linkitetty SO) koskevat OOMI-pyöriä sellaisenaan.
+
+### C2. Hintakirjasto: OOMI-haara
+
+- `calculate(options)` saa valinnaisen kentän `options.oomi` (oletus `false`). Status-sync 2.0 lataa saman kirjaston (ADR 0014 k. 19),
+  ja se kutsuu kirjastoa vain ei-OOMI-pyörille, joten oletusarvolla sen toiminta ei muutu.
+- `maintenanceRemainder` OOMI-pyörälle: jos summa ≤ 0, hyvitys = −summa (`source: 'negative-sum'`, nykyinen haara `:157-162`). Jos summa > 0,
+  hyvitys on 0 (`source: 'oomi-positive-sum'`). Porrastaulua ei lueta, eikä S10- tai S11-tarkistusta tehdä, eli positiivinen summa ei voi johtaa
+  NOT_PRICED-tilaan.
+- Muu laskenta pysyy ennallaan: hinta vähintään 0, ALV lisätään lopuksi (`round2`), ja `noPaymentDue` → tapa 3. `HYVITYS_YLI_PORTAAN` kirjataan
+  edelleen `eheys`-kenttään.
+- Map-vaihe (`:584`) välittää `oomi: Number(bike.order_type) === ORDER_TYPE_OOMI`.
+- Lokirivin `porras` on OOMI-pyörällä tyhjä.
+
+### C3. Brevo-parametrit
+
+- Kirjastoon tulee puhdas funktio `unusedMaintenanceGross(maintenanceSumNet, vatPct)` = `round2(max(0, −summa) × (1 + vatPct/100))`. Tyhjä summa
+  lasketaan nollaksi.
+- `brevoParams` (`:688-694`) saa kaksi uutta kenttää kaikille pyörille:
+  - `kayttamaton_huoltobudjetti: pricing.formatEuro(x)`, esimerkiksi "133,00 €" tai "0,00 €"
+  - `kayttamaton_huoltobudjetti_num: x` (luku)
+- Arvo on huoltosummasta laskettu luku, **ei** hinnasta vähennetty hyvitys (`remainderNet`). Ei-OOMI-pyörän porrashyvitys ei näy siinä (Q15).
+- Pohja 65 ja `custscript_gbb_eredem_brevo_tmpl` säilyvät. Uusia skriptiparametreja ei tule.
+
+### C4. `months_before` 1 → 2 (ma 2.11.2026, käyttäjä)
+
+- Koodimuutosta ei tarvita (B1 sallii arvon 2). Deploymentin parametri vaihdetaan käyttöliittymässä.
+- Samana päivänä cf-gbb-toolsissa `src/app/lib/tools/netsuite-reporting/checks/ml4.ts:18` `MONTHS_BEFORE = 2` (TASKS T81).
+- Odotus 2.11. ajolle: noin 772 joulukuun ei-OOMI-pyörää ja noin 203 joulukuun OOMI-pyörää, joista noin 15 saa tavan 3. Lisäksi viimeistään 2.1.2027 päättyvät pyörät.
+
+### C5. Hyväksymiskriteerit
+
+1. `node test/run_tests.js`: OOMI-haaran testit.
+   - Summa −105,98 € ja hinta 131,41 € → 31,91 € brutto (B044624).
+   - Summa −653,39 € ja hinta 110,19 € → `noPaymentDue` (B041687).
+   - Summa +109,80 € → hyvitys 0, eikä porrastaulua lueta.
+   - `unusedMaintenanceGross`: −105,98 → 133,00; +10,36 → 0; tyhjä → 0.
+   - Ei-OOMI-testit pysyvät vihreinä ilman muutoksia.
+2. Tuotannon dry run arvolla `months_before` = 1 ennen ensimmäistä live-ajoa:
+   - B046669 valitaan, hinta 165,94 € (132,22 × 1,255) ja `kayttamaton_huoltobudjetti` "0,00 €".
+   - Yksikään marraskuun 220 leimatusta OOMI-pyörästä ei ole valittujen joukossa.
+   - Joulukuun OOMI-pyöriä ei valita, ellei lähetyspäivä ole tullut (arvolla 1 ensimmäinen 1.11.).
+3. `test_bike_id`-dry runit: B041687 → `SETTLED_3` (ei mitään kirjoitettu), B044624 → linkki 31,91 € ja `kayttamaton_huoltobudjetti` "133,00 €".
+4. Live: B046669 `SENT`, `link_sent` = T, Paylink-tilaus tuotteella *Työsuhdepyörän loppulunastus*, viimeistään 31.10.
+5. 1.11. 1480:n ajon jälkeen: B046669 status 2, tapa 1. Joulukuun OOMI-pyörät, joilla on tapa 3, ovat edelleen tapa 3 ennen joulukuuta.
+
+### C6. Varasuunnitelma B046669:lle
+
+Jos B046669 ei ole saanut linkkiä 1.11. klo 00.30 mennessä, 1480 kirjoittaa sille tavan 1 ja statuksen 2. Toimi silloin 1.11. näin:
+1. Aja CSV: status 1, `liab_settle_method` ja `liab_settled_at` tyhjiksi. Muut kentät jätetään ennalleen.
+2. Aja 1479 `test_bike_id` = B046669:n internal id. Tämän on tapahduttava ennen seuraavaa 1480:n ajoa.
+3. 2.11. tarkista, että 1480 kirjoitti pyörälle tavan 1 (`liab_settled_at` = 2.11.) ja statuksen 2.
 
 ---
 

@@ -402,6 +402,13 @@ statukseen 2 sweepissä päättymiskuun alussa.
 **Virhe:** jälkiveloituskuukaudet lasketaan huoltopidennykseksi. Tämän takia 6 linkkiä on liian pieniä, ja 4 tapa 3 -kirjausta
 on tehty pyörille, jotka eivät ole ilmaisia. Lisäksi 69 jälkiveloituspyörää on `NOT_PRICED`-tilassa. → TASKS T30–T38 (takaraja 31.10.).
 
+**OOMI-pyörät maksulinkin piiriin (päätetty 26.10.2026, [ADR 0014](adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k. 20–28):**
+- Marraskuun 220 käsin linkitettyä OOMI-pyörää leimattiin `link_sent` = T 26.10.
+- 1479:n OOMI-rajaus poistetaan (T79, takaraja pe 30.10.). Ensimmäinen OOMI-pyörä on B046669.
+- OOMI-pyörän hyvitys on vain negatiivinen huoltosumma.
+- `months_before` vaihdetaan 1 → 2 ma 2.11. (T80, T81).
+- Avoinna: 17 marraskuun käsin tehtyä linkkiä ilman hyvitystä (T82).
+
 ## Avoimet päätökset
 
 | Asia | kpl | Kysymys |

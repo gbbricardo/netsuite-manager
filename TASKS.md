@@ -1873,6 +1873,39 @@ A-julkaisu poistaa digestin. Lue jokaisen ajon jälkeen `scriptnote` (`scripttyp
 `NOT_PRICED`, `SKIP_*`, sekä rivit, joilla `eheys` ei ole tyhjä. Lokin säilytys on noin 30 päivää. Rakenna kysely `queries/`-kansioon A:n ensimmäisen ajon jälkeen.
 **Valmis kun** T51:n tarkistus ML4 on tuotannossa (Q26, 9.10.2026).
 
+### [ ] T79 — 1479: OOMI-pyörät maksulinkin piiriin (omistava repo, erillinen istunto), **viimeistään pe 30.10.**
+
+Päätetty 26.10.2026 ([ADR 0014](docs/adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k. 20–28). Toteutus:
+[muutosmäärittely, julkaisu C](docs/maksulinkki-1479-muutosspeksi.md#julkaisu-c--oomi-pyörät-26102026) (C1–C3, hyväksymiskriteerit C5).
+**Takaraja on kova:** 1480 lunastaa B046669:n 1.11. klo 00.30, joten 1479:n on lähetettävä sille linkki viimeistään la 31.10.
+Jos se ei onnistu, käytä varasuunnitelmaa C6 1.11.
+**Valmis kun** C5:n kohdat 1–4 on todennettu ja B046669:llä on `link_sent` = T ja loppulunastustilaus.
+
+### [ ] T80 — `months_before` 1 → 2, **ma 2.11.** (käyttäjä)
+
+Vaihda 1479:n deploymentin `custscript_gbb_eredem_months_before` arvoksi 2 vasta, kun T79 on valmis ja 30.10.–1.11. ajot on luettu (T52).
+Tee samana päivänä T81:n ML4-muutos. Odotus 2.11. ajolle: noin 975 joulukuun pyörää (C4), joista noin 15 OOMI-pyörää saa tavan 3.
+**Valmis kun** 2.11. ajon `run complete` on luettu eikä siinä ole ERROR-, `STAMP_FAILED`- tai `EMAIL_FAILED`-rivejä.
+
+### [ ] T81 — cf-gbb-tools: ML4 ja ML1 myös OOMI-pyörille, ML4:n `MONTHS_BEFORE` = 2 (erillinen istunto, **ma 2.11.**)
+
+ADR 0014 k. 21 ja k. 26. Poista `NOT_OOMI` ML4:stä (`checks/ml4.ts`) ja ML1:stä (`checks/ml1.ts`). EX1 jää ennalleen.
+`ml4.ts:18` `MONTHS_BEFORE = 2` samana päivänä kuin T80, koska muuten ML4 ei näe pyöriä, joiden lähetyspäivä on mennyt arvolla 2 mutta ei arvolla 1.
+**Valmis kun** muutos on tuotannossa ja ML4 näyttää 2.11. ajon jälkeen vain todelliset poikkeamat.
+
+### [ ] T82 — 17 marraskuun OOMI-pyörää: käsin tehty linkki ilman negatiivisen huoltosumman hyvitystä, **päätös viimeistään pe 30.10.**
+
+ADR 0014 k. 27. Marraskuun käsin tehdyistä OOMI-linkeistä 17:ssä negatiivista huoltosummaa ei vähennetty (todennettu 26.10.). Esimerkiksi B042911
+maksoi 104 €, vaikka hyvitys (−478,09 €) olisi tehnyt lunastuksesta maksuttoman, ja B045711:n 151 €:n linkki (−548,21 €) on avoinna.
+Pyöräkohtainen lista saadaan kyselyllä: marraskuun OOMI-pyörät, joilla `maintenance_sum` < 0, sekä niiden loppulunastustilaukset
+(`custrecord_pl_amount_total`, `custrecord_pl_status`). Päätettävät:
+- Perutaanko tai päivitetäänkö avoimet linkit?
+- Palautetaanko jo maksetut summat kokonaan tai osittain?
+- Mikä tapa ja `liab_settled_at` kirjataan? 1480 kirjoittaa 1.11. kaikille tavan 1, jos tapaa ei ole.
+
+1479 ei käsittele näitä pyöriä, koska niillä on `link_sent` = T.
+**Valmis kun** päätös on kirjattu ja tarvittavat CSV:t on ajettu.
+
 ---
 
 ## Päätettävät (tuoteomistaja)

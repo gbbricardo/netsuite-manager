@@ -9,6 +9,8 @@
 - **Tarkennettu:** [ADR 0015](0015-status-sync-2-tarkennukset.md) (7.10.2026). Kohta 5 lasketaan muutospyyntötasolla:
   kuukausi = Done-tilainen pidennys-CR, `liab_settled_at` = rajan ylittäneen CR:n sulkemispäivä (sama kuin laskun
   luontipäivä), hyvityksiä ei huomioida.
+- **Laajennettu:** [ADR 0014](0014-maksulinkin-korjaus-ja-yksinkertaistus.md) (26.10.2026). OOMI-pyörät saavat linkin 1479:ltä, ja
+  niiden huoltohyvitys on vain negatiivinen huoltosumma (k. 1).
 - **Kenttätaso:** [kenttäsäännöt § 11](../lunastuksen-kenttasaannot.md#11-loppulunastushinnan-määräytyminen-ja-kattavuus)
 
 ## Konteksti
@@ -25,6 +27,8 @@ pyytää kuitenkin hintaa, josta huoltohyvitys on vähennetty. Kaksi sääntöä
 1. **Huoltohyvitys lasketaan huoltosummasta, ei pidennyksestä.** Positiivisella summalla se on pienimmän
    kattavan portaan yläraja miinus summa, eli aina alle yhden portaan välin. Negatiivinen summa
    hyvitetään kokonaan ilman kattoa (ei OOMI). Pidennys on vain eheystarkistus, eikä se estä pyyntöä.
+   **OOMI-poikkeus 26.10.2026 ([ADR 0014](0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k. 22):** OOMI-pyörän hyvitys on vain
+   negatiivinen huoltosumma, ilman kattoa. Positiivinen summa ei tuota hyvitystä, eikä huoltoportaita lueta.
 2. **Maksettava summa lasketaan kerran**, pyynnön lähetyshetkellä, eikä sitä tallenneta uuteen kenttään.
    Myöhemmät kattavuustarkistukset laskevat saman kaavan tarkistushetken tiedoista.
 3. **Hinta 0 € tarkoittaa, että käsiraha kattaa lunastuksen** (portaalin oletus). Tapa 4, ei pyyntöä eikä

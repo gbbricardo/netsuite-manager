@@ -9,6 +9,8 @@
 - **Osittain muutettu:** [ADR 0015](0015-status-sync-2-tarkennukset.md) (7.10.2026). Kohta 6: myöhässä saapuva OOMI-maksu
   kirjoittaa `paid_at`:n (maksun fakta, ADR 0013 k. 8), mutta ei muuta tapaa eikä `liab_settled_at`:ia. Kohdan 5
   kuukaudet lasketaan Done-tilaisista pidennys-CR:istä, ja päivä on rajan ylittäneen CR:n sulkemispäivä.
+- **Tarkennettu:** [ADR 0014](0014-maksulinkin-korjaus-ja-yksinkertaistus.md) (26.10.2026). Kohta 6: tapa 1 vain, jos tapaa ei ole;
+  1479:n tapa 3 tai 4 jää voimaan OOMI-pyörällä.
 - **Koskee:** vain **kauden lopun lunastusta** ([CONTEXT.md](../../CONTEXT.md)). Keskenkauden
   lunastus jatkuu ADR 0008:n mukaan.
 - **Tarkentaa:** [ADR 0004](0004-paatospaivan-kirjoittaa-ue.md) (ei koske kauden loppua),
@@ -112,6 +114,10 @@ OOMI-pyörän velvoitteet katsotaan hoidetuiksi tunnistuspäivänä:
 | `redemption_paid_at` | tyhjä, ellei maksua ole jo havaittu |
 | `bike_status` | 2 |
 | `ic_redemption_dt` | `LAST_DAY(päättymisajankohta)` |
+
+**Tarkennettu 26.10.2026 ([ADR 0014](0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k. 23):** tapa 1 kirjoitetaan vain, jos tapaa ei ole.
+OOMI-pyörät saavat loppulunastuslinkin 1479:ltä, ja 1479:n kirjoittama tapa 3 (huoltohyvitys kattaa hinnan) tai 4 (hinta 0 €)
+jää voimaan. Silloin `liab_settled_at` on 1479:n ajopäivä.
 
 Myöhässä saapuva maksu **ei muuta mitään**, ei edes `paid_at`:ia. OOMI-pyöriä ei jälkiveloiteta.
 §5-tarkistus (`paid_at` ≠ `liab_settled_at` tavalla 1) rajaa OOMI-pyörät pois.
