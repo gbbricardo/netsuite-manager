@@ -154,6 +154,15 @@ WHERE ri.custrecord_gbb_ri_reporting_status = 4 AND ri.custrecord_gbb_ri_reporti
 **B020053:** saa myöhästyneen Ended-rivin (`ended_created_late`) ja lipun. Syys- ja lokakuu raportoitiin Active-tilaisina, vaikka `subsc_end_date` on 31.08.
 **ProMet (T1d):** lokakuun RI-rivit 104318–104320 asetettiin Endediksi 22.10. Marraskuun riviä ei saa syntyä B023198:lle, B024587:lle eikä B024908:lle (kysely `imports/2026-10-22-promet-ri-ended/README.md`). Poista ne kohdan 3 tunnetuista.
 **B036939 (T20):** marraskuun rivin `lease_fee_vat0` on 59,76 (rekisteri korjattu 22.10.).
+**Marraskuun OOMI-pyörät (selvitetty 26.10.):** status-sync 2.0 (1480) kirjoittaa OOMI-pyörälle tavan 1 vasta päättymiskuun alussa. Kirjaus tehdään säännöllä 2a, ja `liab_settled_at` on tunnistuspäivä. Siksi 42 pyörää, jotka maksoivat 6.–23.10., ovat ilman tapaa (`paid_at` on kirjattu). 76 pyörää, jotka maksoivat 21.9.–5.10., saivat tavan 1 jo vanhalta 1440:ltä, mutta niiltä puuttuu `liab_settled_at`. Sääntö 2b täyttää sen. 26.10. kysely palauttaa **221** (144 + 76 + B046669). Odotus 1.11. ajon jälkeen on **0**:
+```sql
+SELECT COUNT(*) FROM customrecord_sta_bike_register br
+WHERE br.isinactive = 'F' AND br.custrecord_sta_bike_order_type = 3 AND br.custrecord_sta_bike_status = 1
+  AND br.custrecord_sta_subsc_end_date BETWEEN TO_DATE('2026-11-01','YYYY-MM-DD') AND TO_DATE('2026-11-30','YYYY-MM-DD')
+  AND (br.custrecord_gbb_liab_settle_method IS NULL OR br.custrecord_gbb_liab_settled_at IS NULL)
+  AND NOT EXISTS (SELECT 1 FROM customrecord_subscrption_change_request cr WHERE cr.custrecord_cr_bike_registry = br.id AND cr.custrecord_cr_type IN (2, 10) AND cr.custrecord_cr_status <> 7)
+```
+**B010533 (T34):** tapa 2 (käsin 23.10.), `subsc_end_date` 30.11.2026 pidetään. RI 126605 (1.11.) jää **Active**, eikä rivi saa *Ended retrospectively* -lippua. Status-sync 2.0 kääntää pyörän tilaan 2 yöllä 1.11. **1.12.:** pyörä saa Ended-rivin (`ended_created`, raportointipäivä 1.12.), eikä Active-riviä synny.
 
 ## Havainto (ei tarkistus): Metsä Boardin konsernisiirto kesken lokakuun ajon
 

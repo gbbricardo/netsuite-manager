@@ -135,7 +135,7 @@ Pending-CR voi käsittyä kahdesti, ja tuloksena on tuplalasku tai -hyvitys.
 Aja `node tools/export-schemas.mjs scripts` ja diffaa ennen committia.
 
 
-### [ ] T64 — Kysymykset muille tahoille (koottu 9.10.2026)
+### [x] T64 — Kysymykset muille tahoille (koottu 9.10.2026) — **kaikki vastattu 23.10.2026**
 
 Yksi lista kaikista kysymyksistä, jotka odottavat taloustiimiä tai asiakaspalvelua. Merkitse vastaus tähän ja siirrä se tehtävään.
 
@@ -149,12 +149,62 @@ Yksi lista kaikista kysymyksistä, jotka odottavat taloustiimiä tai asiakaspalv
 
 **Asiakaspalvelu**
 - [x] **T35 B011223:** **22.10.: linkki pidetään avoinna, SO poistettu 21.10.; B036396:n SO poistettu 22.10.** SO SOGBB0002659 1 040 € (10.12.2025, Kattava Oy / Toni Leinonen, maksamaton). Siirto-CR 5748 tehtiin 27.8.2026. Onko keskenkauden lunastus rauennut? Samasta erästä maksamatta myös B036396 (Jani Saarinen, 750,98 €) ja Huy Nguyen (1 667 €).
-- [ ] **T16 B044504:** muutospyyntö keskenkauden päättymisestä (Paylink-tilauksen mukaan).
+- [x] **T16 B044504:** muutospyyntö keskenkauden päättymisestä (Paylink-tilauksen mukaan). **23.10.: hoidettu (T16 tehty 22.10., todennettu uudelleen): CR:t 7165 (2C) ja 7166 (hyvitys) Done, status 2, tapa 1, päättyy 31.10., RI lokakuu Active ja marraskuu Ended.**
 - [x] **T21 rekisteri-id 41345:** **ratkennut 22.10.: Serres** (siirto-CR 6888, laskutus Serresille 1.11. alkaen).
 - [x] **T34 B046667:** maksulinkki alennetulla summalla. **Hoidettu: 166 € maksettu 15.10.**
 - [x] **T10** siirretty cf-gbb-toolsin KL2-raporttiin (T69 aukko). **T47** hyväksytty. **T50** nykytila riittää. (22.10.)
 
 ---
+
+## 26.10.2026 (ma) — konsernisiirron tuplarivit ([löydös](findings/2026-10-26-konsernisiirto-tuplarivit.md), ADR 0021 k. 11, ADR 0022)
+
+### [ ] T71 — 2A-paketin konsernisiirto ei passivoi korvattuja rivejä (cr-scripts, erillinen istunto)
+
+Konsernisiirto (tyyppi 9 tyypin 13 kautta) kloonaa jäljellä olevan kauden ja jättää tulevaisuudessa alkavan pidennysrivin tai OOMI-osarivin
+aktiiviseksi. 15 pyörää 14.8.–26.10.2026, viimeisimmät 6 tänään klo 10:02. Toteuta ADR 0021 k. 11: jokainen jäljellä oleva kuukausi katetaan
+täsmälleen kerran samalla hinnalla, korvatut rivit passivoidaan, ja OOMI:n viimeisen kuun osarivi jää. Selvitä ensin, miksi idea-03:n
+pidennystietoisuus ei toimi 2A-paketin kautta. **Kaksi tyypin 13 CR:ää on Error-tilassa:** älä käsittele niitä uudelleen ennen korjausta, tai aja SR2 heti perään.
+**Valmis kun** korjaus on tuotannossa ja ensimmäisen 2A-paketin jälkeen SR2 palauttaa 0.
+
+### [ ] T72 — B033217: item 31 -pidennysrivin alkupäivä ja marraskuun tuplahallintamaksu
+
+Rivi 76654 alkaa 31.10.2026 (item 30 -pari 76653 alkaa 1.9.2027). Marraskuu 2026 on laskutettu sekä riviltä 22039 että 76654 (11,95 € netto).
+Korjaa 76654:n alkupäiväksi 1.9.2027 ja hyvitä marraskuun tupla (hyvitys-CR tai hyvityslasku; lasku on todennäköisesti koontilasku).
+**Valmis kun** SR2 palauttaa 0 ja hyvitys on kirjattu.
+
+### [ ] T73 — SR2 käsin jokaisen siirto- tai pakettiCR-ajon jälkeen (kunnes T71 on tuotannossa)
+
+Kysely löydöksessä. 1199 ajaa 6 tunnin välein. Tarkista ainakin päivinä, jolloin tyypin 1, 9 tai 13 CR:iä on käsitelty. **Valmis kun** T71 on valmis.
+
+### [ ] T74 — Selvitys: item 30 -rivi päättyy pyörän `subsc_end_date`:n jälkeen (7 774 pyörää)
+
+Löydetty 23.10. (ADR 0022 k. 1): OOMI 7 409 pyörää (7 127 Active) ja muut 365. Onko kyse rakenteesta (esim. OOMI-rivi päättyy kuun loppuun,
+rekisteri kesken kuun) vai laskutuksesta sopimuskauden jälkeen? Selvityksen jälkeen päätetään, tuleeko siitä sääntö ADR 0022:een. Ei takarajaa.
+
+## 26.10.2026 (ma) — hyvitykset ja jälkiveloitukset ([ADR 0023](docs/adr/0023-leasingmaksujen-hyvitykset-ja-lisaveloitukset.md))
+
+### [ ] T75 — cr-scripts: jälkiveloitus vain aktiivisista riveistä, hinnat sentin tarkkuudella (erillinen istunto)
+
+ADR 0023 k. 4–5. `handler_jalki.priceForMonth` ohittaa passiiviset rivit (`handler_jalki.js:372` ei suodata `isinactive`). Molemmat
+käsittelijät (`priceForMonth`, `priceForBilledMonth`) pitävät hintoja samoina, jos ne ovat samat sentin tarkkuudella, ja vievät
+asiakirjalle rivin oman arvon. `handler_hyvitys` lukee edelleen myös passiiviset rivit. **Valmis kun** korjaus on tuotannossa.
+
+### [ ] T76 — 23.9. ylihyvitysten lisäveloitus (taloustiimi)
+
+ADR 0023 k. 6. CR 6313 tupla-CM CRMGBF0003753/3754 (+18,12 € netto, todennettu): kumoa ylimääräinen. CR 6284 (B007914) ja 6330
+(B018137), kumpikin +92,60 € (päätelty): tarkista ensin kokoomalaskut INVGBF1042980 ja INVGBF1042403, sitten lisäveloitus `LISA-<CR id>`.
+CR 6350 (+0,79 €) jää rajan alle. [Löydös](findings/2026-09-23-hyvitys-cr-14-15-9-credit-memot.md). **Valmis kun** kolme on korjattu tai todettu oikeiksi.
+
+### [ ] T77 — CR 7467 (Notion 1527, pyörä 46553, 7–9/2026): hyvitys käsin
+
+ADR 0023 k. 3, 7. Heinäkuu ja elokuu laskutettiin samalla jaksolla 1.8.2026. Tee hyvitys käsin todellisen laskurivin hinnalla,
+kirjaa asiakirjan numero CR:n lokiin ja aseta CR Done. **Määräaika** 1.11. kuukausiajo (RI8 lukee Done-tilaiset tyypin 11 CR:t).
+
+### [ ] T78 — CR 7447 (B023726, marraskuun jälkiveloitus): seuraava 1199-ajo
+
+Tuoteomistaja korjasi rivit ja palautti CR:n Pendingiksi 26.10. **Tarkistettu 26.10.: passiivisen rivin 74516 hinta on 8064541833
+(desimaalierotin puuttuu) ja 74515:n 11,9522 (klooni 11,95219124)**, joten CR kaatuu uudelleen ennen T75:tä. Korjaa molemmat kloonien
+arvoihin (80,64541833 ja 11,95219124). **Valmis kun** CR on Done ja marraskuun lasku on syntynyt hinnalla 80,65 + 11,95 €.
 
 ## 22.10.2026 (to)
 
@@ -492,7 +542,7 @@ Skripti tulkitsee tallennetun hinnan 0 € käsirahaksi, eikä mikään automaat
   ja jälkiveloitus on pysähtynyt.
 - [ ] **B046755** — tapa 4 1.10., status 2. Ei CR:iä eikä SO:ta, päättyy 31.10. Todenna käsiraha sopimuksesta tai myyntitilauksesta.
 
-### [ ] T34 — NOT_PRICED: poikkeavat pyörät
+### [x] T34 — NOT_PRICED: poikkeavat pyörät — **suljettu 23.10.2026**
 
 > [!NOTE]
 > **Tuoteomistaja 9.10.2026:** (1) Lisätään sääntö **"vain alkuperäisen päättymispäivän jälkeen alkavat pidennys-CR:t ovat jälkiveloitusta"** T61:n ja kattavuuslaskennan vaatimuksiin (K2-rajaus). (2) **B010533:** pidennys pidetään sellaisenaan. Sopimuksen olisi kuulunut päättyä jo ensimmäisen jälkiveloitus-CR:n jälkeen. Ei toimenpiteitä. (3) **B046667:** vakuutuskorvauspyörä, sopimus 2 kk. Maksulinkki jäi lähtemättä, ja lisäksi tehtiin pidennys-CR (+1 kk). **Oikea ratkaisu:** maksulinkki alennetulla summalla, ja maksu varmistetaan ennen seuraavaa pidennystä (extension 2.0, 10.11.). Lisätty listaan *Kysymykset muille tahoille*. (4) **B016555:** vain kaksi pidennys-CR:ää, ja ne ovat oikein (alkuperäinen loppu 8/2026, lunastusta ei maksettu). CR-6107 on *Jälkiveloitus - Poikkeus*, ei pidennys. Avoin Paylink-tilaus 337869. Ei toimenpiteitä. (5) **B029420:** keskenkauden lunastus, jota ei koskaan maksettu. Päättymisen olisi pitänyt olla 31.08.2025. **Taloustiimille raportoidaan, mitkä jälkiveloituslaskut hyvitetään** (agentti kokoaa listan). (6) **B015132:** loppulunastus maksettiin 1.10.2026 klo 22:50, ja pidennys-CR ehdittiin tehdä sitä ennen. Ei muutosta, kaikki ok.
@@ -500,10 +550,20 @@ Skripti tulkitsee tallennetun hinnan 0 € käsirahaksi, eikä mikään automaat
 > [!NOTE]
 > **Tilanne 9.10.2026:** B010533, B046667, B016555 ja B029420 ovat Active ilman tapaa. B015132 on status 2 / tapa 1, ja sen maksu tuli muuta kautta kuin linkillä, joten tarkista lähde.
 
-- [ ] **B010533** — **12.10.2026 (T53):** status-sync 2.0 ei kirjoittanut tapaa 2. Syy on todennäköisesti `NETTO_0`, koska huoltohyvitys ≥ hinta 49,40 €. Pyörä jää Activeksi 31.10. jälkeen. **Päätettävä ennen 1.11.:** tapa 3 käsin (huoltobudjetti kattaa) vai muu ratkaisu. — huoltosumma 265,93 € edellyttää 5 kk pidennystä. Pidennys on 4 kk = 2 kk huoltoa (2 pidennysriviä) + 2
+- [x] **B010533** — *23.10.2026: tapa 2 käsin, päättyy 30.11., Ended 1.12. (tarkistuslistalla).* — **12.10.2026 (T53):** status-sync 2.0 ei kirjoittanut tapaa 2. Syy on todennäköisesti `NETTO_0`, koska huoltohyvitys ≥ hinta 49,40 €. Pyörä jää Activeksi 31.10. jälkeen. **Päätettävä ennen 1.11.:** tapa 3 käsin (huoltobudjetti kattaa) vai muu ratkaisu. — huoltosumma 265,93 € edellyttää 5 kk pidennystä. Pidennys on 4 kk = 2 kk huoltoa (2 pidennysriviä) + 2
   jälkiveloitus-CR:ää. Puuttuuko huoltopidennyksestä 3 kk (`sta_ue_bike_register_hook`), vai onko summa väärin? Hinta 49 €.
+  **23.10.2026: tuoteomistaja: oikea lopputulos on tapa 2.** Syy todennettu: hintakirjasto antaa huoltosummalla 265,93 € portaan 6 (yläraja 319,51), hyvityksen 53,58 € > hinta 49,40 €,
+  joten nettohinta on 0. `gbb_rss2_paatos.js:298` palauttaa silloin `NETTO_0` ennen pidennys-CR:ien laskemista. Ajatus oli, että netto 0 kuuluu 1479:n tavalle 3, mutta
+  1479 ohittaa jälkiveloituspyörät (`jalkiveloitus`-rajaus, K-c). **Kumpikaan skripti ei siis kata tapausta "netto 0 + Done-pidennys-CR".** Nykyisistä Active-pyöristä ainoa on B010533
+  (4 muuta huolto + jälkiveloitus -pyörää: netto > 0). Pidennys-CR:t 6480 (suljettu 16.09.) ja 6931 (01.10.). Päättyy 30.11., joten 1480 arvioisi tapaa 2 vasta 1.11. alkaen.
+  **23.10.: korjaus A tehty (käyttäjä), todennettu:** tapa 2, `liab_settled_at` 16.09.2026, status 1.
+  **Raportointi:** RI 126605 (1.11., Active, CR 6931) muuttuu Endediksi 1.11. ajossa vain, jos `subsc_end_date` ≤ 31.10. Raportointi ei lue statusta (vaihe 3), vaan
+  `ri_creation` päättää: velvoitteet hoidettu **ja** raportointipäivä > `subsc_end_date` → `processEndedBike` → sääntö A5 `convertActiveRowToEnded` muuntaa saman päivän Active-rivin
+  (T29 poistaa C3/C4-tekstin). Päivällä 30.11. rivi pysyy marraskuussa Activena ja Ended tulee 1.12. Sopimusrivit päättyvät 31.08., ja jälkiveloitus kattaa 9–10/2026,
+  joten marraskuuta ei laskuteta. ~~**Ehdotus:** `subsc_end_date` → 31.10.2026~~ **Päätetty 23.10. (käyttäjä): 30.11. pidetään**, joten Ended-rivi raportoidaan 1.12.2026, ja prosessit hoitavat loput.
+  Tarkistukset on lisätty `queries/kuukausiajo-tarkistuslista.md`:hen: 1.11. status 2 (1480) ja RI 126605 Active ilman lippua, 1.12. Ended-rivi.
 - [x] **B046667** — *22.10.2026: maksettu. Loppulunastus 166 € (Paylink 20616, SO SOGBB0015689 type 4) 15.10., status 2, tapa 1, `paid_at` = `liab_settled_at` 15.10. Alennetun linkin pyyntö (T64) on hoidettu.* — pidennys 1 kk, mutta Done-tilaisia tyypin 7 CR:iä on 2, ja huoltosumma on tyhjä. Onko toinen CR tupla, vai puuttuuko päivän siirto?
-- [ ] **B016555** — pidennys 2 kk, Done-tilaisia tyypin 7 CR:iä 3 (Fortaco, T1d, CR-6488 korjattu). Täsmääkö laskutus pidennykseen?
+- [x] **B016555** — *23.10.2026: suljettu. T53 (12.10.) todensi: status 2, tapa 2, K2-rajattu kattavuus 2 × 63,75 € ≥ 84,46 €. Tuoteomistaja 9.10.: ei toimenpiteitä.* — pidennys 2 kk, Done-tilaisia tyypin 7 CR:iä 3 (Fortaco, T1d, CR-6488 korjattu). Täsmääkö laskutus pidennykseen?
 - [x] **B029420** — *päätetty 9.10.2026: ratkaistu T34:ssä (taloustiimi päättää hyvitykset, T64).* — — 5 kk jälkiveloitusta, hinta 110 €, kattavuuslistalla 185,20 € ≥ 110 €. Päättyykö tavalla 2 (K2)?
 - [x] **B015132** — NOT_PRICED 1.10., nyt status 2 tapa 1. Mikä maksu kirjattiin ja millä summalla, kun linkkiä ei lähetetty? **22.10.2026:** Paylink 19037 *Työsuhdepyörän loppulunastus* 164,97 € completed 2.10. (SO SOGBB0015264 type 4), `paid_at` 1.10. ⚠ `liab_settled_at` on tyhjä, vaikka tapa on 1. Sama ilmiö kuin vanhan osan A tapa ilman päivää. Lisätään 1.11. tarkistukseen.
 
@@ -1178,6 +1238,12 @@ ennen päättymiskuuta ilman CR:ää (tarkistettu koodista 30.09.). **Jos jollek
 >
 > **22.10.2026:** ✅ **1480** lokittaa `gbb_lunastus_lib=1.2.0` (yöajo 21.→22.10., 30 kirjoitusta, 0 virhettä). ⏳ **1199:** CR 7292 ajettiin vielä
 > 1.1.0:lla, koska se käsiteltiin ennen latausta (T66). Odotetaan seuraavaa tyypin 2 CR:ää. Jäljellä ovat siis 1199 ja 1452/1453.
+>
+> **23.10.2026:** ✅ **1199** (SuiteQL + `scriptnote`): 22.10. käsiteltiin 57 tyypin 2 CR:ää (7294–7368, Notion-erä), ja `gbb_lunastus_lib=1.2.0` näkyy 57 AUDIT-rivillä.
+> Kaikilla 57:llä `liab_settled_at` = `decided_at` = CR:n luontipäivä. Porttikvadrantti: 41 status 1 / tapa 1 ja 1 status 1 / tapa 5 tulevalla päättymiskuulla (deferred),
+> 12 status 2 / tapa 1, 1 status 2 / tapa 7 ja 2 status 3 / tapa 5 kuluvalla kuulla. **Solu "2/3 + tuleva" = 0.** Ainoa ERROR on CR 7369 (Notion-1638, tupla CR:stä 7366, sama pyörä 14717):
+> T13:n 13.10. sääntö "toinen tyypin 2 CR → Error" toimi ensimmäisen kerran tuotannossa, eikä mitään kirjoitettu. 7369 on peruttava käsin (Cancelled).
+> **Jäljellä vain 1452/1453 1.11. ajossa** (`queries/kuukausiajo-tarkistuslista.md`).
 
 > [!IMPORTANT]
 > **21.10.2026: T8 peruttiin, joten T11 ei riipu siitä.** Alla olevat "vasta T8:n jälkeen" -ehdot ovat vanhentuneet.
@@ -1283,6 +1349,10 @@ päätös ei riipu T11:n ajoituksesta. Pyörät ovat jumissa, kunnes päätös o
 > - Needs Review -polku on yhä todentamatta, koska yksikään CR ei ollut puutteellinen.
 > - **Seuraa:** CR 7292 (B036379, T10, 2C, Pending, luotu 21.10.). Virallinen päättymispäivä 30.09.2026 on menneisyydessä,
 >   mutta pyörän `subsc_end_date` on 30.09.2027. Tarkista seuraavan ajon jälkeen tila, päivät ja hyvitys-CR 7293.
+
+> [!NOTE]
+> **23.10.2026:** tupla-CR-sääntö todennettu tuotannossa. CR 7369 (Notion-1638) meni Error-tilaan: `bike 14717 has already been processed by Type 2 CR 7366 (Done)`, eikä kirjoituksia tehty.
+> 22.10. erän 57 CR:ää läpäisivät § 6:n päivätarkistukset (ks. T11). Needs Review -polku on yhä todentamatta.
 
 [Vaatimuslista](docs/keskenkauden-lunastus-vaatimukset.md). Toteutetaan `netsuite-subscrption-cr-scripts`:ssä.
 
@@ -1729,24 +1799,37 @@ Vaatimukset tähän mennessä: (1) Active, ei OOMI, sopimus päättynyt, ei link
 > ja sama sisältö toimii sekä cf-gbb-tools-näkymänä että sähköpostina (korvaa 9.10. aamun linjauksen *ei sähköpostia*). Raportti
 > vain ilmoittaa, ei korjaa. Ei omistajia. Periaatteet P1–P14 ja tarkistusluettelon luonnos: `docs/poikkeamaraportointi-vaatimukset.md`.
 
-### [ ] T65 — Puuttuvat ADR:t poikkeamaraportoinnin tarkistuksille
+### [x] T65 — Puuttuvat ADR:t poikkeamaraportoinnin tarkistuksille (valmis 26.10.2026: ADR 0020–0023)
 
 Poikkeamaraportointi tekee tarkistuksen vain kirjatusta säännöstä (P3). Näiltä toistuvilta luokilta sääntö puuttuu, ja jokaisesta
 kirjoitetaan ADR ennen kuin siitä tulee tarkistus. Luettelo taustoineen: `docs/poikkeamaraportointi-vaatimukset.md` § *Odottaa ADR:ää*.
 
-- [ ] A1 tyypin 11 hyvityslaskun rivihinta < laskutettu
-- [ ] A2 OOMI-hintaerot (RI ↔ sopimusrivi, `init_subs_rent_fee`)
-- [ ] A3 RI Active ja fee 0
-- [ ] A4 Warning-tilaiset RI-rivit
-- [ ] A5 puuttuvat RI-rivit
-- [ ] A6 sopimusrivien eheys (alku > loppu, päällekkäiset item 30)
-- [ ] A7 Oomin tuloutuskausi (T58)
-- [ ] A8 T23 *Ended voittaa*
-- [ ] A9 T24 saman pyörän useampi siirto-CR
-- [ ] A10 Ended-rivin myöhässä-teksti (nyt vain T29-työohjeessa)
-- [ ] A11 Ended-rivin turha palkkahuomio (nyt vain T28-työohjeessa)
+- [x] A1 tyypin 11 hyvityslaskun rivihinta < laskutettu — *ADR 0023 (HY1–HY3), 26.10.*
+- [x] A2 OOMI-hintaerot (RI ↔ sopimusrivi, `init_subs_rent_fee`) — *ADR 0020 RI1; A2b hylätty (alkutieto)*
+- [x] A3 RI Active ja fee 0 — *ADR 0020 RI2*
+- [x] A4 Warning-tilaiset RI-rivit — *ADR 0020 RI3, RI4*
+- [x] A5 puuttuvat RI-rivit — *ADR 0020 RI5; uusi RI8 laskutettu mutta ei raportoitu*
+- [x] A6 sopimusrivien eheys (alku > loppu, päällekkäiset item 30) — *ADR 0021 k. 2–5, 11 ja ADR 0022 (SR1, SR2), 26.10.*
+- [x] A7 Oomin tuloutuskausi (T58) — *pudotettu 23.10. kertaluokkana*
+- [x] A8 T23 *Ended voittaa* — *ADR 0020 k. 13, RI9*
+- [x] A9 T24 saman pyörän useampi siirto-CR — *ADR 0021, CR1*
+- [x] A10 Ended-rivin myöhässä-teksti — *ADR 0020 RI6*
+- [x] A11 Ended-rivin turha palkkahuomio — *ADR 0020 RI7*
 
 **Valmis kun** jokaisesta on hyväksytty ADR ja vastaava tarkistus on lisätty luetteloon.
+
+> [!NOTE]
+> **23.10.2026 (grilling):** ADR-kokonaisuudet päätetty: *Kuukausiraportointiin vaikuttavat tiedot* (**ADR 0020 hyväksytty**: A2–A5, A10, A11),
+> *Leasingmaksujen hyvitykset ja lisäveloitukset* (A1), *Laskutuksen päättäminen tai sen tauotus* (A6, käsittelijän velvoite mainitaan)
+> ja *CR:ien käsittelysäännöt* (A8, A9). A7 pudotettu. **ADR 0021 hyväksytty 23.10.** (A9 → CR1, A8 → ADR 0020 RI9, A6:n käsittelijäpuoli).
+> **ADR 0022 hyväksytty 26.10.** (A6 → SR1, SR2; ADR 0021 k. 11). **ADR 0023 hyväksytty 26.10.** (A1 → HY1–HY3). T65 valmis.
+
+### [ ] T70 — monthly-reportingin sääntödokumentit: ensisijainen lähde on netsuite-manager (erillinen istunto)
+
+ADR 0020 k. 1 (23.10.2026): `netsuite-monthly-reporting/docs/rules/` (`RIVISAANNOT.md`, `TULOSTUSSAANNOT.md`, `DUPLIKAATTISAANNOT.md`,
+`WARNING_RESOLUTION_PLAYBOOK.md`) kirjoitettiin kehitystä varten. Lisää jokaisen alkuun merkintä: *kehityksen aikainen dokumentti, ensisijainen
+lähde on netsuite-manager (ADR 0020 ym.)*, ettei kukaan päivitä niitä luullen niitä ajantasaisiksi. Tehdään monthly-reporting-istunnossa.
+**Valmis kun** merkintä on kaikissa neljässä ja commitoitu.
 
 ### [x] T53 — 14 jälkiveloituspyörää ilman loppulunastustilausta — **tehty 12.10.2026 (B010533 siirretty T34:ään)**
 
@@ -1778,6 +1861,11 @@ B001876, B003230, B003531, B003679, B003698, B003714, B006432, B010533, B010817,
 > **Luettu 21.10.2026 (ajot 14.–21.10. Helsingin aikaa, 8 kpl):** kaikissa `dryRun=false`, `months_before=1`, `selected=1` ja
 > `run complete` = `SKIP_LINKED_SO=1 unhandledMapErrors=0`. ERROR-, ABORT-, `STAMP_FAILED`-, `EMAIL_FAILED`- ja `NOT_PRICED`-rivejä ei ole.
 > Linkkejä ei lähtenyt, koska marraskuun kohortin lähetyspäivä ei ole vielä tullut (`suodatettu lahetyspaiva=0`). Seuraava merkittävä ajo on kohorttiajo 31.10.
+
+> [!NOTE]
+> **Luettu 23.10.2026 (ajo 23.10. klo 8, lokissa 22.10. 22:02):** `dryRun=false`, `selected=1`, `run complete` = `SENT=1 unhandledMapErrors=0`.
+> **B031422 sai linkin** (T35): `hinta_netto=100.81 huoltosumma=0 hyvitys=0`, linkki 126,52 € brutto, eräpäivä 31.10., Paylink 358177/18438, Brevo ok, `eheys` tyhjä.
+> Rekisteri: status 1, `eredem_link_sent` = T, tapa tyhjä, päättyy 31.10.2026. ERROR- ja muita poikkeusrivejä 0.
 
 A-julkaisu poistaa digestin. Lue jokaisen ajon jälkeen `scriptnote` (`scripttype = 1479`): `log.error`-rivit (`ERROR`, `STAMP_FAILED`, `EMAIL_FAILED`),
 `NOT_PRICED`, `SKIP_*`, sekä rivit, joilla `eheys` ei ole tyhjä. Lokin säilytys on noin 30 päivää. Rakenna kysely `queries/`-kansioon A:n ensimmäisen ajon jälkeen.

@@ -43,7 +43,7 @@ erikseen. Toiminnalliset skriptit (status-sync 2.0, 1479, extension 2.0) eivät 
 | maksulinkki | 1479 | päivittäin 8:00 | ADR 0014, T30 |
 | extension 2.0 | (uusi) | kuun 10. päivänä 03:00, ensimmäinen 10.11.2026 | T61 |
 | statuspäivän täyttö | 1458 | päivittäin noin 02:00 lokiaikaa | CLAUDE.md |
-| CR-rekisteripäivitys | 1196 | ajastettu | script-inventory |
+| CR-rekisteripäivitys | 1196 | päivittäin noin 23:00; kriittinen kuun viimeinen päivä (seuraavan kuun siirrot) | ADR 0021 k. 9 |
 | taloustiimin IC-ajo | (käsin) | noin kuun 29. päivänä | ADR 0011 |
 | kuukausiraportointi | 1451–1453 (käsin) | **oletus: kuun 1. päivä**. Jos ajopäivä muuttuu, kalenteri päivitetään. | Q17 |
 
@@ -128,7 +128,47 @@ rakennetaan `queries/`-kirjastoon toteutusvaiheessa (`suiteql-rakentaja`).
 
 ### Kuukausiraportointi (RI)
 
-Ei vielä tarkistuksia. Kaikki tunnetut luokat odottavat ADR:ää (A2–A5, A8, A10, A11).
+Säännöt ja rajat: [ADR 0020](adr/0020-kuukausiraportointiin-vaikuttavat-tiedot.md). Vertailuarvo on item 30 -sopimusrivi
+(ADR 0020 k. 4), ja RI5–RI8 arvioidaan vasta, kun 1453:lla on kuluvan kuun `run complete` (k. 10).
+
+| ID | Ehto | Sääntö | Laji | Aiempi | Tausta |
+|---|---|---|---|---|---|
+| RI1 | Active- tai Active/New-rivin vuokra ≠ sopimusrivin hinta (yli 0,01 € netto) | ADR 0020 k. 4, 8 | V | A2a | oomi-vuokrahinnat |
+| RI2 | Active- tai Active/New-rivin vuokra 0 tai tyhjä | ADR 0020 k. 8 | V | A3 | 2026-09-30 oomi-ri-rivi-fee-nolla |
+| RI3 | Warning-rivi seuraavan palkka-CSV:n raportointipäivällä | ADR 0020 k. 8 | E: palkka-CSV | A4 | D8 |
+| RI4 | Warning-rivi aiemmalla raportointipäivällä | ADR 0020 k. 8 | V | A4 | — |
+| RI5 | Raportoitava pyörä ilman yhtään riviä, joka ei ole Deleted, tai tyhjä alkupäivä | ADR 0020 k. 7, 8 | V | A5 | 2026-09-22 puuttuvat-ri-rivit |
+| RI6 | Ended-rivillä myöhästymis- tai pidennyslause (raportointipäivä ≥ 1.11.2026) | ADR 0020 k. 8 | V | A10 | T29 |
+| RI7 | Ended-rivillä *Tarkastakaa…*-huomio, vaikka rivi on ajallaan (raportointipäivä ≥ 1.11.2026) | ADR 0020 k. 8 | V | A11 | T28 |
+| RI8 | Laskutettu kuukausi (sopimusrivi tai pidennys-CR, ei tyypin 11 hyvitystä), mutta rivi Ended tai Paused | ADR 0020 k. 2, 5 | V | — | 23.10.2026 (lokakuussa 2 pyörää) |
+| RI9 | Active- tai Active/New-rivi ja Ended-rivi samalla pyörällä, työnantajalla ja raportointipäivällä (Ended voittaa) | ADR 0020 k. 13 | E: palkka-CSV (seuraava CSV), V (aiempi) | A8 | T23 (8893) |
+
+### Sopimusrivit (SR)
+
+Säännöt: [ADR 0022](adr/0022-laskutuksen-paattaminen-tai-tauotus.md). Laskutettu taukokuukausi on ADR 0020:n RI8.
+
+| ID | Ehto | Sääntö | Laji | Aiempi | Tausta |
+|---|---|---|---|---|---|
+| SR1 | Aktiivinen item 30/31-rivi, alku > loppu, eikä loppu ole pyörän Done-tilaisen tyypin 2 CR:n `end_date_of_old_sub` | ADR 0022 k. 2 | V | A6 | 2026-09-25 handler-lunastus-ja-vali (6 riviä 23.10.) |
+| SR2 | Kaksi aktiivista saman pyörän ja nimikkeen riviä, kaudet päällekkäin | ADR 0022 k. 3 | V | A6 | 2026-10-26 konsernisiirto-tuplarivit |
+
+### Muutospyynnöt (CR)
+
+Säännöt: [ADR 0021](adr/0021-cr-ien-kasittelysaannot.md).
+
+| ID | Ehto | Sääntö | Laji | Aiempi | Tausta |
+|---|---|---|---|---|---|
+| CR1 | Samalla pyörällä useampi siirto-CR (tyyppi 1 tai 9, tila Pending, Done, Error tai Needs Review) samalle kuukaudelle (`start_date`) | ADR 0021 k. 6–8 | E: 1196 kuun viimeisenä päivänä | A9 | T24 (B026614) |
+
+### Hyvitykset ja jälkiveloitukset (HY)
+
+Säännöt: [ADR 0023](adr/0023-leasingmaksujen-hyvitykset-ja-lisaveloitukset.md). Omistaja taloustiimi.
+
+| ID | Ehto | Sääntö | Laji | Aiempi | Tausta |
+|---|---|---|---|---|---|
+| HY1 | Hyvitysrivin (item 30/31) kuukausihinta eroaa yli 1 snt laskutetusta (laskurivi, kun sidottavissa, muuten laskutushistorian sopimusrivi; `LISA-*` lasketaan mukaan) | ADR 0023 k. 2, 6 | V | A1 | hyvitys-lisahyvitykset, 2026-09-23 |
+| HY2 | Sama pyörä, nimike ja kuukausi kahden tai useamman sopimusrivin laskutushistoriassa ilman Done-tilaista tyypin 11 hyvitystä (kuukausittain laskutusajon jälkeen) | ADR 0023 k. 8 | V | — | T72 (B033217) |
+| HY3 | Tyypin 7 tai 11 CR Error-tilassa (määräaika seuraava kuukausiajo) | ADR 0023 k. 3, 7 | V | — | CR 7447, 7467 (26.10.) |
 
 ### Ajovahti (AV)
 
@@ -140,6 +180,15 @@ Ei vielä tarkistuksia. Kaikki tunnetut luokat odottavat ADR:ää (A2–A5, A8, 
 ## Odottaa ADR:ää (T65)
 
 Näistä toistuvista luokista ei ole kirjattua sääntöä. Niistä ei tehdä tarkistusta ennen ADR:ää (P3).
+
+> [!NOTE]
+> **23.10.2026:** A2–A5, A10 ja A11 → [ADR 0020](adr/0020-kuukausiraportointiin-vaikuttavat-tiedot.md) (RI1–RI8; A2b hylätty).
+> A7 pudotettu kertaluokkana (T58 suljettu). Jäljellä: A1 (*Leasingmaksujen hyvitykset ja lisäveloitukset*), A6 (*Laskutuksen
+> päättäminen tai sen tauotus*, mainitaan käsittelijän velvoite) sekä A8 ja A9 (*CR:ien käsittelysäännöt*).
+> **23.10.2026:** A8 → ADR 0020 k. 13 (RI9), A9 → [ADR 0021](adr/0021-cr-ien-kasittelysaannot.md) (CR1). A6:n käsittelijäpuoli on ADR 0021 k. 2–5;
+> datasääntö (alku > loppu sallittu vain tyypin 2 katkaisussa) kirjataan ADR:ään *Laskutuksen päättäminen tai sen tauotus*. Jäljellä A1 ja A6.
+> **26.10.2026:** A6 → [ADR 0022](adr/0022-laskutuksen-paattaminen-tai-tauotus.md) (SR1, SR2). Jäljellä A1.
+> **26.10.2026:** A1 → [ADR 0023](adr/0023-leasingmaksujen-hyvitykset-ja-lisaveloitukset.md) (HY1–HY3). **Kaikki luokat käsitelty.**
 
 | # | Luokka | Tausta |
 |---|---|---|
