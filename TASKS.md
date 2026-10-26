@@ -204,7 +204,9 @@ kirjaa asiakirjan numero CR:n lokiin ja aseta CR Done. **Määräaika** 1.11. ku
 
 Tuoteomistaja korjasi rivit ja palautti CR:n Pendingiksi 26.10. **Tarkistettu 26.10.: passiivisen rivin 74516 hinta on 8064541833
 (desimaalierotin puuttuu) ja 74515:n 11,9522 (klooni 11,95219124)**, joten CR kaatuu uudelleen ennen T75:tä. Korjaa molemmat kloonien
-arvoihin (80,64541833 ja 11,95219124). **Valmis kun** CR on Done ja marraskuun lasku on syntynyt hinnalla 80,65 + 11,95 €.
+arvoihin (80,64541833 ja 11,95219124). **Myöhemmin 26.10.:** 74516 korjattu, CR ajettiin klo 16:02 ja kaatui item 31:een
+(11,9522 vs 11,95219124). Jäljellä: 74515 → 11,95219124 ja CR takaisin Pendingiksi. **Tehty ja todennettu 26.10.:** kaikki neljä 1.12. alkavaa riviä
+samoilla hinnoilla, CR 7447 Pending. Odottaa seuraavaa 1199-ajoa. **Valmis kun** CR on Done ja marraskuun lasku on syntynyt hinnalla 80,65 + 11,95 €.
 
 ## 22.10.2026 (to)
 
