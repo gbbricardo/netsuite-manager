@@ -1881,6 +1881,26 @@ Päätetty 26.10.2026 ([ADR 0014](docs/adr/0014-maksulinkin-korjaus-ja-yksinkert
 Jos se ei onnistu, käytä varasuunnitelmaa C6 1.11.
 **Valmis kun** C5:n kohdat 1–4 on todennettu ja B046669:llä on `link_sent` = T ja loppulunastustilaus.
 
+> **Tilanne 27.10.2026:** koodi tehty ja pushattu omistavaan repoon (`netstuite-send-end-redemption-payment-link`, commit `b2fb0a6`, master).
+> `node test/run_tests.js` 46/46. Tiedostot ladattu File Cabinetiin 27.10. klo 12:51 (koot täsmäävät commitiin; sisältöä ei voi lukea MCP:llä).
+> **C5 kohta 1 (testit) ja 3 (`test_bike_id`-dry runit testideploymentilla `customdeploy_send_redemption_test`) todennettu:**
+> B046669 165,94 € ja "0,00 €" (eheys S9), B044624 31,91 € ja "133,00 €", B041687 `SETTLED_MAINT_BUDGET` (tapa 3, ei kirjoituksia).
+> Rekisteri luettu takaisin: kaikilla kolmella `link_sent` = F ja tapa tyhjä. Testideploymentin Brevo-pohjaparametri on tyhjä (vain dry run).
+> **Päätös (käyttäjä):** B046669 lähetetään ajastetulla ajolla, ei käsin. Sen lähetyspäivä on 30.10. (päättyy 30.11., `months_before` = 1).
+> **Huomio:** pe 30.10. klo 8 ajo on koko 30.11. päättyvä ei-OOMI-kohortti (27.10. `selection`: 810 suodatettu) + B046669, eli noin 811 valittua.
+> Kaikki marraskuun OOMI-pyörät on leimattu (SuiteQL 27.10.), joten 28.10. ajon odotus on `selected=0`.
+> **Tarkista ennen 30.10.:** tuotantodeploymentin `custscript_gbb_eredem_brevo_tmpl` = 65 (ei luettavissa SuiteQL:llä).
+>
+> **Seuranta** (Claude-istunnossa ajastetut kertatarkistukset, jos istunto on auki; muuten käsin samoilla kyselyillä):
+> - [ ] **ke 28.10. klo 9:07** — ensimmäinen ajo uudella koodilla: `selected=0`, `run complete`, 0 virhettä; 27.10.:n puuttunut `run complete` -rivi.
+> - [ ] **pe 30.10. klo 9:43** — ~811 valittua; lopputulosjakauma; B046669 `SENT`, `link_sent` = T, `brevo_id` ja Paylink-tilaus; hintojen uudelleenlaskenta,
+>   jälkiveloitus-CR (T31–T38-vika) ja tyypin 2/10 CR -tarkistus linkin saaneille; tuplatilaukset; vertailu 1.10. ajoon (748 linkkiä, 0 virhettä).
+>   Ajo voi olla vielä kesken, jolloin tarkistus toistetaan.
+> - [ ] **la 31.10. klo 9:11** — takaraja: jos B046669:llä ei ole `link_sent` = T, aja 1479 `test_bike_id` = 46669 tuotantodeploymentilla (dry run pois; käyttäjä).
+> - [ ] **su 1.11. klo 9:17** — 1480:n yöajon jälkeen B046669:n status ja tapa (status 2 / tapa 1 vain jos maksu tullut, muuten C6), joulukuun OOMI-pyörien tapa 3 ennallaan, 1.11. ajon tulos.
+>
+> Vertailupohja (vanha koodi, `dryRun=false`): 21.–22.10. selected 1 (`SKIP_LINKED_SO`), 23.10. `SENT`=1, 24.–26.10. selected 0, kaikissa `unhandledMapErrors=0`.
+
 ### [ ] T80 — `months_before` 1 → 2, **ma 2.11.** (käyttäjä)
 
 Vaihda 1479:n deploymentin `custscript_gbb_eredem_months_before` arvoksi 2 vasta, kun T79 on valmis ja 30.10.–1.11. ajot on luettu (T52).
