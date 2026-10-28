@@ -128,7 +128,8 @@ Selvitettävä, kumpi on oikein (vaikuttaa IC-päivään).
 ## Tarkistus 1.11. (lisätään T28:n todennukseen)
 
 ```sql
--- Luokan C marraskuun Ended-rivien pitää saada lippu 1.11. ri_updatessa (odotus: 11/11 'LIPPU')
+-- Luokan C marraskuun Ended-rivien pitää saada lippu 1.11. ri_updatessa (odotus: 10/10 'LIPPU';
+-- B033466:n Ended-rivi 153082 poistettiin 28.10., koska lunastus peruttiin, TASKS T84)
 SELECT br.name, ri.id, CASE WHEN ri.custrecord_gbb_ri_gbb_notification LIKE '%Tarkastakaa%' THEN 'LIPPU' ELSE '-' END
 FROM customrecord_gbb_monthly_reporting_item ri JOIN customrecord_sta_bike_register br ON br.id = ri.custrecord_gbb_ri_bike
 WHERE ri.custrecord_gbb_ri_reporting_status = 4 AND ri.custrecord_gbb_ri_reporting_date = TO_DATE('2026-11-01','YYYY-MM-DD')

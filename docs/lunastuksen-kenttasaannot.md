@@ -882,6 +882,8 @@ Päätökset: [ADR 0012](adr/0012-loppulunastushinta-ja-kattavuus.md) (grilling 
 [`../findings/2026-10-05-maksulinkki-logiikkavirheet-ja-tavoitetila.md`](../findings/2026-10-05-maksulinkki-logiikkavirheet-ja-tavoitetila.md).
 
 Koskee vain **kauden lopun lunastusta** muilla kuin OOMI-pyörillä. Keskenkauden lunastus: § 10.
+**Huoltohyvityksen kaava koskee 27.10.2026 alkaen myös keskenkauden lunastusta** ([ADR 0024](adr/0024-huoltohyvitys-keskenkauden-lunastuksessa-ja-lookup-kentta.md));
+se näytetään cf-gbb-toolsin pyörärekisterityökalussa, eikä sitä automatisoida.
 OOMI: § 9 *OOMI-pyörä*.
 
 ### Hintaan vaikuttavat kentät
@@ -890,7 +892,7 @@ OOMI: § 9 *OOMI-pyörä*.
 |---|---|---|
 | Loppulunastushinta | `custrecord_sta_end_redemption_price` | Netto. Totuus on vuokrasopimus. Kirjoittaa GoByBike-portaali rekisteriä luotaessa (oletus 0 = käsiraha kattaa) ja ohituksena; asiakaspalvelu ja talous saavat korjata. Mikään NetSuite-skripti ei kirjoita sitä |
 | Huoltosumma | `custrecord_sta_maintenance_sum` | Netto. Staria lisää huolto-ostolaskut; käsikorjauksia esiintyy. Voi olla 0, tyhjä (= 0) tai negatiivinen |
-| Huoltoporrastaulu | `customrecord_sta_maint_extending_months`, `custrecord_sta_me_max_rate_excl_vat` | Ylärajat netto: 1 kk 64,53; 2 kk 128,28; +63,75/kk. Ensimmäinen porras on 0,99 € brutto muita leveämpi |
+| Huoltoporrastaulu | `customrecord_sta_maint_extending_months`, `custrecord_sta_me_max_rate_excl_vat` | Ylärajat netto: 1 kk 64,53; 2 kk 128,28; 3 kk 192,02 … 48 kk 3 060,55. Johdettu bruttoportaista: brutto = 80 € × kk + 0,99 €, netto = round2(brutto / 1,255). **Ei lineaarinen netto**: aiempi "+63,75/kk" poikkesi 3 kk:sta alkaen (todennettu 27.10.2026, [ADR 0024](adr/0024-huoltohyvitys-keskenkauden-lunastuksessa-ja-lookup-kentta.md)) |
 | OOMI | `custrecord_sta_bike_order_type` = 3 | rajaa pois |
 
 **Ei vaikuta hintaan:** sopimuksen pidennys (`subsc_end_date − subsc_org_end_date`), huoltopidennysrivit,

@@ -778,7 +778,7 @@ Jos yksikin puuttuu tai on Ended, **pysäytä ennen CSV:tä**: se on puuttuva pa
 >   T29 muunnos `can_be_updated` F ja T (C3/C4 pois, muu teksti säilyy, lokilause) sekä priority 0 -siirto Warning → Ended ilman C3/C4:ää. Virheitä 0.
 > - **Siivous 21.10. todennettu:** 117469 on taas status 4, ja testirivit 154181–154183 ovat status 6. B017530:n elävät rivit ovat samat kuin ennen testiä (117469 Ended ja Warningit 117470, 117571).
 >   Deploymenttien parametrit palautti käyttäjä (SuiteQL ei näe niitä). **Tarkista ennen 1.11. ajoa, että testipyörä-parametrit ovat tyhjät** (lokin ensimmäinen rivi ei saa olla `⚠ TEST SCOPE`).
-> - **1.11. lisäksi (T67, [löydös](findings/2026-10-22-raportoitu-paattymisen-jalkeen.md)):** luokan C 11 marraskuun Ended-riviä saavat tekstin *Tarkastakaa…* (kysely löydöksessä, odotus 11/11), ja B020053 saa myöhästyneen Ended-rivin.
+> - **1.11. lisäksi (T67, [löydös](findings/2026-10-22-raportoitu-paattymisen-jalkeen.md)):** luokan C 10 marraskuun Ended-riviä saavat tekstin *Tarkastakaa…* (kysely löydöksessä, odotus 10/10; B033466:n lunastus peruttiin 28.10., T84), ja B020053 saa myöhästyneen Ended-rivin.
 > - **1.11. tarkistuslista:** [`queries/kuukausiajo-tarkistuslista.md`](queries/kuukausiajo-tarkistuslista.md) (22.10.) kokoaa kaikki 1.11. tarkistukset: T28/T29, T11:n lokiversio, T67, D8 ja kattavuus.
 > - **Jäljellä:** 1.11. todennus (4). ~~(1) commit, (2) lataus File Cabinetiin, (3) kylvetty testi ja siivous~~ (ri_creation ja ri_update ovat `TESTING`-tilassa ja ajetaan käsin, joten latauksen voi tehdä ennen 27.10., mutta ei 1.11. yönä),
 >   (3) kylvetty testi B017530:llä (työohje § 3A) viimeistään 30.10., (4) 1.11. todennuskyselyt (§ 3B).
@@ -1494,6 +1494,12 @@ Määritelty 6.10.2026. Sanasto on `CONTEXT.md` § *IC-käsitteet*. Korjaukset t
 > **Valmis-ehto:** haun rivimäärän käyttöliittymässä pitäisi nyt olla 572. Jos luku on eri, ero johtuu FAM-liitoksesta (pyörä ilman omaisuutta).
 
 > [!NOTE]
+> **27.10.2026 (käyttäjä): haun 797 päivä on vaihdettu 31.10.2026:ksi** ennen 29.10. IC-ajoa. Muut ehdot ovat ennallaan (`IC REDEMPTION PROCESSED` is false ·
+> `CONTRACT FINANCIER` is any of none, GoByBike Finance Oy · `Asset Status` is not Disposed). Odotettu rivimäärä käyttöliittymässä on noin **1 542** (SuiteQL 22.10.;
+> luku on voinut kasvaa, jos 2.0 on asettanut uusia päiviä). Tallennettua hakua ei voi lukea SuiteQL:llä, joten muutos on käyttäjän ilmoitus eikä todennettu.
+> Seuraavassa kuussa päivä vaihdetaan 30.11.2026:ksi.
+
+> [!NOTE]
 > **9.10.2026:** Siirretty T64:ään: tallennettu haku näkyy vain käyttöliittymässä (käyttäjä tai taloustiimi).
 
 Listalle tulevat täsmälleen IC-lunastettavissa olevat pyörät: velvoitteet hoidettu (selvitystapa asetettu), `ic_redemption_dt`
@@ -1925,6 +1931,28 @@ Pyöräkohtainen lista saadaan kyselyllä: marraskuun OOMI-pyörät, joilla `mai
 
 1479 ei käsittele näitä pyöriä, koska niillä on `link_sent` = T.
 **Valmis kun** päätös on kirjattu ja tarvittavat CSV:t on ajettu.
+
+### [ ] T83 — cf-gbb-tools: "Huoltohyvitys lunastushinnasta" -kenttä pyörärekisterityökaluun (erillinen istunto, ei takarajaa)
+
+[ADR 0024](docs/adr/0024-huoltohyvitys-keskenkauden-lunastuksessa-ja-lookup-kentta.md), työohje ADR:n kohdassa *Toteutus cf-gbb-toolsissa*.
+*Lunastushinta*-osion ylimmäksi riviksi, panelista riippumatta: KS § 11:n kaava (myös keskenkauden lunastukselle), OOMI-poikkeus,
+pelkkä brutto, porrastaulu kovakoodattuna 48 arvona. Kaikki statukset.
+**Valmis kun** muutos on tuotannossa, vitest kattaa ADR:n testilistan, ja hyvitys täsmää 1479:n `hyvitys`-lokikenttään vähintään kolmella `SENT`-pyörällä.
+
+### [ ] T84 — B033466: varkauden lunastus peruttu (pyörä löytyi), seurantapisteet 29.10.–1.11.
+
+Varkaus → CR 7074 (tyyppi 2, "vakuutus") + 7075 (tyyppi 11, CRMGBF0004049 −230,92) Done 6.10. → pyörä löytyi.
+**Peruttu 27.–28.10.:** rekisteri palautettu (Active, `subsc_end_date` 30.11., tapa/`settled_at`/`decided_at`/`date_to_non_active` tyhjät),
+RI 153082 (2026-11 Ended) → Deleted, WARNING-RI 155084 → Active, CR:t 7074 ja 7075 → Cancelled (SuiteQL 28.10.),
+talous: kumoava lasku INVGBF1047148 (+230,92, loka–marras) ja käsittelykulun hyvitys CRMGBB0002772 (−200).
+Ennen CR:ien perumista 1479 olisi ohittanut pyörän (`cr_2_10`) ja 1480 pitänyt sitä ennenaikaisena (ei kauden lopun vaihetta 2).
+
+- [ ] **to 29.10. aamu:** `ic_redemption_dt` (30.09.2026) ja `ic_redemption_pr` (269,10) — 1480:n pitäisi tyhjentää ne yöllä
+  (vaihe 4, ei tapaa; päätelty koodista). Käyttäjä varmistaa IC-tilanteen taloustiimiltä ennen IC-ajoa (haku 797, raja 31.10.).
+- [ ] **pe 30.10. klo 8 jälkeen:** 1479 `SENT B033466`, hinta 108,87 € (huoltosumma 0, ei pidennystä). Valintaehdot todennettu SuiteQL:llä 28.10.
+- [ ] **1.11. ri_update:** RI 155084 (`WARNING_BIKE-33466_2026-11`) saa `lease_fee_vat0` = 80,64541833 vaiheessa 1b
+  (`can_be_updated` = T, työnantaja 2264; päätelty koodista). Käyttäjä päätti 28.10. jättää tämän ri_updatelle.
+- [ ] Talous: CRMGBF0004049 ja INVGBF1047148 ovat molemmat Open eikä niitä ole kohdistettu toisiinsa (28.10.). CRMGBB0002772 (−200) Open.
 
 ---
 

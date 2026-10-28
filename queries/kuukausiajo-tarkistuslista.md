@@ -144,7 +144,7 @@ Jos T28 tai T29 palauttaa rivejä, tee sama CSV-import kuin 1.10. (`imports/2026
 
 ## 1.11.2026: erityistarkistukset
 
-**T67 luokka C:** takautuvasti päättyneiden marraskuun Ended-riveille tulee lippu. **Odotus 11/11 `LIPPU`.**
+**T67 luokka C:** takautuvasti päättyneiden marraskuun Ended-riveille tulee lippu. **Odotus 10/10 `LIPPU`.** B033466 on poissa kyselyn tuloksista: sen lunastus peruttiin 28.10., ja Ended-rivi 153082 on Deleted (TASKS T84). B033466:n marraskuun rivi on Active-rivi 155084, jonka vuokra pitää olla 80,65.
 ```sql
 SELECT br.name, ri.id, CASE WHEN ri.custrecord_gbb_ri_gbb_notification LIKE '%Tarkastakaa%' THEN 'LIPPU' ELSE '-' END lippu
 FROM customrecord_gbb_monthly_reporting_item ri JOIN customrecord_sta_bike_register br ON br.id = ri.custrecord_gbb_ri_bike
