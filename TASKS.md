@@ -176,6 +176,19 @@ Korjaa 76654:n alkupäiväksi 1.9.2027 ja hyvitä marraskuun tupla (hyvitys-CR t
 
 Kysely löydöksessä. 1199 ajaa 6 tunnin välein. Tarkista ainakin päivinä, jolloin tyypin 1, 9 tai 13 CR:iä on käsitelty. **Valmis kun** T71 on valmis.
 
+> [!NOTE]
+> **28.10.2026:** SR2 palauttaa vain **B033217** (22039 / 76654, item 31), joka on T72:ssa. Tyypin 1/9/13 CR:iä ei ole käsitelty 26.10. korjausten jälkeen.
+> **Jonossa 3 uutta tyypin 13 pakettia** (luotu 28.10. 16:05, Pending, uusi asiakas `portal-company-4lgnos3o3xtd`, `official_end` 31.10.2026), kaikki **OOMI**, ja jokaisella on
+> viimeisen kuun osarivit, eli sama kuvio kuin B044562:lla ja B037449:llä:
+> | CR | Pyörä | Päärivit (30/31) | Osarivit (30/31) |
+> |---|---|---|---|
+> | 7492 | B044307 | 108336/108337 → 29.2.2028 | 108338/108339, 3/2028 |
+> | 7493 | B044317 | 108374/108375 → 30.4.2027 | 108376/108377, 5/2027 |
+> | 7494 | B044251 | 108128/108129 → 30.4.2029 | 108130/108131, 5/2029 |
+> Odotus ennen T71:tä: kloonit kattavat viimeisen kuun, ja osarivit jäävät aktiivisiksi. Tupla alkaisi aikaisintaan 5/2027, joten korjaus ehtii ajon jälkeen.
+> **Aja SR2 uudelleen, kun 7492–7494 ovat Done**, ja korjaa kuten B044562: kloonien loppu viimeisen täyden kuun loppuun, osarivit jäävät.
+> Error-tilassa ovat yhä 7399 (B026067, 26.10.) ja 4652 (B039986, 7/2026). Ne on jätetty käsittelemättä.
+
 ### [ ] T74 — Selvitys: item 30 -rivi päättyy pyörän `subsc_end_date`:n jälkeen (7 774 pyörää)
 
 Löydetty 23.10. (ADR 0022 k. 1): OOMI 7 409 pyörää (7 127 Active) ja muut 365. Onko kyse rakenteesta (esim. OOMI-rivi päättyy kuun loppuun,
@@ -200,7 +213,14 @@ CR 6350 (+0,79 €) jää rajan alle. [Löydös](findings/2026-09-23-hyvitys-cr-
 ADR 0023 k. 3, 7. Heinäkuu ja elokuu laskutettiin samalla jaksolla 1.8.2026. Tee hyvitys käsin todellisen laskurivin hinnalla,
 kirjaa asiakirjan numero CR:n lokiin ja aseta CR Done. **Määräaika** 1.11. kuukausiajo (RI8 lukee Done-tilaiset tyypin 11 CR:t).
 
-### [ ] T78 — CR 7447 (B023726, marraskuun jälkiveloitus): seuraava 1199-ajo
+### [x] T78 — CR 7447 (B023726, marraskuun jälkiveloitus): seuraava 1199-ajo — **tehty 28.10.2026**
+
+> [!NOTE]
+> **Tulos 28.10.2026 (SuiteQL):** CR 7447 **Done** (muokattu 27.10.) → **INVGBF1047147** 26.10., Vincit Oyj, 80,65 + 11,95 € netto, kausi 1.–30.11.2026.
+> Lokin `WARNING … already have billing history for period(s) 2026-11` on 2A-paketissa odotettu: vanhat rivit 10222/44927 (Vincit Helsinki Oy, 12/2025–11/2026)
+> on jo laskutettu marraskuulle, ja paketin hyvitys-CR 7448 (Done) hyvitti sen: **CRMGBF0004209**, Vincit Helsinki Oy, 80,65 + 11,95 €, sama kausi.
+> CR 7449 (Siirto konserni) Done. Uudet rivit 116595/116596 (Active, 1.12.2026–31.1.2027, samat hinnat), korjatut 74515/74516 passiivisia.
+> Rekisteri: status 1, `subsc_end_date` 31.01.2027. Tuplalaskutusta ei ole.
 
 Tuoteomistaja korjasi rivit ja palautti CR:n Pendingiksi 26.10. **Tarkistettu 26.10.: passiivisen rivin 74516 hinta on 8064541833
 (desimaalierotin puuttuu) ja 74515:n 11,9522 (klooni 11,95219124)**, joten CR kaatuu uudelleen ennen T75:tä. Korjaa molemmat kloonien
@@ -1895,10 +1915,14 @@ Jos se ei onnistu, käytä varasuunnitelmaa C6 1.11.
 > **Päätös (käyttäjä):** B046669 lähetetään ajastetulla ajolla, ei käsin. Sen lähetyspäivä on 30.10. (päättyy 30.11., `months_before` = 1).
 > **Huomio:** pe 30.10. klo 8 ajo on koko 30.11. päättyvä ei-OOMI-kohortti (27.10. `selection`: 810 suodatettu) + B046669, eli noin 811 valittua.
 > Kaikki marraskuun OOMI-pyörät on leimattu (SuiteQL 27.10.), joten 28.10. ajon odotus on `selected=0`.
-> **Tarkista ennen 30.10.:** tuotantodeploymentin `custscript_gbb_eredem_brevo_tmpl` = 65 (ei luettavissa SuiteQL:llä).
+> ~~**Tarkista ennen 30.10.:** tuotantodeploymentin `custscript_gbb_eredem_brevo_tmpl` = 65 (ei luettavissa SuiteQL:llä).~~ **Tarkistettu 28.10.2026 (käyttäjä, UI): arvo on 65.**
 >
 > **Seuranta** (Claude-istunnossa ajastetut kertatarkistukset, jos istunto on auki; muuten käsin samoilla kyselyillä):
-> - [ ] **ke 28.10. klo 9:07** — ensimmäinen ajo uudella koodilla: `selected=0`, `run complete`, 0 virhettä; 27.10.:n puuttunut `run complete` -rivi.
+> - [x] **ke 28.10. klo 9:07** — ensimmäinen ajo uudella koodilla: `selected=0`, `run complete`, 0 virhettä; 27.10.:n puuttunut `run complete` -rivi.
+>   **Tehty 28.10.2026 (`scriptnote` 1479):** ajo 28.10. klo 8:01 Helsingin aikaa (lokissa 27.10. 23:01): `dryRun=false`, ikkuna 28.10.–1.12.,
+>   `suodatettu lahetyspaiva=817`, `rajattu tilaus=0 jalkiveloitus=0 cr_2_10=0`, `selected=0`, `run complete` `unhandledMapErrors=0`.
+>   ERROR-rivejä ei ole 27.–28.10. 27.10. ajon `run complete` -rivi on olemassa (lokissa 26.10. 23:01:47, ei lopputuloksia, koska `selected=0`), joten aiempi havainto oli virheellinen.
+>   Suodatettujen määrä nousi 810 → 817, koska ikkunan loppu siirtyi 30.11. → 1.12. Ajoversiota ei voi lukea lokista; ajo on File Cabinet -latauksen (27.10. klo 12:51) jälkeen.
 > - [ ] **pe 30.10. klo 9:43** — ~811 valittua; lopputulosjakauma; B046669 `SENT`, `link_sent` = T, `brevo_id` ja Paylink-tilaus; hintojen uudelleenlaskenta,
 >   jälkiveloitus-CR (T31–T38-vika) ja tyypin 2/10 CR -tarkistus linkin saaneille; tuplatilaukset; vertailu 1.10. ajoon (748 linkkiä, 0 virhettä).
 >   Ajo voi olla vielä kesken, jolloin tarkistus toistetaan.
