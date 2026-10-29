@@ -1978,6 +1978,39 @@ Ennen CR:ien perumista 1479 olisi ohittanut pyörän (`cr_2_10`) ja 1480 pitäny
   (`can_be_updated` = T, työnantaja 2264; päätelty koodista). Käyttäjä päätti 28.10. jättää tämän ri_updatelle.
 - [ ] Talous: CRMGBF0004049 ja INVGBF1047148 ovat molemmat Open eikä niitä ole kohdistettu toisiinsa (28.10.). CRMGBB0002772 (−200) Open.
 
+### [ ] T85 — ic-calculators: hankitun OOMI-pyörän poisto alkaa IC-kaupan päivästä (omistava repo, erillinen istunto)
+
+Löydös [`findings/2026-10-29-ic-lunastushinta-oomi-ei-fam.md`](findings/2026-10-29-ic-lunastushinta-oomi-ei-fam.md),
+työohje [`docs/ic-calculators-oomi-poistoaika-tyoohje.md`](docs/ic-calculators-oomi-poistoaika-tyoohje.md).
+**Taloustiimin vahvistus 29.10.2026:** OOMI-pyörillä, joilla on `ic_sale_dt`, poisto alkaa IC-kaupan päivästä.
+Nykyinen koodi siirtää poiston alun `subsc_start_date`:en ja käyttää koko alkuperäistä vuokrakautta, jolloin
+IC-kauppahinnan sisällä jo oleva poisto lasketaan toiseen kertaan. Vaikutus: **240 kesken kauden lunastettua
+OOMI-pyörää**, joista 110 alihinnoiteltu (46 468,77 €) ja 21 ylihinnoiteltu (−1 467,56 €).
+
+- [x] **Tehty 29.10.2026** — koodimuutos + jest-testit `netsuite-ic-calculators`-repossa (työohje § 2–4).
+  `monthsInclusive`, `isAcquiredOomiLease`, `priceAcquiredOomiLease` + haara `processRecord`:ssa ennen
+  `resolveTermEndDate`:ä; MR:ään `orderType` ja tarkat lokiselitteet; 24 uutta testiä. **121/121 läpi**
+  (97 vanhaa muuttumattomina, 0 poistettua riviä kirjastosta ja testeistä). Myös repon oma README ja
+  `docs/open-follow-ups.md` päivitetty (avoin kysymys → ratkaistu). **Muutokset työpuussa, ei commitoitu.**
+- [x] **Tuotannossa ja todennettu 29.10.2026** — molemmat tiedostot File Cabinetiin, pilottiajo B037696:lla
+  (`scriptnote` 1430, 29.10. 08:15, `Success: 1 | Errors: 0`). Loki täsmää odotukseen kenttä kentältä:
+  hinta **1 137,62 €**, `rentMonths` **22** (vaikka `originalRentMonths` 52 — kenttä ei vuoda laskentaan),
+  `periodsElapsed` 6, `unbilledMonths` 16, `amortizationStartDate` 01.05.2026 / `acquisition date (default)`,
+  `subscriptionEndDate` 01.02.2028, `rateSource` `finance override` (korkoa ei kirjoitettu uudelleen).
+  Vertailukohta samasta lokista: **B046472** ajettiin 28.10. vanhalla koodilla (`original subscription start`
+  24.01.2023, `rentMonths` 60, hinta 559,63 €) — sama pyörätyyppi, ennen/jälkeen-pari.
+- [x] **Ajettu ja todennettu 29.10.2026** — import
+  [`imports/2026-10-29-ic-hinnan-tyhjennys-oomi/`](imports/2026-10-29-ic-hinnan-tyhjennys-oomi/README.md)
+  tyhjensi `ic_redemption_pr`:n 103 pyörältä kahdessa erässä (pilotti 1 + loput 102), ja skripti laski ne uudelleen:
+  `Success: 1 | Errors: 0` klo 08:15 ja **`Success: 102 | Errors: 0`** klo 08:24. Kaikki 103 hinnoiteltu,
+  **0 kpl `-1`**, hintojen summa **109 150,45 €** = generaattorin laskema odotussumma sentilleen.
+  `done = T` -ryhmän 137 hintaa koskemattomia (summa 128 994,81 €), ja jono on nyt tyhjä.
+  **§ 6 hyväksymiskriteeri täyttyi: `done = F` → 103 pyörää, ero 0,00 €.**
+- [ ] Taloustiimille: `done = T` -ryhmän 28 poikkeavaa pyörää (21 yli-, 7 alihinnoiteltua) — oikaisu on talouden päätös.
+- [ ] Avoimet erikseen: B044311:n jäännösarvo (193,70 vs 392,83) ja jäännösarvon varasääntö 5 % vs 1 % (B046521).
+
+**Valmis kun** työohjeen § 6 tarkistuskysely antaa `done = F` -riville eron 0,00 € ja 103 pyörää.
+
 ---
 
 ## Päätettävät (tuoteomistaja)
