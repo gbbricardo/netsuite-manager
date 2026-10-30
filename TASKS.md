@@ -1926,6 +1926,9 @@ Jos se ei onnistu, käytä varasuunnitelmaa C6 1.11.
 > - [ ] **pe 30.10. klo 9:43** — ~811 valittua; lopputulosjakauma; B046669 `SENT`, `link_sent` = T, `brevo_id` ja Paylink-tilaus; hintojen uudelleenlaskenta,
 >   jälkiveloitus-CR (T31–T38-vika) ja tyypin 2/10 CR -tarkistus linkin saaneille; tuplatilaukset; vertailu 1.10. ajoon (748 linkkiä, 0 virhettä).
 >   Ajo voi olla vielä kesken, jolloin tarkistus toistetaan.
+>   **Osittain todennettu 30.10.2026 (`scriptnote` 1479, ajo klo 8:01–8:11):** `selected=811`, `run complete` = **`SENT=810 SETTLED_DOWN_PAYMENT=1 unhandledMapErrors=0`**,
+>   ERROR-rivejä 0. **B046669 `SENT`**: 132,22 € netto / 165,94 € brutto, Paylink 361022, Brevo ok, `eheys=S9`, `link_sent` = T (C5:n B046669-ehto täyttyy).
+>   Lahetyspäivää odottavat: 13. **Tekemättä:** hintojen uudelleenlaskenta, jälkiveloitus- ja tyypin 2/10 CR -tarkistus linkin saaneille, tuplatilaukset, `eheys`-jakauma ja SETTLED_DOWN_PAYMENT-pyörän tunnistus.
 > - [ ] **la 31.10. klo 9:11** — takaraja: jos B046669:llä ei ole `link_sent` = T, aja 1479 `test_bike_id` = 46669 tuotantodeploymentilla (dry run pois; käyttäjä).
 > - [ ] **su 1.11. klo 9:17** — 1480:n yöajon jälkeen B046669:n status ja tapa (status 2 / tapa 1 vain jos maksu tullut, muuten C6), joulukuun OOMI-pyörien tapa 3 ennallaan, 1.11. ajon tulos.
 >
@@ -1971,9 +1974,11 @@ RI 153082 (2026-11 Ended) → Deleted, WARNING-RI 155084 → Active, CR:t 7074 j
 talous: kumoava lasku INVGBF1047148 (+230,92, loka–marras) ja käsittelykulun hyvitys CRMGBB0002772 (−200).
 Ennen CR:ien perumista 1479 olisi ohittanut pyörän (`cr_2_10`) ja 1480 pitänyt sitä ennenaikaisena (ei kauden lopun vaihetta 2).
 
-- [ ] **to 29.10. aamu:** `ic_redemption_dt` (30.09.2026) ja `ic_redemption_pr` (269,10) — 1480:n pitäisi tyhjentää ne yöllä
+- [x] **to 29.10. aamu:** `ic_redemption_dt` (30.09.2026) ja `ic_redemption_pr` (269,10) — 1480:n pitäisi tyhjentää ne yöllä
+  **Todennettu 30.10.2026: molemmat tyhjiä**, status 1, tapa tyhjä.
   (vaihe 4, ei tapaa; päätelty koodista). Käyttäjä varmistaa IC-tilanteen taloustiimiltä ennen IC-ajoa (haku 797, raja 31.10.).
-- [ ] **pe 30.10. klo 8 jälkeen:** 1479 `SENT B033466`, hinta 108,87 € (huoltosumma 0, ei pidennystä). Valintaehdot todennettu SuiteQL:llä 28.10.
+- [x] **pe 30.10. klo 8 jälkeen:** 1479 `SENT B033466`, hinta 108,87 € (huoltosumma 0, ei pidennystä). Valintaehdot todennettu SuiteQL:llä 28.10.
+  **Todennettu 30.10.2026:** `SENT B033466`, `hinta_netto=108.87`, linkki 136,63 € brutto, eräpäivä 30.11., Paylink 360965, Brevo ok, `eheys` tyhjä, `link_sent` = T.
 - [ ] **1.11. ri_update:** RI 155084 (`WARNING_BIKE-33466_2026-11`) saa `lease_fee_vat0` = 80,64541833 vaiheessa 1b
   (`can_be_updated` = T, työnantaja 2264; päätelty koodista). Käyttäjä päätti 28.10. jättää tämän ri_updatelle.
 - [ ] Talous: CRMGBF0004049 ja INVGBF1047148 ovat molemmat Open eikä niitä ole kohdistettu toisiinsa (28.10.). CRMGBB0002772 (−200) Open.
@@ -2010,6 +2015,52 @@ OOMI-pyörää**, joista 110 alihinnoiteltu (46 468,77 €) ja 21 ylihinnoiteltu
 - [ ] Avoimet erikseen: B044311:n jäännösarvo (193,70 vs 392,83) ja jäännösarvon varasääntö 5 % vs 1 % (B046521).
 
 **Valmis kun** työohjeen § 6 tarkistuskysely antaa `done = F` -riville eron 0,00 € ja 103 pyörää.
+
+---
+
+### [ ] T86 — ic-calculators: sama poistovirhe myös FAM-omaisuuserällisillä hankituilla OOMI-pyörillä (30.10.2026)
+
+Löydös [`findings/2026-10-30-ic-lunastushinta-oomi-fam-hankinta.md`](findings/2026-10-30-ic-lunastushinta-oomi-fam-hankinta.md).
+**T85:n haaran ehto rajattiin pyöriin joilla ei ole FAM-omaisuuserää, ja rajaus oli väärä.** Sama
+kaksoispoisto esiintyy FAM-pyörillä, joilla hankinta (`custrecord_assetdeprstartdate`) on myöhemmin
+kuin `subsc_start`: `netCost` ja `leaseStartDate` tulevat oikein FAM:ista, mutta
+`resolveTermEndDate`:n `null` siirtää poiston alun silti `subsc_start`iin ja jättää `rentMonths`:in
+alkuperäiseksi. Todennettu B041395:llä — tallennettu 1 507,63 € toistuu kirjastolla sentilleen,
+oikea **1 881,48 €** (tuoteomistajan vahvistus 30.10.2026). **Vaikutus: 20 pyörää**, joista
+`done = F` **12 kpl / 4 337,29 €** ja `done = T` 8 kpl / −138,58 €.
+
+- [x] **Tehty 30.10.2026** — koodimuutos + testit. Predikaatti `isOomiLeaseAcquiredMidContract(row, leaseStartDate)`:
+  tilaustyyppi 3 ja hankintapäivä (FAM:in poiston alku, muuten `ic_sale_dt`) myöhemmin kuin `subsc_start`.
+  `priceAcquiredOomiLease` ei muuttunut. **128/128 testiä läpi** (121 → 128, 0 rikkoutunutta).
+  Regressio ajettu myös tuotantodatalla: 10 pyörää, **7/7 eilen korjattua ennallaan** ja **3/3 FAM-pyörää oikein**.
+- [x] **Tuotannossa ja todennettu 30.10.2026** — tiedostot File Cabinetiin, ajo B041395:llä.
+  `scriptnote` 1430: hinta **1 881,48 €**, `netCost` 2 143,33 (**FAM**), `rentMonths` **43** (vaikka
+  `originalRentMonths` 56), `periodsElapsed` 6, `unbilledMonths` 37, `amortizationStartDate` 01.05.2026
+  / `acquisition date (default)` — ei siirretty, `rateSource` `finance override`.
+- [x] **Import tehty 30.10.2026** — 3 pyörää (`ic_redemption_dt` = 31.10.2026), yht. 1 015,02 €:
+  B039621 **1 833,63 €**, B041395 **1 881,48 €**, B042663 **1 799,50 €**. Kaikki täsmäävät.
+  **T85:n regressio todennettu:** § 6 -kysely `done = F` → ero **0,00 €**. Lukumäärä kasvoi 103 → **107**,
+  koska neljä pyörää (B037979, B039442, B039455, B040844) sai lunastuspäivän yöllä 30.10. klo 00:36 ja
+  hinnoiteltiin oikein jo julkaistulla T85-korjauksella — ei regressio.
+- [x] **Import `03-loput-8.csv` ajettu ja todennettu 30.10.2026** — tuoteomistajan päätös 30.10.2026:
+  korjataan kaikki `done = F` -pyörät, joiden hinta on väärin. 8 pyörää, **3 322,27 €**,
+  `SUM(internal_id)` 342 743. Jono poimi täsmälleen nämä 8 (tarkistussumma täsmäsi, `done ≠ F` 0 kpl),
+  ajo `Success: 8 | Errors: 0` (loki 30.10. 02:51). **8/8 hintaa täsmää sentilleen** ennalta ajettuihin:
+  B038940 1 931,48 · B040697 2 196,04 · B041336 1 818,48 · B042269 1 822,84 · B043704 1 577,75 ·
+  B043876 1 818,21 · B045671 2 092,55 · B046250 1 932,30. Korko (0,075) ja `done`-lippu säilyivät.
+  Kaksi riviä (B041336, B043704) on lunastuspäivältään 30.11.2026 eli vielä laskuttamatta — niiden
+  osalta korjaus **esti** virheen eikä oikaissut sitä.
+- [x] **Loppukatselmus 30.10.2026** — jono tyhjä (0 riviä). T85:n § 6 -kysely: `done = F` → **107 / 0,00 €**,
+  `done = T` ennallaan 137 / 1 926,64 €. FAM-kohortin vastaava kysely (tilaustyyppi 3, poiston alku
+  myöhemmin kuin `subsc_start`): `done = F` → **12 / 0,00 €**, ei yhtään poikkeavaa; `done = T` →
+  8 / −138,58 € (4 poikkeavaa, koskematta tarkoituksella).
+- [ ] Taloustiimille: `done = T` -ryhmän 4 poikkeavaa pyörää (−138,58 €) — hintakenttää ei saa tyhjentää.
+- [x] **Tehty 30.10.2026** — työohjeen [`docs/ic-calculators-oomi-poistoaika-tyoohje.md`](docs/ic-calculators-oomi-poistoaika-tyoohje.md)
+  § 7:ään lisätty korjausmerkintä: väite "FAM-pyörät eivät tarvitse korjausta" oli väärä, ja
+  menetelmävirhe (rajaus korjauksen ehdolla eikä oireella) on kirjattu.
+
+**Valmis kun** `done = F` -joukossa ei ole yhtään väärin hinnoiteltua pyörää — **täyttyi 30.10.2026**
+(ei-FAM 107 / 0,00 €, FAM 12 / 0,00 €). Avoimeksi jää vain `done = T` -ryhmän taloustiimin päätös.
 
 ---
 

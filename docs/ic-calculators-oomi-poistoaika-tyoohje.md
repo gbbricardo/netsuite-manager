@@ -294,6 +294,17 @@ Tämä muoto on ajettu ja todennettu 29.10.2026 (tulos: `F` 103 / 43 074,57 €,
 
 ## 7. Tämän muutoksen ulkopuolelle jäävät
 
+> [!CAUTION]
+> **Korjattu 30.10.2026: alla oleva rivi FAM-pyöristä oli väärä, ja se ohjasi rajauksen pieleen.**
+> Väite "FAM-omaisuuserälliset kulkevat vanhaa polkua, jossa `famDeprStartDate` on todellinen poiston
+> alku" pitää paikkansa vain siltä osin, että `netCost` ja `leaseStartDate` luetaan FAM:ista oikein.
+> Poiston **alkupäivä** siirtyy silti `subsc_start`iin, koska `resolveTermEndDate` palauttaa `null`.
+> Sama kaksoispoisto esiintyy siis 20 FAM-pyörällä, joilla poiston alku on myöhemmin kuin
+> `subsc_start` (T86, [`findings/2026-10-30-ic-lunastushinta-oomi-fam-hankinta.md`](../findings/2026-10-30-ic-lunastushinta-oomi-fam-hankinta.md)).
+> Haaran ehto on 30.10.2026 alkaen `orderType === 3 && hankintapäivä > subsc_start`, ei "ei FAM-omaisuuserää".
+> **Menetelmävirhe:** vaikutusanalyysi rajattiin korjauksen ehdolla (`asset_id IS NULL`) eikä oireella,
+> jolloin kysely vahvisti oman rajauksensa.
+
 | Asia | Miksi ei tässä |
 |---|---|
 | **B044311:n jäännösarvo** (rekisteri 193,70 vs talous 392,83) | Kentän arvo, ei laskenta. Taloustiimin päätös. |
