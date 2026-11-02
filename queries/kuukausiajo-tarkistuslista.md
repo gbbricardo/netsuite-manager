@@ -91,7 +91,7 @@ GROUP BY BUILTIN.DF(ri.custrecord_gbb_ri_employer)
 ```
 Todennus 1.10. (tila 22.10.): 1 työnantaja, Testi Yritys Oy (2 riviä).
 
-## 5. Lokit (`scriptnote`, `date` on ajonaikaista aikaa noin 10 h Helsinkiä jäljessä, joten 1.11. aamun ajot ovat lokissa 31.10.)
+## 5. Lokit (`scriptnote`, `date` on ajonaikaista aikaa Helsinkiä jäljessä: **9 h talviaikana** (todennettu 1.11.2026), 10 h kesäaikana, joten 1.11. aamun ajot ovat lokissa 31.10.)
 
 ```sql
 SELECT scripttype, type, TO_CHAR(date,'DD.MM.YYYY HH24:MI') d, title, SUBSTR(detail,1,900) detail FROM scriptnote

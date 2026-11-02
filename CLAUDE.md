@@ -379,6 +379,29 @@ These are the coupling points. When reviewing a change, walk this list first.
   NetSuite. Settled decisions live in its `docs/DEPLOYMENT.md` § *Settled specifics*. Record cross-repo findings here and
   take fixes there.
 
+### Laskutusmoottori (Staria, script 701) — how the customer invoices are made
+
+Customer leasing invoices are produced from `customrecord_sta_ca_agreement_row` by **[STA] MR
+Agreement Invoicing**, script **701**, deployment `customdeploy_sta_mr_agreement_invoicing`. Its
+source is **not** in any of the eight sibling repos — it is in the local Staria bundle at
+`C:\Users\Riku\Documents\GitHub\SuiteScripts\Staria\Subscription Add-ons\`. The full write-up,
+verified from that source on 1.11.2026, is [`docs/laskutusmoottori-701.md`](docs/laskutusmoottori-701.md).
+The four things worth knowing before you query anything about billing:
+
+- **It is scheduled as a `SingleEvent`, one month at a time.** Finance sets the day they want the
+  invoices to appear; a deployment with no next occurrence is normal, not a lapsed schedule.
+- **The billed period is the agreement's `custrecord_sta_ca_date_next_invoice`,** not the run date.
+  Finance mass-updates that field on every agreement immediately before the run — that import is
+  part of the procedure. The invoice `trandate` is normally one month earlier (advance billing).
+- **`custrecord_sta_ca_row_status = 1` is the billing gate** (`invoice.functions.js:618`). `isinactive`
+  and `custrecord_sta_ca_row_to_be_invoiced` are not. Any coverage or duplicate query that filters only
+  on `isinactive` overstates the billable population and raises false alarms on ended bikes.
+- **An empty row invoice history triggers catch-up:** one extra invoice line per month from the row's
+  start date up to the billed period (`invoice.functions.js:199-226`). So a row missed by one run is
+  billed retroactively by the next one — but the catch-up months are **never written to the row's
+  invoice history**, which blinds `cr_invoice_guard.checkWasBilled`, `handler_hyvitys` and rule HY2.
+  Corollary: clearing a row's invoice history retro-invoices every month since the row began.
+
 ### Documentation trust order
 
 Per-repo docs disagree with each other and occasionally with themselves. When they conflict:

@@ -81,6 +81,14 @@ All fields are filterable except `refName`.
 > moving a value between these records is a bug. `netsuite-subscription-extension` does not read
 > this field at all (it reads only `custrecord_sta_ca_row_license_enddate`).
 
+> **Saving a row in the UI rewrites `custrecord_sta_ca_row_price_month` as
+> `custrecord_sta_ca_row_price / 12`.** Verified 1.11.2026 on three rows edited that day (76654,
+> 79694, 79695) against untouched rows carrying the same yearly price: 80,64541833 →
+> 80,64583333 and 11,95219124 → 11,9525. The drift is 0,0003–0,0004 €/month, which rounds to the
+> same cent, so invoices, the payroll CSV and the handlers' cent-level comparisons are unaffected —
+> but an exact price comparison will see edited and untouched rows of the same contract differ.
+> A changed monthly price after a manual edit is this recalculation, not someone repricing the row.
+
 ## Indexation
 
 | Field ID | Label | Type |
@@ -103,6 +111,21 @@ All fields are filterable except `refName`.
 > (`handler_hyvitys`) prices each credited month from the row whose invoice history contains that
 > month, and Type 13 uses it to detect transition months. It is also the basis of
 > `cr_invoice_guard.checkWasBilled`. Its format is therefore a contract, not a note.
+
+> **`custrecord_sta_ca_row_status` = 1 is the billing gate — not `isinactive`, not
+> `custrecord_sta_ca_row_to_be_invoiced`.** The invoicing engine's saved search filters
+> `["custrecord_sta_ca_row_status", "anyof", "1"]` (`invoice.functions.js:618` in the local Staria
+> bundle); status 2 rows are skipped however alive they look. `to_be_invoiced` gates only product
+> type 3 (usage), which GBB does not use. Verified from source 1.11.2026 — on that day 14 ended
+> bikes carried `isinactive = F` rows running to 2030 and none of them was invoiced, because their
+> row status was 2.
+>
+> **An empty invoice history means retroactive billing.** A selected row with no history is billed
+> once per month from its start date up to the billed period (`invoice.functions.js:199-226`), so a
+> row missed by one run is caught up by the next. Those catch-up months are **not** written back
+> here — only the current period is (`sta_mr_agreement_row_inv_history_update.js:81-94`) — so this
+> field under-reports what was actually invoiced, and clearing it retro-invoices the row's whole
+> life. Full write-up: [`docs/laskutusmoottori-701.md`](../../docs/laskutusmoottori-701.md).
 
 ## Native
 
