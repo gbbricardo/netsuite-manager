@@ -4,3 +4,7 @@ node_modules/
 *.csv
 !import-templates/*.csv
 .skillopt-sleep/
+
+# tools/export-schemas.mjs raw intermediates — the curated .md files are the tracked output
+schemas/script-inventory.json
+schemas/lists/raw-customlist-index.json

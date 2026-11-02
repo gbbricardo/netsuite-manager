@@ -238,9 +238,14 @@ subquery; `BUILTIN.DF` cannot appear in `GROUP BY`; `systemnote` cannot be group
 script ID (`CUSTOMLIST_CR_TYPE_LIST`), and `BUILTIN.DF(field)` resolves a select field to its display
 label. CTEs, window functions (`LAG`, `ROW_NUMBER`), `LISTAGG` and `REGEXP_LIKE` **do** work. The
 full probe-verified matrix is [`queries/suiteql-tuki.md`](queries/suiteql-tuki.md); verified
-reusable queries live in [`queries/`](queries/README.md), built by the `suiteql-rakentaja` agent for
-the four auditor agents (`lunastusauditoija`, `ri-auditoija`, `sopimusriviauditoija`, `muutospyyntoauditoija`), which
-cannot call it themselves — the main session does.
+reusable queries live in [`queries/`](queries/README.md).
+
+> [!NOTE]
+> The six project agents under `.claude/agents/` (`suiteql-rakentaja`, `lunastusauditoija`,
+> `ri-auditoija`, `sopimusriviauditoija`, `muutospyyntoauditoija`, `tarkastaja`) were **removed on
+> 2.11.2026**. Findings and docs written before that date record which agent produced them; that is
+> history, not a pointer to something you can still call. Run those checks in the main session,
+> using the saved queries in [`queries/`](queries/README.md).
 
 Repo documentation states intent — only NetSuite states fact, and the two are known to diverge.
 `schemas/README.md` § *Discrepancies found during this export* lists the eight divergences found
