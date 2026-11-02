@@ -315,6 +315,16 @@ These are the coupling points. When reviewing a change, walk this list first.
   bike register and on the new employer's RI rows when a type-1 transfer (Siirto TA) changes the
   employer; a type-9 group transfer keeps it. Rare exceptions exist. No repo automates this and
   monthly-reporting copies the register value onto RI rows. Rule: `docs/verovapaus-saannot.md`.
+- **The RI lease start date is rebuilt monthly and forgets every transfer.** `custrecord_gbb_ri_lease_start_date`
+  (payroll CSV column 8 *Vuokrakausi alkanut*) is copied from the register's `custrecord_sta_subsc_start_date`
+  on every run (`mr_monthly_reporting_ri_creation.js:1082`, `ri_update.js:324`, five UE scripts). A type-1
+  *Siirto TA* never updates that field — only `handler_siirto_pt.js:62` writes it — so the only row that
+  carries the real transfer date is the one the transfer UE itself creates
+  (`ue_reporting_item_transfers.js:873`, `= official_end_date + 1`). Verified 2.11.2026: 497 September rows
+  corrected by hand on 27.08.2026, **0 survived** the October and November runs. The register's start date
+  cannot be overwritten — it is the IC amortisation anchor (`gbb_ic_redemption_price_mr.js:143`). Fix:
+  new field `custrecord_gbb_employer_lease_start` (created 2.11.2026), [ADR 0025](docs/adr/0025-ri-vuokrakauden-alkupaiva.md),
+  TASKS T95–T97.
 - **Hard-coded list and item IDs, duplicated across repos.** CR types (1, 2, 3, 6, 7, 8, 9, 11, 13),
   CR statuses (1 Pending, 2 Done, 5 Error, 6 Needs Review, 7 Cancelled), bike statuses (1/2/3), bike
   order type 3 (OOMI), items 30 (Vuokra) and 33 (Leasingmaksu). None of it is configuration.

@@ -156,6 +156,640 @@ Yksi lista kaikista kysymyksistä, jotka odottavat taloustiimiä tai asiakaspalv
 
 ---
 
+## 2.11.2026 (ma) — RI-rivin vuokrakauden alkupäivä ([ADR 0025](docs/adr/0025-ri-vuokrakauden-alkupaiva.md))
+
+Palkka-CSV:n sarake 8 *"Vuokrakausi alkanut"* näyttää alkuperäisen sopimuksen alkupäivän myös siirretyillä
+pyörillä. Oikea päivä kirjoitetaan vain siirtokuukauden riville; 27.08.2026 korjatut **497 syyskuun riviä
+palautuivat kaikki** lokakuun ajossa. Todisteet:
+[löydös](findings/2026-11-02-ri-vuokrakauden-alkupaiva-palautuu-siirron-jalkeen.md).
+Työohje: [`docs/ri-vuokrakauden-alkupaiva-tyoohje.md`](docs/ri-vuokrakauden-alkupaiva-tyoohje.md).
+
+Kenttä `custrecord_gbb_employer_lease_start` on **luotu 2.11.2026 (käyttäjä)** ja todennettu SuiteQL:ssä
+(46 771 pyörää, 0 arvoa).
+
+### [ ] T95 — siirtokäsittelijät kirjoittavat `custrecord_gbb_employer_lease_start` (cr-scripts, erillinen istunto)
+
+Arvo = `custrecord_cr_contract_official_end_date` + 1, sama päivä jonka `ue_reporting_item_transfers.js:873`
+kirjoittaa siirtokuukauden RI-riville. Tyhjä `official_end_date` → ei kirjoiteta, CR ei mene Erroriin.
+Laskettu päivä ≤ `subsc_start_date` → ei kirjoiteta (ADR 0025 k. 5). Kenttä ylikirjoitetaan joka siirrossa.
+
+**Laajuus päätetty 2.11.2026** (ADR 0025 k. 6): kirjoittavat `handler_siirto_ta.js` (tyyppi 1) ja
+`handler_siirto_tt.js` (tyyppi 6). `handler_konserni.js` (tyyppi 9) **ei** — konsernin sisällä työntekijän
+osalta mikään ei muutu, sama jatkuvuustulkinta kuin verovapaussäännössä. Jos pyörällä on molempia siirtoja,
+kenttään tulee myöhäisempi.
+
+**Valmis kun** uusi tyypin 1 ja tyypin 6 CR on käsitelty Doneksi, pyörän kenttä on `official_end_date` + 1, ja
+seuraavan kuukausiajon RI-rivi kantaa saman päivän. Tyypin 9 CR ei muuta kenttää.
+
+### [ ] T96 — raportointi lukee kentän: `COALESCE(employer_lease_start, subsc_start_date)` (monthly-reporting, erillinen istunto)
+
+Yhdeksän lukukohtaa seitsemässä tuotantoskriptissä, taulukko työohjeen vaiheessa 2. Turvallinen jo ennen
+täydennystä: tyhjällä kentällä käytös on nykyinen, joten T96 voi mennä tuotantoon ennen T95:tä ja T97:ää.
+Älä koske `ue_reporting_item_transfers.js:873/:940`:ään — ne kirjoittavat jo oikean päivän.
+
+**Valmis kun** kuukausiajon jälkeen työohjeen tarkistuskysely palauttaa 0.
+
+### [ ] T97 — kertatäydennys: 477 pyörää (tyyppi 1) + 16 pyörää (tyyppi 6)
+
+**Osa A, 477 pyörää:** lähde on löydöksen kysely (odotus 497 riviä) — ainoa kopio käsin korjatuista päivistä. Validoi ADR 0025 k. 5:llä:
+pudota rivit, joilla `uusi_alku` ≤ `rek_alku` (tunnettu: **B011413**, työnantaja vaihdettu takautuvasti ennen
+vuokrasopimuksen alkua). **Tarkista peruste uudelleen ennen ajoa:** aineisto on elokuulta ja osa pyöristä on jo
+lunastettu. Ajetaan vasta T96:n jälkeen.
+
+**Osa B, 16 pyörää:** kaikilla Done-tilaisilla tyypin 6 CR:illä on `official_end_date` (todennettu 2.11.2026),
+joten arvo lasketaan suoraan CR:stä. Kysely työohjeen vaiheessa 4.
+
+**Valmis kun** kenttä on asetettu odotetulle määrälle pyöriä eikä yksikään arvo ole ennen pyörän
+`subsc_start_date`:a (kysely työohjeen vaiheessa 4).
+
+## 1.11.2026 (su) — kuukausiajon esitarkistus (Claude, klo 00:25–00:35 Helsinkiä, vain luku)
+
+Ajettu [`queries/kuukausiajo-tarkistuslista.md`](queries/kuukausiajo-tarkistuslista.md) kohta 0 ja lähtötilanne **ennen** yöajoja.
+NetSuiten kello oli 1.11. klo 00:23, lokikello 31.10. klo 15:23 (**ero on nyt 9 h**, ei 10 h, koska Suomen kesäaika päättyi 25.10.).
+1480 (00:30), 1479 (08:00) eikä 1452/1453 ollut vielä ajanut: `scriptnote`-rivejä 31.10. lokipäivästä eteenpäin ei ollut yhtään,
+ja 1.11. raportointipäivällä oli vain 472 UE:n etukäteen luomaa RI-riviä (massa-ajossa niitä tulee ~33 000).
+
+**Kunnossa ennen ajoa**
+
+| Kohta | Tulos |
+|---|---|
+| 0 koodi File Cabinetissa | 394006 = 88 959 B, 394008 = 106 538 B (21.10. 13:41), 470259 = 21 949 B (21.10. 16:34). **Täsmää.** |
+| 6 tuplarivit 1.11. | **0** |
+| T67 luokka C | 10 Ended-riviä olemassa, 0 lipulla (lippu tulee ri_updaten vaiheessa 1c). Odotus ajon jälkeen **10/10 LIPPU**. |
+| T84 / B033466 | Rivi 153082 status 6 (Deleted), rivi 155084 Active, `lease_fee_vat0` **tyhjä**. Rekisterissä `curr_subs_rent` = 80,64541833. Odotus: 1b täyttää 80,64541833. |
+| T34 / B010533 | RI 126605 Active, 79,6812749, ei lippua. Tapa 2, päättyy 30.11. Odotus: pysyy Activena. |
+| T20 / B036939 | `curr_subs_rent` = 59,76095618. **Korjaus voimassa.** |
+| T1d / ProMet | B023198, B024587, B024908: ei 1.11. riviä. Odotus: ei synny. |
+| OOMI marraskuu ilman tapaa (ADR 0009 2a) | **221** — täsmälleen 26.10. ennuste. Odotus 1480:n ajon jälkeen **0**. |
+| Kohta 1 joukko | 154 marraskuussa päättyvää pyörää, joilla on tapa (22.10.: 80). Kasvaa yöllä noin 221:llä. |
+
+### Aamun tarkistus klo 12:15 — yöajot läpi, kuukausiajo yhä ajamatta
+
+**1452 ja 1453 eivät ole ajaneet** (`scriptnote`-rivejä 0). Ne ovat `TESTING`-tilassa ja ajetaan käsin, joten kuukausiajo on yhä edessä,
+ja tarkistuslistan kohdat 1–4, 6, 7 ja T67:n lippukysely ajetaan vasta sen jälkeen.
+
+| Ajo | Tulos |
+|---|---|
+| **1480** 1.11. klo 00:31–00:42 | `tanaan=2026-11-01`, `gbb_lunastus_lib=1.2.0`, `kirjoitettu=536`, `virheet=0`. `tapa1=236 tapa_oomi=145 tapa2=0 paid_at=20 liab_settled_at=457 status2=534 status3=1 ic_asetettu=381`. |
+| **1479** 1.11. klo 08:01 | `selected=6` → `SENT=4 SETTLED_MAINT_BUDGET=2 unhandledMapErrors=0`, ERROR-rivejä 0. |
+
+**Todennetut yksittäistapaukset**
+
+| Pyörä | Tulos | Odotus täyttyi |
+|---|---|---|
+| B046669 (T79) | status 2, tapa 1, `settled` 01.11., `paid_at` tyhjä, IC 30.11. | ✓ ADR 0009 sääntö 2a |
+| B010533 (T34) | status 2, tapa 2, `settled` 16.09., IC 30.11. | ✓ |
+| B033466 (T84) | status 1, ei tapaa, IC tyhjä | ✓ perumisen jälkeinen tila pitää |
+| B042805, B046441 | tapa 3, `eheys=HYVITYS_YLI_PORTAAN`, ei linkkiä | ✓ julkaisu C tuotannossa |
+| OOMI marraskuu ilman tapaa | **221 → 0** | ✓ |
+
+**Yhä auki ennen 1452:ta:** CR-jono on ennallaan 22 CR:ää (18 × tyyppi 7 Needs Review, 4 Error) — 1199:n MONTHLY-ajo klo 01:33 ei käsitellyt
+niitä uudelleen, mikä on odotettua. **Pending-CR:iä ei ole yhtään**, joten mikään ei muutu kesken ajon. Kolme Warning-riviä (153877–153879)
+ovat yhä tilassa 5 — ne ratkeavat vasta ri_updatessa.
+
+### [ ] T87 — 18 jälkiveloitus-CR:ää Needs Review -tilassa, lasku jo luotu (30.10.)
+
+Tarkistuslistan kohta 0 (CR-jono) palautti **22 CR:ää** tiloissa 1/5/6, kun 22.10. baseline oli 1. Uutta:
+- **18 tyypin 7 CR:ää Needs Review** (7560, 7593, 7596, 7599, 7602, 7605, 7608, 7611, 7614, 7617, 7620, 7623, 7626, 7629, 7632, 7635, 7638, 7641),
+  kaikki luotu 30.10. Jokainen **loi laskun** (INVGBF1047162–INVGBF1047179) ja jäi sitten tilaan 6 varoituksella
+  *"WARNING: subscription line(s) for bike N already have billing history for period(s) 2026-11."*
+- Lähde: **17 konsernisiirtopakettia** (tyyppi 13, CR 7561–7577, kaikki Done 30.10.) + Notion-1675 - 2A (CR 7558). Jokaisessa paketissa on
+  pari: hyvitys (tyyppi 11, **Done**) ja siirto konserni (tyyppi 9, **Done**). Sama kuvio kuin T78:ssa (CR 7447), jossa hyvitys kumosi laskun
+  ja CR päätyi Doneen — **nyt CR jää Needs Review'hun**. Selvitettävä, miksi lopputila eroaa T78:sta ja onko hyvitys kattanut laskun euroilleen.
+- Raportointiin nämä eivät tuota rivejä kahdesta syystä: tila ei ole Done, eikä `altname` sisällä sanaa `pidennys` (CLAUDE.md, nimipohjainen reititys).
+  Laskut ovat silti olemassa.
+- Lisäksi uusia Error-tilaisia: **CR 7465** (tyyppi 2, Notion-1128 - 2C, 26.10.) ja **CR 7591** (tyyppi 3, Notion-1737 - 2H, B044250, 30.10.).
+  Vanhat tyypin 13 Errorit 4652 ja 7399 ovat yhä käsittelemättä (T73).
+
+**Valmis kun** 18 CR:n lopputila on selvitetty, laskujen ja hyvitysten täsmäys on todennettu, ja CR 7465 ja 7591 on käsitelty tai kirjattu.
+
+### T73 — SR2 ajettu 1.11. klo 00:30: **9 riviä / 5 pyörää**
+
+| Pyörä | Item | Rivit | Päällekkäisyys | Tila |
+|---|---|---|---|---|
+| B033217 | 31 | 22039 / 76654 | 31.10.2026– | Tunnettu, **T72** |
+| B044251 | 30, 31 | 108130/116649, 108131/116650 | 1.5.2029– | CR 7494, odotettu (28.10. ennuste) |
+| B044307 | 30, 31 | 108338/116647, 108339/116648 | 1.3.2028– | CR 7492, odotettu |
+| B044317 | 30, 31 | 108376/116651, 108377/116652 | 1.5.2027– | CR 7493, odotettu |
+| **B029344** | 30, 31 | 71850/116700, 71851/116699 | **1.1.2027–28.2.2027** | **Uusi**, 30.10. paketti (CR 7608–7610) |
+
+17 uudesta paketista vain yksi (B029344) tuotti tuplan. **Yksikään tupla ei osu marraskuuhun**, joten 1.11. palkka-CSV ei ole vaarassa.
+Korjaus kuten B044562: kloonien loppu viimeisen täyden kuun loppuun, osarivit jäävät. Odottaa T71:tä.
+
+### ⚠ Kohta 4 (D8): kolme Warning-riviä kolmelle oikealle työnantajalle
+
+Odotus oli *vain Testi Yritys Oy*. 1.11. riveillä on ennen ajoa:
+
+| RI | Pyörä | Työnantaja | Huomio |
+|---|---|---|---|
+| 153877 | B003043 | The Qt Company Oy | *Vuokrakauden päättymispäivä on muuttunut: 30.09.2026 → 31.10.2026.* |
+| 153878 | B011060 | Metsäliitto Osuuskunta, Metsä Wood | sama |
+| 153879 | B003650 | Stora Enso Veitsiluoto Oy | sama |
+
+Teksti on T29:n C4-lause, ja pyörät päättyivät 31.10. eli edellisessä kuussa. Odotus: ri_update kääntää rivit Endediksi ja T29:n
+`stripProlongationTexts` poistaa C4:n, jolloin Warning häviää. **Jos rivit ovat ajon jälkeen yhä tilassa 5, kolmen työnantajan koko
+palkka-aineisto puuttuu CSV:stä — pysäytä ennen 1451:tä.**
+
+> **Toteutui: rivit olivat ajon jälkeen yhä tilassa 5.** C4-lauseen poisto ei lauennut, ja korjaus tehtiin käsin.
+> Katso seuraava osio *kuukausiajo ajettu*.
+
+## 1.11.2026 (su) — kuukausiajo ajettu kokonaisuudessaan: 1452 → 1453 → 1451
+
+**Lokikellon ero vaihtui kesken päivän.** Klo 00:25 kirjattu "ero on nyt 9 h" piti silloin paikkansa, mutta
+Yhdysvaltain kesäaika päättyi 1.11., joten noin klo 11:00 Helsinkiä jälkeen **ero on taas 10 h**. Päivän
+lokirivejä luettaessa: loki 05:59 = Helsinki 15:59. Sama merkintä on väärinpäin
+`queries/kuukausiajo-tarkistuslista.md` § 5:ssä ja `docs/laskutusmoottori-701.md` § 7:ssä — **korjattava**.
+
+### Ajojärjestys ja suoritusajat
+
+| # | Skripti | Helsinki | Lokikello | Kesto | Lopputulos |
+|---|---|---|---|---|---|
+| 1 | **1480** status-sync 2.0 | 00:31–00:42 | 31.10. 15:31–15:42 | 11 min | `kirjoitettu=536 virheet=0` |
+| 2 | **1199** CR-käsittelijä (MONTHLY) | 01:33 | 31.10. 16:31 | — | ei Pending-CR:iä, jono ennallaan 22 |
+| 3 | **1479** Payment Link | 08:01 | 31.10. 23:01 | ~10 s | `selected=6` → SENT=4, SETTLED_MAINT_BUDGET=2 |
+| 4 | **1452** ri_creation | **15:59:04–18:13:15** | 05:59:04–08:13:15 | **2 h 14 min** | `scanned=46650 created=32806 mapErrors=0` |
+| 5 | **1453** ri_update | **18:28:14–18:37:03** | 08:28:14–08:37:03 | **8 min 49 s** | `mapErrors=0 reduceErrors=0` |
+| 6 | **1451** palkka-CSV | **19:28:48–19:33:05** | 09:28:48–09:33:05 | **4 min 17 s** | `warningRows=0 blockedEmployers=0 totalRIs=33263 filesWritten=3` |
+| 7 | **701** laskutusmoottori | **20:31:42–2.11. 02:13:44** | 10:31–16:13 | **5 h 26 min** | 3 529 myyntitilausta, 0 virhettä |
+| 8 | **968** SO→lasku | **2.11. 02:14:11–06:53:09** | 16:14–20:53 | **4 h 39 min** | 3 555 laskua / 3 521 680,66 €, 28 `RCRD_HAS_BEEN_CHANGED` |
+
+1452 ja 1453 ajettiin käsin (deploymentit ovat `TESTING`-tilassa, mikä on näillä normaali tila).
+**Kumpikaan ei saanut parametreja**: `custscript_gbb_ri_reporting_date` tyhjä → `day < 7` → 1.11.2026,
+testipyörä tyhjä, lokikansio ennallaan. Kummassakaan ei ollut `⚠ TEST SCOPE` -riviä.
+
+### 1452 ri_creation — `summarize | done`
+
+```
+gbb_lunastus_lib=1.2.0 | scanned=46650 created=32806 converted=47 mapErrors=0
+```
+
+| Portti | Tulos |
+|---|---|
+| `gbb_lunastus_lib` | **1.2.0** — ensimmäinen tuotantoajo 1.2.0:lla, **T11 todennettu** |
+| `mapErrors` | 0 |
+| `scanned` | 46 650 (1.10.: 46 626) |
+| `error`-ämpäri | ei ole |
+| ERROR/EMERGENCY-rivit | 0, kaikki AUDIT |
+
+**Ämpärit täsmäävät pyörä pyörältä** — tärkein yksittäinen tarkistus, koska kirjaston heitto kadottaisi
+rivin hiljaa ilman lokimerkintää (CLAUDE.md, avoin kohta 2):
+
+| Ämpäri | Määrä |
+|---|---|
+| active_created_continuing 31 808 + _contract_ended 155 + _new 23 + _warning 4 + ended_created 610 + ended_created_late 206 | **= created 32 806** |
+| ended_converted 46 + ended_converted_late 1 | **= converted 47** |
+| active_already_exists_continuing 42 + _other_active_status 61 + active_no_start_date 1 (B046850) + active_skipped_paused_exists 22 + ended_already_reported 13 671 | **= 13 797** |
+| **32 806 + 47 + 13 797** | **= 46 650 = scanned** |
+
+`created` on 1 056 pienempi kuin lokakuussa (33 862). Selittyy `ended_already_reported=13671`:llä ja lokakuun
+lopun kausipäättymisillä, mutta **todettu tietoisesti**, koska tarkistuslista käyttää lokakuun lukua vertailuna.
+
+### 1453 ri_update — `summarize | finished`
+
+```
+gbb_lunastus_lib=1.2.0 | mapErrors=0 | reduceErrors=0
+1b updated=9 unchanged=32502 | 1c flagged=69 | 1d flagged=0
+3a groups=33213 multiRow=53 deleted=0 warned=0 transferPairsProtected=50
+employerCheck flagged=3 noEndedRow=0 groupsExemptedFrom3a=3 rowsWarned=3
+```
+
+**`1c flagged=69`, kun 1.10. se oli 285 ja niistä 202 oli vääriä (T28). T28-korjaus purri.**
+`resolvePendingMarkers | scanned=0` — yhtään `[To-add:`-merkkiriviä ei ollut.
+
+
+### 701 laskutusmoottori + 968 SO→lasku — todennettu 2.11.2026
+
+Deployment 1363 ajastettiin lopulta **20:30** (ei 22:00). `summaryContext` kertoo työn alkaneen
+`2026-11-01T18:31:42Z` = **Helsinki 20:31:42**, eli ajastus laukesi ajallaan — ensimmäinen *lokirivi*
+tuli vasta 20:47, koska `getInputData` vei ~16 min. **Kesto `seconds=19588` = 5 h 26 min**,
+`yields=18`, `concurrency=1`, `usage=183548`.
+
+| Portti | Tulos |
+|---|---|
+| 701 lokirivit | 17 652, **kaikki AUDIT — nolla ERROR-riviä** |
+| Myyntitilaukset | **3 529** (`reduce END` 3 529 = `Row IDs` 3 529 = `saveSO END` 3 529) |
+| Tositepäivä | 01.11.2026 kaikilla; laskutusjakso 1.–31.12.2026 |
+| Tallennushäiriöt | 2 kpl, **molemmat itsekorjautuivat** |
+| 968 laskut | **3 501 onnistumisriviä + 28 `RCRD_HAS_BEEN_CHANGED`** |
+| Laskuja trandate 1.11.2026 | **3 555 kpl / 3 521 680,66 €** |
+| Myyntitilausten tila | 3 555/3 555 **Billed** — yksikään ei jäänyt laskuttamatta |
+
+**Kaksi 701:n tallennushäiriötä eivät tuottaneet tuplia.** 12:35:33 `UNEXPECTED_ERROR` → skripti tarkisti
+olemassaolon ja löysi `SO already created despite error = 813375`, eli tilaus oli syntynyt eikä sitä luotu
+uudelleen. 13:53:39 `SSS_CONNECTION_TIME_OUT` → `Retrying SO save | Attempt 2`, joka onnistui.
+
+**968:n 28 virhettä eivät kadottaneet yhtään laskua.** `sta_mr_transform_agreement_so_to_invoice.js:40-55`
+nielee virheen eikä yritä uudelleen, joten riski oli todellinen — mutta kaikki 3 555 myyntitilausta ovat
+tilassa **Billed**, ja laskuja on täsmälleen yhtä monta kuin tilauksia. Tilaus ei voi olla Billed ilman
+laskua, joten tuplia tai puuttuvia ei ole kumpaankaan suuntaan. Syy on kilpailutilanne: laskuhistorian
+kirjoitus muutti samoja tietueita samaan aikaan (61 626 sopimusriviä päivittyi klo 02–07), mikä on juuri
+`RCRD_HAS_BEEN_CHANGED`:n aiheuttaja.
+
+**Laskuhistoria päivittyi**, vaikka skripti 967 ei lokittanut mitään: 61 626 sopimusriviä, joilla
+`custrecord_sta_ca_row_invoicehistory` sisältää `2026-12`, on muokattu 2.11. klo 02–07.
+
+**Huomio, ei este: laskutus laski lokakuusta.**
+
+| | 1.10.2026 | 1.11.2026 | Muutos |
+|---|---|---|---|
+| Laskuja | 3 864 | 3 555 | **−309 (−8,0 %)** |
+| Summa | 3 719 993,90 € | 3 521 680,66 € | **−198 313,24 € (−5,3 %)** |
+| Keskilasku | 962,73 € | 990,63 € | +2,9 % |
+
+Keskilasku **nousi**, joten pudotus on asiakasmäärässä: 309 työnantajaa vähemmän sai laskun. Se on linjassa
+`created`-luvun 1 056 pudotuksen kanssa (kausipäättymiset lokakuun lopussa), mutta **lukua ei ole
+todennettu työnantajatasolla** — tee vertailu ennen kuin käytät sitä mihinkään.
+
+---
+
+## Ajojen välissä tehty
+
+### Ennen 1452:ta — esitarkistukset
+
+Kirjattu yllä omissa osioissaan (klo 00:25 ja 12:15). Lopputulos: **ei estettä**. Koodikoot täsmäsivät,
+Pending-CR:iä ei ollut yhtään (mikään ei muutu kesken ajon), 1480 ja 1479 olivat ajaneet, tuplarivejä 0,
+OOMI 221 → 0. Lisäksi todettiin **ennen ajoa**, että Serres Oy:n kolme pyörää tulevat tuottamaan Warning-rivit.
+
+### 1452 → 1453 — porttitarkistus
+
+`summarize`-riviltä todennettiin ennen 1453:n käynnistystä: kirjastoversio, `mapErrors=0`, `scanned`
+oikeaa kokoluokkaa, ei `error`-ämpäriä, ei ERROR/EMERGENCY-rivejä, ei TEST SCOPE -rajausta.
+
+> **SuiteQL-ansa, joka maksoi useita kyselyitä.** `scriptnote`-taulun `summarize`-riviä **ei saa ulos
+> tavallisella rivikyselyllä** — kysely palauttaa 0 riviä, vaikka `totalResults` väittää rivin olevan
+> olemassa. Aggregaatti lukee sen ongelmitta:
+> `SELECT MAX(title), MAX(SUBSTR(detail,1,400)) FROM scriptnote WHERE scripttype = 1452 AND date >= ...`
+> Myös `GROUP BY TO_CHAR(date,'HH24:MI:SS')` toimii, kun pitää paikantaa milloin rivi syntyi.
+> Lisättäväksi `queries/suiteql-tuki.md`:hen.
+
+### 1453 → 1451 — seitsemän Warning-riviä käsiteltiin yksitellen
+
+Ajon jälkeen Warning-rivejä oli **7 viidellä työnantajalla**, ja D8:n takia ne pidättivät **245 Active-riviä
+eli 19 674,25 € (alv 0)** koko palkka-aineistosta. Kaikki seitsemän käsiteltiin; **CSV ajettiin 0 Warning-rivillä.**
+
+| RI | Pyörä | Työnantaja | Tehty | Peruste |
+|---|---|---|---|---|
+| 153877 | B003043 | The Qt Company Oy | Pari-rivin **153779** *lease period end date* → 31.10.2026, rivi → **Deleted** | Samalle pyörälle kaksi riviä: Ended-rivi vanhalla päättymispäivällä ja C4-Warning. Oikea tieto Ended-riville, päällekkäinen pois. |
+| 153878 | B011060 | Metsäliitto, Metsä Wood | Pari-rivin **153782** päättymispäivä → 31.10.2026, rivi → **Deleted** | Sama kuvio. |
+| 153879 | B003650 | Stora Enso Veitsiluoto Oy | → **Deleted** | Sama C4-kuvio. |
+| 172974 | B027115 | Esperi Care Oy | Warning → **Paused** | Pyörää ei laskuteta marraskuusta alkaen; Paused pitää raportoinnin ja laskutuksen yhdenmukaisina. **Syy ei kuitenkaan ole tauko — ks. T93.** |
+| 183921 | B041290 | *Serres Oy* → **Paree Group Oy** | Tila → **Active**, vuokra **79,6813** | Ks. Serres-päätös alla. |
+| 183922 | B041292 | *Serres Oy* → **Paree Group Oy** | Tila → **Active**, vuokra **80,6454** | " |
+| 184719 | B042213 | *Serres Oy* → **Paree Group Oy** | Tila → **Active**, vuokra **80,6454** | " |
+
+**Vanha odotus ei toteutunut.** Aamun kirjauksessa odotettiin, että ri_update kääntää rivit 153877–153879
+Endediksi ja T29:n `stripProlongationTexts` poistaa C4-lauseen, jolloin Warning häviää. **Kaikki kolme olivat
+ajon jälkeen yhä tilassa 5**, ja korjaus tehtiin käsin. C4:n poiston laukeamattomuus näillä riveillä on oma
+selvitettävä asiansa T29:n yhteydessä.
+
+#### Serres Oy — päätös ja peruste
+
+Rekisterin työnantaja vaihdettiin käsin Paree Group Oy → Serres Oy **13.10.2026**, mutta **muutosilmoitusta ei
+koskaan tehty** eivätkä sopimusrivit siirtyneet. Siksi `lease_fee_vat0` oli 0 ja rivit menivät Warningiin
+(sama mekanismi kuin **T21**).
+
+Harkittiin siirtopaketin tekemistä samana iltana ennen 701:tä. **Hylättiin**, koska: **T87** on kaksi päivää
+vanha ja selittämätön (30.10. tehdyt 17 siirtopakettia tuottivat 18 tyypin 7 CR:ää, jotka loivat laskun ja
+jäivät Needs Review'hun varoituksella *"already have billing history for period(s) 2026-11"* — sama kuukausi,
+jota paketti korjaisi); 1199:n seuraava ajastettu ajo oli vasta 23:01 eli 701:n jälkeen; verovapaus pitäisi
+kääntää käsin; **eikä se olisi poistanut illan CSV-estettä**, koska olemassa olevat Warning-rivit eivät muutu
+siirrosta ja UE loisi uudet `[To-add:]`-rivit, jotka vaatisivat ri_updaten uudelleenajon.
+
+**Valittu ratkaisu: raportoidaan kuten lokakuussa.** Lokakuun rivit (147611, 147612, 148439) olivat kaikki
+Paree Group Oy:llä Active-tilassa hinnoilla 79,6813 / 80,6454 / 80,6454 — rekisteri vaihdettiin vasta 13.10.
+eli lokakuun ajon jälkeen. Illan 701-ajo laskuttaa joulukuun sopimukselta **5238, asiakkaana Paree Group Oy**,
+ja rivien hinnat täsmäävät senttilleen. **Laskutus ja raportointi ovat siis yhdenmukaiset.** Korjaus tehdään
+takautuvasti siirtopaketilla (ks. T94).
+
+> ⚠ **Älä aja ri_updatea uudelleen tämän kuukauden riveille.** `employerFieldCheck` merkitsi ajossa 3 riviä
+> (`rowsWarned=3`) — nämä samat — joten uusi ajo kääntäisi käsin korjatut Serres-rivit takaisin Warningiksi.
+
+### Laskutusmoottorin ajastus siirrettiin 19:30 → 22:00
+
+Deployment `customdeploy_sta_mr_agreement_invoicing` (SuiteQL **`primarykey` 1363**, ei `id` —
+`scriptdeployment.id` on skriptikohtainen juokseva numero, 701:llä 1 ja 2) asetettiin SingleEventinä
+**1.11.2026 klo 22:00**. Syy: ri_update ja CSV saavat jonon rauhassa.
+
+**Ajastuskenttä on Helsingin aikaa, ei lokikelloa.** Todiste: 1479 on ajastettu klo 08:00 ja sen lokirivit
+ovat 30.10. ja 31.10. klo 23:01 lokiaikaa. `recurrence` ei näy SuiteQL:ssä, joten toistuvuutta ei voi todentaa
+kannasta — vain status (SCHEDULED, versio 16).
+
+Kaikki raportointideploymentit ja 701 ovat samassa altaassa (`processorpool` script, `queueid` 1,
+`concurrencylimit` 1, `yieldaftermins` 60). **Prioriteetti eroaa: 701 = 1, raportointi ja laskutusketju = 2.**
+Kumpi on korkeampi ei selvinnyt (`BUILTIN.DF` ei toimi tähän kenttään). Jos 1 on korkeampi, 701 ohittaisi
+raportoinnin joka tunnin yield-kohdassa — lisäsyy pitää ajot erillään.
+
+### Lopputila ennen 1451:tä
+
+| Tila | Rivejä |
+|---|---|
+| 1 Active | 32 011 |
+| 2 Active/New | 83 |
+| 3 Paused | 23 |
+| 4 Ended | 1 146 |
+| **5 Warning** | **0** |
+| 6 Deleted | 20 |
+| **Yhteensä** | **33 283** |
+
+Tuplarivitarkistus (kohta 6) samassa yhteydessä: **0 tuplaa** (sama pyörä + työnantaja, tilat 1/2).
+
+### [ ] T93 — B027115: aktiivinen kausi ilman vuokrariviä 1.11.2026 alkaen
+
+Rekisterissä **tila 1 Active, kausi päättyy 30.04.2027**, työnantaja Esperi Care Oy, `curr_subs_rent` **tyhjä**.
+Item 30 -rivit loppuvat **31.10.2026** ja kaikki kolme (63211, 71500, 71520) ovat **rivitilassa 2** eli
+laskutusportin ulkopuolella. Marraskuuta tai sen jälkeistä aikaa ei kata yksikään rivi.
+
+Tauko ei selitä tätä: kaksi Done-tilaista tyypin 3 CR:ää (1380, 1498) on olemassa, mutta niiden `start_date` on
+01.04.2026 ja 01.07.2026 — molemmat menneisyydessä. **Mikään CR ei jatka laskutusta 31.10. jälkeen.**
+
+Seuraus: Esperi Carea ei laskuteta tästä pyörästä marraskuusta alkaen eikä työntekijältä peritä vähennystä —
+noin 18 kuukautta jäljellä olevaa kautta, ~80,65 €/kk eli luokkaa 1 450 €. Näyttää olevan yksi niistä kolmesta
+todellisesta aukosta, jotka `docs/laskutusmoottori-701.md` kyselyn 5 ajo löysi 1.11. (22 osumaa, 19 taukoa).
+
+**Valmis kun** syy rivien loppumiseen on selvitetty ja puuttuva rivi jaksolle 1.11.2026–30.04.2027 on luotu
+rivitilaan 1. Koska uuden rivin laskutushistoria on tyhjä, 701:n catch-up veloittaa väliin jääneet kuukaudet
+itse (§ 4) — tarkista kuitenkin ettei rivin alkupäivä tuota odottamattoman montaa catch-up-kuukautta.
+
+### [ ] T94 — Serres Oy: siirtopaketti tehtävä takautuvasti
+
+Kolme pyörää (**B041290, B041292, B042213**) on rekisterissä Serres Oy:llä 13.10.2026 alkaen, mutta
+sopimusrivit ovat yhä **sopimuksella 5238, asiakkaana Paree Group Oy** (rivit 97538–97541, 97546–97549,
+100842–100845, kaikki rivitilassa 1). Marraskuu 2026 raportoitiin ja joulukuu laskutetaan Paree Groupille.
+
+Malli: **T21:n CR 6888** (sama Paree Group → Serres -tapaus): tyyppi 1 `start_date` = ensimmäinen laskuttamaton
+kuukausi, parit tyyppi 11 (hyvitys) + tyyppi 7 (jälkiveloitus) korjaavat jo laskutetut kuukaudet.
+
+Tehtävä paketti: tyyppi 1 **`start_date` = 01.01.2027** (joulukuu laskutetaan 1.11. ajossa, joten ensimmäinen
+laskuttamaton kuukausi on tammikuu), parit 11 + 7 kattamaan ne kuukaudet, joilta siirto halutaan voimaan.
+**Muista:** tyypin 1 Siirto TA:ssa `custrecord_gbb_verovapaa` on käännettävä T → F käsin sekä rekisteriin että
+RI-riveille — mikään repo ei automatisoi sitä. **Selvitä T87 ensin**, koska sen 18 Needs Review -CR:ää syntyivät
+juuri tästä mekanismista.
+
+## 1.11.2026 (su) — laskutusmoottorin esitarkistuksen löydökset (T88–T91)
+
+Tarkistettu laskutusmoottorin (701) ajon alla. Moottorin toiminta on nyt kuvattu
+[`docs/laskutusmoottori-701.md`](docs/laskutusmoottori-701.md) — **lue se ennen kuin tartut näihin**,
+erityisesti § 3 (rivitila 1 on laskutusportti) ja § 4 (tyhjä laskutushistoria laskuttaa takautuvasti).
+T88 on rahakysymys, T89–T91 ovat alilaskutusta. **T89 ja T90 kannattaa korjata ennen illan ajoa**,
+jolloin moottori hoitaa puuttuvat kuukaudet itse; T88 ja T91 vaativat ihmisen päätöksen.
+
+### [ ] T88 — B016922: maksettu loppulunastus ja kausi palautettu aktiiviseksi 31.1.2027 asti
+
+Pyörä lunastettiin kauden lopussa ja **asiakas maksoi 27,01 € (brutto) 30.10.2026**: maksupyyntö
+22414, `pl_status` *completed*, `ns_status` 3, SO **810542** + asiakastalletus **810543**, tuote
+*Työsuhdepyörän loppulunastus*. Rekisterissä `liab_settle_method` = 1, `liab_settled_at` =
+`redemption_paid_at` = 30.10.2026, `eredem_link_sent` = T, `end_redemption_price` 74,10 €.
+
+1.11.2026 pyörä on palautettu **tilaan 1 (Active)** ja `subsc_end_date` siirretty **31.1.2027**:ään,
+ja rivit 72566/72567 (rivitila 1) jatkuvat 31.1.2027 asti hinnalla 91,63 € netto/kk. Ilman
+päätöstä asiakas maksaa sekä lunastuksen että kolme lisäkuukautta vuokraa. Lisäksi UE leimasi
+muokkauksesta `redemption_decided_at` = 1.11.2026, ja **Active + hoitotapa ≠ tyhjä tekee pyörästä
+sweep-kandidaatin**, joten status-sync 2.0 (1480) kääntää sen takaisin tilaan 2 päättymiskuukauden
+alussa 1.1.2027.
+
+Päätettävä kumpi: **(a)** lunastus on voimassa → sulje rivit 72566/72567 30.11.2026:een ja palauta
+tila 2; tai **(b)** lunastus peruttu → palauta 27,01 €, tyhjennä `liab_settle_method`,
+`liab_settled_at`, `redemption_paid_at` ja `redemption_decided_at` (kuten T84:ssä) ja jätä kausi
+jatkumaan. **Valmis kun** päätös on tehty, kentät vastaavat sitä, ja 1480:n seuraava ajo ei
+muuta tilaa yllättäen.
+
+### [x] T89 — B023943: vakuutuslunastuksen perumisen korvaavat rivit ovat passiivisia — **korjattu 1.11.2026**
+
+Vakuutuslunastus (tyypin 2 CR 5405 + hyvitys 5406) **peruttiin** tyypin 10 CR:llä 7152
+(*Vakuutuslunastuksen peruminen*, Done). Tyypillä 10 **ei ole käsittelijää missään repossa**
+(CLAUDE.md), joten rivit tehtiin käsin 8.10.2026:
+
+| Rivi | Item | Kausi | Rivitila | `isinactive` |
+|---|---|---|---|---|
+| 116487 | 30 | 1.11.2026–31.8.2028 | 1 | **T** |
+| 116488 | 31 | 1.11.2026–**31.8.2026** | 2 | **T** |
+
+Molemmat ovat passiivisia, ja 116488:n loppupäivä on **ennen sen alkupäivää** (ilmeinen kirjoitus-
+virhe 31.8.2028:sta); automaattinen rivien sulkeminen käänsi sen rivitilaan 2 jo 9.10. klo 03:01.
+Vanhat rivit 13633/48338 päättyivät 30.9.2026. Pyörä on Active 31.8.2028 asti, mutta sillä ei ole
+**yhtään laskutettavaa riviä** — mitään ei ole laskutettu 10/2026 alkaen.
+
+Korjaus: 116488:n loppupäivä → 31.8.2028, rivitila → 1, `isinactive` → F; 116487 `isinactive` → F.
+**Jos tämä tehdään ennen illan ajoa**, laskutushistoria on tyhjä ja catch-up laskuttaa sekä
+marraskuun että joulukuun (`docs/laskutusmoottori-701.md` § 4). Lokakuu jää silti väliin, koska
+rivit alkavat 1.11. — tarkista, kuuluuko lokakuu laskuttaa. **Valmis kun** rivit ovat aktiivisia
+rivitilassa 1 ja seuraava ajo on tuottanut niille laskurivit.
+
+> [!NOTE]
+> **Tehty ja todennettu 1.11.2026 (käyttäjä).** 116487 aktivoitiin klo 13:55 ja 116488:n
+> loppupäivä korjattiin 31.8.2028:ksi klo 14:08. Molemmat ovat nyt rivitilassa 1, aktiivisia,
+> kausi 1.11.2026–31.8.2028. Välivaiheessa 116488:n loppupäivä oli vielä menneisyydessä, mikä
+> olisi johtanut siihen, että 702 olisi sulkenut ja passivoinut rivin uudelleen yöllä klo 03:00 —
+> **pelkkä aktivointi ei olisi riittänyt** (ks. T92).
+>
+> **Odotus illan ajosta:** laskutushistoria on tyhjä ja rivit alkavat 1.11.2026 eli ennen
+> laskutettavaa jaksoa 1.12.2026, joten catch-up tuottaa molemmille kaksi riviä — 1.–30.11.2026 ja
+> 1.–31.12.2026, yhteensä noin 185,20 € netto. Tarkista ajon jälkeen, että rivien
+> laskutushistoriaan tuli `2026-12-01` (catch-up-kuukausi **ei** kirjaudu, ks.
+> `docs/laskutusmoottori-701.md` § 4). **Avoin:** lokakuu 2026 jää yhä kattamatta — vanhat rivit
+> päättyivät 30.9.2026 ja uudet alkavat 1.11.2026. Päätettävä erikseen, kuuluuko lokakuu laskuttaa.
+
+### [x] T90 — B006288: sopimusrivit loppuvat 30.11.2026, vaikka kausi jatkuu 28.2.2027 — **korjattu 1.11.2026**
+
+Rivit 79694 (item 30) ja 79695 (item 31) ovat rivitilassa 1 ja päättyvät **30.11.2026**.
+Rekisterin `subsc_end_date` on **28.2.2027**. Jatkorivejä ei ole, eikä pyörällä ole **yhtään
+CR:ää** (ei siis välikuukausitaukoa, joka selitti 19 muuta vastaavaa osumaa). Rivit on katkottu
+aiemminkin käsin: 1.12.2025–28.2.2026 → 1.3.–31.8.2026 → 1.9.–30.11.2026 (viimeisen loi Ricardo
+Oksa 15.6.2026).
+
+Ilman jatkorivejä **joulu–helmikuu jää kokonaan laskuttamatta**, noin 92,60 € netto/kk eli ~278 €.
+
+**Korjaustapa (päätetty 1.11.2026): siirrä rivien 79694 ja 79695 loppupäivä 28.2.2027:ään — älä
+luo uusia rivejä.** Perustelut, todennettu koodista ja datasta:
+
+- **Ei takautuvan laskutuksen riskiä.** Riveillä on laskutushistoria (9–11/2026), joten
+  catch-up-ehto `!row.invoiceHistory` ei täyty (`invoice.functions.js:200`). Uudella rivillä
+  historia olisi tyhjä, ja jos sen alkupäivä näppäiltäisiin vahingossa menneisyyteen, moottori
+  laskuttaisi kaikki väliin jääneet kuukaudet kerralla.
+- **Laskutushistoria pysyy yhtenäisenä yhdellä rivillä.** `handler_hyvitys` ja
+  `cr_invoice_guard.checkWasBilled` etsivät kuukautta rivin historiasta; kauden pilkkominen
+  useaksi riviksi on juuri se, mikä tekee hyvitysten hinnoittelusta vaikeaa (ADR 0023, T75).
+- **Estää 702:n sulkemisen.** Loppupäivällä 30.11.2026 skripti 702 sulkee ja passivoi molemmat
+  rivit **1.12.2026 n. klo 03:00**. Pidennys poistaa senkin.
+- **Moottori hyväksyy rivin.** Haun ehto B vaatii loppupäivän olevan tätä päivää myöhemmin, ja
+  `preProcessAgreementLines:693` vaatii, ettei loppupäivä ole ennen laskutettavaa jaksoa — 28.2.2027
+  täyttää molemmat joulu-, tammi- ja helmikuulle.
+- **Ei päällekkäisyyttä.** Pyörällä ei ole muita rivitilan 1 rivejä; aiemmat jaksot
+  (20642/55347, 69759/69760) ovat suljettuja ja passiivisia.
+- **Hinta ei muutu.** Kaikilla kolmella aiemmalla jaksolla on sama hinta (80,6454 ja 11,9522),
+  joten pilkkominen ei ole koskaan kantanut uutta hintaa — uusi rivi ei toisi mitään, mitä
+  nykyisellä ei jo ole.
+
+Huom. käsittelijöiden loppupäivävartija ("rivin loppupäivää ei koskaan työnnetä eteenpäin") koskee
+**CR-käsittelijöitä**, ei käsin tehtyä muokkausta, joten mikään automatiikka ei peru pidennystä.
+
+**Valmis kun** 79694 ja 79695 päättyvät 28.2.2027 ja laskutusajo on tuottanut niille joulukuun
+rivin (historiaan ilmestyy `2026-12-01`).
+
+> [!NOTE]
+> **Tehty 1.11.2026 klo 15:14 (käyttäjä), todennettu.** Molemmat rivit päättyvät nyt 28.2.2027,
+> rivitila 1, aktiivisia, laskutushistoria ennallaan (9–11/2026). Jäljellä vain illan ajon
+> jälkitarkistus.
+>
+> **Sivuvaikutus, joka kannattaa tietää:** tallennus käyttöliittymässä kirjoitti
+> `custrecord_sta_ca_row_price_month` -kentän uudelleen arvoon `custrecord_sta_ca_row_price / 12`.
+> 79694: 80,64541833 → **80,64583333**, 79695: 11,95219124 → **11,9525**. Sama tapahtui B033217:n
+> riville 76654 aiemmin samana päivänä. Koskemattomilla riveillä (esim. 22039, 34818, 69523) on yhä
+> vanha arvo, vaikka vuosihinta on sama. Ero on 0,0003–0,0004 €/kk eli pyöristyy senttiin
+> identtisesti, joten laskuihin, raportointiin eikä käsittelijöiden senttitason vertailuun (T75) se
+> ei vaikuta — mutta eksakti hintavertailu näkee eron, ja tämä selittää T78:ssa havaitun
+> "desimaaliongelman". **Muokatun rivin muuttunut kuukausihinta ei siis ole merkki siitä, että joku
+> olisi muuttanut hintaa.**
+
+### [ ] T91 — B027115: vuokrarivi päättyi 31.10.2026 ilman jatkoa, hallintamaksu jatkuu
+
+Vuokrarivi 71520 (item 30, 1.7.–31.10.2026) laskutettiin 7–10/2026 ja **suljettiin automaattisesti
+1.11.2026 klo 03:06** (rivitila 2), koska sen loppupäivä meni ohi. Hallintamaksurivi 71522
+(item 31, 1.7.2026–30.4.2027) on rivitilassa 1 ja sille on jo laskutettu marraskuu. Jatkovuokra-
+riviä ei ole, vaikka kausi jatkuu 30.4.2027.
+
+Taustalla on kaksi Done-tilaista tyypin 3 CR:ää (1380 alkaen 1.4.2026, 1498 alkaen 1.7.2026,
+molemmat loppu 30.4.2027) ja tyypin 11 hyvitys **CR 6737 (Notion 1211)**, joka hyvitti lokakuun
+1.–31.10.2026. Eli lokakuu hyvitettiin ja vuokra loppui — kyseessä on todennäköisesti uusi
+laskutustauko, jolle ei ole tehty CR:ää eikä jatkoriviä.
+
+> [!IMPORTANT]
+> **Ratkaistu 1.11.2026 (Notion 1211, käyttäjä): Piia Nattilan palkaton jakso 1.10.2026–30.4.2027,
+> ja laskutustauko koskee sekä vuokra- että hallintamaksuriviä.** Tauko kestää siis sopimuksen
+> loppuun asti (`subsc_end_date` = 30.4.2027), eli kyseessä on sama kuvio kuin B016051:llä (T17):
+> jatkoriviä ei tarvita, eikä puuttuva vuokrarivi ole virhe. Alla olevat kysymykset 1 ja 4 ovat
+> näin ollen vastattuja; jäljelle jäävät toimenpiteet:
+>
+> | # | Toimenpide | Kiireellisyys |
+> |---|---|---|
+> | 1 | **Sulje hallintamaksurivi 71522** loppupäivään 30.9.2026. Muuten illan ajo laskuttaa joulukuun 9,56 € netto. 702 passivoi rivin seuraavassa yöajossa automaattisesti. | **Ennen illan ajoa** |
+> | 2 | **Hyvitä marraskuun hallintamaksu 9,56 € netto.** Laskutettu riviltä 71522 (historiassa `2026-11-01`), ei hyvitetty. Lokakuu on jo hyvitetty: CRMGBF0003958 kattoi sekä vuokran 80,65 € että hallintamaksun 9,56 €. | Pian |
+> | 3 | **Päätä, pideneekö sopimus 7 kuukaudella.** Palkaton jakso päättyy samana päivänä kuin kausi. Jos kausi pitenee, `subsc_end_date` → 30.11.2027 ja uudet rivit 1.5.2027 alkaen; jos ei, sopimus päättyy 30.4.2027 ja maksulinkki (1479) lähtee 30 pv ennen sitä. Sama avoin kysymys kuin T17:ssä. | Ennen 4/2027, mieluiten nyt |
+> | 4 | **Varmista marraskuun RI-rivi.** Lokakuun rivi 117064 on Paused, mutta se asetettiin käsin 24.9. eikä sillä ole lähde-CR:ää. Tauolle 11/2026–4/2027 **ei ole yhtään CR:ää**, joten `ri_creation` ei voi päätellä taukoa mistään — marraskuun rivi voi syntyä Activena tai nollana. Harkitse tyypin 3 CR:n luontia kaudelle, jotta raportointi osaa tauottaa loputkin kuukaudet. | **Illan kuukausiajossa** |
+>
+> Vuokrarivin 71520 loppupäivä on 31.10.2026, vaikka tauko alkoi 1.10.2026; lokakuu tuli kuitenkin
+> hyvitetyksi, joten rivi on lopputulokseltaan oikein eikä sitä tarvitse muuttaa.
+
+**Mitä tarkalleen puuttui (tarkennettu 1.11.2026, ennen Notion-tietoa):**
+
+1. **Milloin vuokra jatkuu?** Vuokrarivi päättyy 31.10.2026 eikä jatkoriviä ole. Vertailukohdassa
+   B000049 (*Välikuukaudet 1.10. - 31.12.2026*, CR 6732/6733) jatkorivi **on olemassa**: item 30
+   alkaa 1.1.2027 eli tauon jälkeisestä kuukaudesta. B027115:ltä se puuttuu, eikä yksikään sen
+   CR:istä kerro päivää — tyypin 3 CR:ien `start_date`:t ovat 1.4.2026 ja 1.7.2026, molemmat
+   menneisyydessä. Ilman päivää riviä ei voi luoda. Jos tauko oli vain lokakuu, vuokra olisi
+   pitänyt jatkua jo 1.11.2026 ja marraskuu on jäänyt laskuttamatta (80,65 € netto).
+2. **Kuuluuko hallintamaksu hyvittää tauon ajalta?** CR 6737:n hyvitys **CRMGBF0003958**
+   (24.9.2026) hyvitti lokakuulta **sekä vuokran 80,65 € että hallintamaksun 9,56 €**. Tämä poikkeaa
+   vakiokuviosta: B000049:llä hallintamaksurivi juoksee tauon yli ja se on laskutettu normaalisti
+   myös 10–11/2026. B027115:n marraskuun hallintamaksu on laskutettu eikä hyvitetty, ja **joulukuun
+   hallintamaksu laskutetaan illan ajossa** samalta riviltä 71522. Jos tauko kattaa hallintamaksun,
+   nämä on hyvitettävä tai rivi suljettava.
+3. **Siirtyykö sopimuksen päättymispäivä tauon verran?** `subsc_end_date` ja hallintamaksurivi
+   päättyvät molemmat 30.4.2027. Jos välikuukaudet pidentävät kautta, molempia pitää siirtää.
+4. **Mitä Notion 1211 koski?** CR 6737 luotiin **11.3.2026** samaan pakettiin kuin tauko-CR 1498 ja
+   huhtikuun hyvitys 1499, mutta se käsiteltiin vasta **24.9.2026** — se odotti Pendingissä puoli
+   vuotta. Onko kyseessä sovittu tauko vai jokin muu hyvitys?
+
+Kohdat 1 ja 4 ovat asiakaspalvelun (Notion 1211), kohta 2 talouden. **Valmis kun** tauon kesto ja
+hallintamaksun kohtelu on vahvistettu, jatkorivi joko luotu tai todettu tarpeettomaksi, ja
+liikaa laskutetut hallintamaksut hyvitetty.
+
+### [ ] T92 — Sopimusrivit, joiden loppupäivä on ennen alkupäivää (4 pyörää)
+
+**Kuka sulkee rivejä ja miksi** (todennettu lähdekoodista 1.11.2026):
+`sta_mr_agreement_product_inactivate.js`, skripti **702**
+(`customdeploy_sta_mr_agreement_prod_in_sc`, SCHEDULED, **päivittäin n. klo 03:00 Helsinkiä** —
+`scriptnote` 18:01 lokiaikaa). Se lataa parametrin `custscript_sta_agrmnt_prod_in` osoittaman
+tallennetun haun ja katsoo **vain rivin loppupäivää**:
+
+| Ehto | Teko |
+|---|---|
+| loppupäivä **ennen tätä päivää** | `custrecord_sta_ca_row_status` = 2 **ja `isinactive` = T** |
+| loppupäivä **tänään** | `custrecord_sta_ca_row_status` = 2 (rivi jää aktiiviseksi) |
+
+Alkupäivää se ei katso lainkaan. Siksi B023943:n rivi 116488 (alku 1.11.2026, loppu **31.8.2026**,
+kirjoitusvirhe 31.8.2028:sta) suljettiin ja passivoitiin **9.10.2026 klo 03:01**, päivä sen jälkeen
+kun rivi oli luotu. Sama skripti sulki B027115:n vuokrarivin 71520 1.11.2026 klo 03:06 — siinä
+tapauksessa oikeutetusti, koska kausi oli aidosti ohi.
+
+**Rivit, joilla loppupäivä on ennen alkupäivää, pyörä on Active ja rivi on yhä rivitilassa 1:**
+
+| Rivi | Pyörä | Item | Kausi | `subsc_end` | Tila |
+|---|---|---|---|---|---|
+| 116488 | B023943 | 31 | 1.11.2026 → **31.8.2026** | 31.8.2028 | **Korjattava nyt**, ks. T89 |
+| 72784 | B016051 | 30 | 1.1.2027 → 31.12.2026 | 31.12.2026 | **Tiedossa ja tarkoituksella**, T17: välikuukaudet laskutetaan sopimuksen loppuun, joten vuokraa ei kuulu laskuttaa |
+| 79760, 79761 | B007284 | 31, 30 | 1.2.2029 → 31.1.2029 | 31.1.2029 | Tarkistettava |
+| 79037 | B022319 | 30 | 28.2.2029 → 31.12.2028 | 28.2.2029 | Tarkistettava |
+
+> [!NOTE]
+> **Kaikki neljä pyörää käsitelty 1.11.2026, todennettu SuiteQL:llä.** 116488:n loppupäivä
+> korjattu 31.8.2028 (T89), B022319:n rivi 79037 korjattu kaudeksi 1.1.–28.2.2029, B007284:n
+> rivit 79760/79761 passivoitu klo 14:55 (rivitila 2, `isinactive` T). B016051 on **ok
+> tarkoituksella**: laskutustauko (välikuukaudet) päättyy samana päivänä kuin sopimus, joten
+> tyhjä kausi on oikea lopputulos (T17).
+>
+> Tarkistuskysely (loppu < alku, pyörä Active, rivitila 1, aktiivinen) palauttaa nyt **vain
+> B016051:n rivin 72784**, ja joulukuun päällekkäisyyskysely **0**. Avoinna on enää alla oleva
+> käsittelijävartija.
+
+#### B007284 — analyysi 1.11.2026: rivit 79760/79761 ovat tyypin 9 käsittelijän jäänne
+
+**Oikeat sopimusrivit ovat jo olemassa**, eikä niihin tarvitse koskea:
+
+| Rivi | Item | Kausi | Hinta (netto) | Laskutushistoria |
+|---|---|---|---|---|
+| 69523 | 30 Vuokra | 1.12.2025–31.1.2029 | **79,6812749** | 12 kautta, 12/2025–11/2026 |
+| 34818 | 31 Hallintamaksu | 1.12.2025–31.1.2029 | **11,95219124** | 12 kautta, 12/2025–11/2026 |
+
+Molemmat ovat sopimuksella **5411 (Luxury Winter Oy)**, rivitilassa 1, ja täsmäävät rekisteriin
+riviltä riville: `curr_subs_rent` = 79,6812749, `curr_subs_admin` = 11,95219124,
+`subsc_end_date` = `subsc_org_end_date` = **31.1.2029** (eli jälkiveloitus ei ole koskaan
+siirtänyt päättymispäivää). Ne kattavat koko kauden loppuun asti ja laskuttuvat normaalisti.
+
+**Rivit 79760 (item 31) ja 79761 (item 30), kausi 1.2.2029–31.1.2029, pitää poistaa käytöstä**
+(passivointi + rivitila 2). Laskutushistoria on tyhjä, mitään ei ole laskutettu niiltä, eikä
+niitä voi laskuttaa: loppupäivä on ennen alkupäivää, ja oikeinkin päin kausi alkaisi vasta
+sopimuksen päätyttyä.
+
+**Mistä ne tulivat.** `handler_konserni` loi ne **29.6.2026 klo 07:02** käsitellessään
+**CR 4002** (*CR3962 - Siirto konserni*, tyyppi 9, **ainoa Done-tilainen CR tällä pyörällä**),
+jonka `custrecord_cr_start_date` oli **1.2.2029** ja `custrecord_cr_end_date_of_old_sub`
+**31.1.2029** — eli siirto oli päivätty sopimuksen päättymistä seuraavaan päivään. Käsittelijä
+sulkee alkaneet rivit vanhan tilauksen loppupäivään ja kloonaa jäljelle jäävän kauden
+`start_date`:sta alkaen; kun jäljelle jäävää kautta ei ole, kloonista tulee mahdoton. Alkuperäisiä
+rivejä se ei koskenut lainkaan (niiden `lastmodified` on vain laskutusmoottorin 2.10.) eikä
+uudelleenohjannut niitä, koska ne olivat jo kohdesopimuksella 5411.
+
+**Muutosilmoitusten note-kentät kertovat loput.** Pyörällä on kuusi CR:ää, joista viisi on
+Cancelled:
+
+| CR | Nimi | Tyyppi | Tila | Note |
+|---|---|---|---|---|
+| 4000 | CR3962 - Jälkiveloitus | 7 | 7 | *"Vuokrakuukausia noussut sopparin päättymiseen saakka. Lasku/hyväri poistettava. Riku ajaa huomenna uudestaan uusilla tiedoilla."* |
+| 4001 | CR3962 - Hyvitys | 11 | 7 | sama |
+| **4002** | **CR3962 - Siirto konserni** | **9** | **2 Done** | **tyhjä** |
+| 4119 | M58173280178 - 2F | 9 | 7 | *"Tein raportoinnin vuoksi muutosilmot Hubariin, mutta niiden change requestit on turhia tuplia, koska samat syntyy jo suoraan Hubista."* |
+| 4120 | M58173280178 - 2F - hyvitys | 11 | 7 | sama |
+| 4121 | M58173280178 - 2F - jälkiveloitus | 7 | 7 | sama |
+
+Ensimmäinen paketti (CR3962) havaittiin vääräksi: jälkiveloitus olisi kattanut 1.7.2026–31.1.2029
+eli 31 kuukautta, mikä on juuri se mitä note tarkoittaa. Rahapuolen CR:t 4000 ja 4001 peruttiin
+**29.6. klo 07:06 — neljä minuuttia sen jälkeen kun 4002 oli jo käsitelty klo 07:02**. Siivous
+siis perui laskut ja hyvitykset mutta jätti käsittelemättä sen CR:n, joka oli jo ehtinyt
+kirjoittaa rivit. Toinen paketti (4119–4121, oikeat päivät: siirto 1.9.2026, vanha tilaus päättyy
+31.8.2026, virallinen loppu 30.6.2026) peruttiin tuplana. **Hubista tulleita CR:iä ei tällä
+pyörällä kuitenkaan ole** — nämä kuusi ovat kaikki. Lopputulos on silti oikea, koska rivit olivat
+jo valmiiksi Luxury Winter Oy:llä, joka oli molempien pakettien kohdeasiakas.
+
+**Korjattavaksi omistavaan repoon (cr-scripts, sama perhe kuin T71 / ADR 0021 k. 11):**
+`handler_konserni` ei saa luoda kloonia, kun `start_date` on vanhan tilauksen loppupäivän jälkeen
+eli jäljelle jäävä kausi on tyhjä. Yleisemmin: yksikään käsittelijä ei saa kirjoittaa riviä, jonka
+loppupäivä on ennen alkupäivää.
+
+**Valmis kun** rivit 79760/79761 on passivoitu, ja kun on päätetty, lisätäänkö mahdottoman kauden
+esto käsittelijöihin. Laajempi kuva: aktiivisen rivikannan ulkopuolella samaa virhettä on 1 058
+rivillä, mutta ne ovat passivoituja tai päättyneiden pyörien rivejä eivätkä vaikuta laskutukseen.
+
 ## 26.10.2026 (ma) — konsernisiirron tuplarivit ([löydös](findings/2026-10-26-konsernisiirto-tuplarivit.md), ADR 0021 k. 11, ADR 0022)
 
 ### [ ] T71 — 2A-paketin konsernisiirto ei passivoi korvattuja rivejä (cr-scripts, erillinen istunto)
@@ -171,6 +805,17 @@ pidennystietoisuus ei toimi 2A-paketin kautta. **Kaksi tyypin 13 CR:ää on Erro
 Rivi 76654 alkaa 31.10.2026 (item 30 -pari 76653 alkaa 1.9.2027). Marraskuu 2026 on laskutettu sekä riviltä 22039 että 76654 (11,95 € netto).
 Korjaa 76654:n alkupäiväksi 1.9.2027 ja hyvitä marraskuun tupla (hyvitys-CR tai hyvityslasku; lasku on todennäköisesti koontilasku).
 **Valmis kun** SR2 palauttaa 0 ja hyvitys on kirjattu.
+
+> [!WARNING]
+> **Kiireellinen 1.11.2026: korjaa alkupäivä ennen laskutusmoottorin ajoa** (701 on ajastettu tälle päivälle
+> SingleEventinä klo 10:30 lokikelloa ≈ 19:30 Helsinkiä).
+> Todennettu SuiteQL:llä 1.11.: molemmat rivit ovat aktiivisia ja `invoicehistory` sisältää `2026-11-01`
+> kummallakin (22039: 12 kautta 12/2025–11/2026, 76654: vain 11/2026) — marraskuun tupla on siis toteutunut.
+> Rivi 22039 on voimassa 31.8.2027 ja 76654 31.10.2027 asti, joten **joulukuu 2026 laskutetaan samoin
+> kahteen kertaan**, jos 76654:n alkupäivä on illan ajossa yhä 31.10.2026. Hinnoissa on myös ero:
+> 22039 = 11,95219124, 76654 = 11,9522 (sama desimaaliongelma kuin T78:ssa, vrt. T75).
+> Koko aktiivisesta rivikannasta tämä on **ainoa** joulukuun 2026 päällekkäisyys (sama pyörä + item, rivi kattaa
+> 1.–31.12.2026 → 1 osuma), eikä yhdelläkään aktiivisella rivillä ole vielä `2026-12-01` laskutushistoriassa.
 
 ### [ ] T73 — SR2 käsin jokaisen siirto- tai pakettiCR-ajon jälkeen (kunnes T71 on tuotannossa)
 
@@ -1929,8 +2574,18 @@ Jos se ei onnistu, käytä varasuunnitelmaa C6 1.11.
 >   **Osittain todennettu 30.10.2026 (`scriptnote` 1479, ajo klo 8:01–8:11):** `selected=811`, `run complete` = **`SENT=810 SETTLED_DOWN_PAYMENT=1 unhandledMapErrors=0`**,
 >   ERROR-rivejä 0. **B046669 `SENT`**: 132,22 € netto / 165,94 € brutto, Paylink 361022, Brevo ok, `eheys=S9`, `link_sent` = T (C5:n B046669-ehto täyttyy).
 >   Lahetyspäivää odottavat: 13. **Tekemättä:** hintojen uudelleenlaskenta, jälkiveloitus- ja tyypin 2/10 CR -tarkistus linkin saaneille, tuplatilaukset, `eheys`-jakauma ja SETTLED_DOWN_PAYMENT-pyörän tunnistus.
-> - [ ] **la 31.10. klo 9:11** — takaraja: jos B046669:llä ei ole `link_sent` = T, aja 1479 `test_bike_id` = 46669 tuotantodeploymentilla (dry run pois; käyttäjä).
-> - [ ] **su 1.11. klo 9:17** — 1480:n yöajon jälkeen B046669:n status ja tapa (status 2 / tapa 1 vain jos maksu tullut, muuten C6), joulukuun OOMI-pyörien tapa 3 ennallaan, 1.11. ajon tulos.
+> - [x] **la 31.10. klo 9:11** — takaraja: jos B046669:llä ei ole `link_sent` = T, aja 1479 `test_bike_id` = 46669 tuotantodeploymentilla (dry run pois; käyttäjä).
+>   **Ei tarvittu: todennettu 1.11.2026 klo 00:30, `link_sent` = T.** Varasuunnitelmaa C6 ei oteta käyttöön. 31.10. klo 8 ajo oli `selected=0`
+>   (`suodatettu lahetyspaiva=13`), mikä on odotettu: marraskuun kohortti lähti jo 30.10.
+> - [x] **su 1.11. klo 9:17** — 1480:n yöajon jälkeen B046669:n status ja tapa, joulukuun OOMI-pyörien tapa 3 ennallaan, 1.11. ajon tulos.
+>   **Todennettu 1.11.2026 klo 12:15: B046669 = status 2, tapa 1, `liab_settled_at` 01.11.2026, `paid_at` tyhjä, IC-päivä 30.11.2026.**
+>   Täsmälleen ADR 0009:n OOMI-sääntö 2a. **C5 on tältä osin täysi, ja T79 on valmis.** 1.11. klo 8 ajo: `selected=6` →
+>   `SENT=4 SETTLED_MAINT_BUDGET=2 unhandledMapErrors=0`, ERROR-rivejä 0. Julkaisun C uusi polku toimi tuotannossa:
+>   B042805 (hyvitys 204,78 ≥ hinta 111,77) ja B046441 (183,27 ≥ 118,39) saivat **tavan 3**, `eheys=HYVITYS_YLI_PORTAAN`, ei linkkiä eikä viestiä.
+>   **Lähtötilanne 1.11. klo 00:30 (ennen 1480:n ajoa):** status 1, tapa tyhjä, `paid_at` **tyhjä**, `link_sent` = T, päättyy 30.11.
+>   **Odotus tarkennettu:** maksua ei ole tullut, mutta ADR 0009:n OOMI-sääntö (2a) kirjoittaa tavan 1 ilman maksua päättymiskuun alussa
+>   (`liab_settled_at` = tunnistuspäivä, `paid_at` jää tyhjäksi). Odotus on siis **status 2 / tapa 1 / `paid_at` tyhjä** — ei C6.
+>   Tehtävän aiempi muotoilu ("tapa 1 vain jos maksu tullut, muuten C6") koski tilannetta, jossa linkkiä ei olisi ehditty lähettää.
 >
 > Vertailupohja (vanha koodi, `dryRun=false`): 21.–22.10. selected 1 (`SKIP_LINKED_SO`), 23.10. `SENT`=1, 24.–26.10. selected 0, kaikissa `unhandledMapErrors=0`.
 
@@ -1946,7 +2601,15 @@ ADR 0014 k. 21 ja k. 26. Poista `NOT_OOMI` ML4:stä (`checks/ml4.ts`) ja ML1:st�
 `ml4.ts:18` `MONTHS_BEFORE = 2` samana päivänä kuin T80, koska muuten ML4 ei näe pyöriä, joiden lähetyspäivä on mennyt arvolla 2 mutta ei arvolla 1.
 **Valmis kun** muutos on tuotannossa ja ML4 näyttää 2.11. ajon jälkeen vain todelliset poikkeamat.
 
-### [ ] T82 — 17 marraskuun OOMI-pyörää: käsin tehty linkki ilman negatiivisen huoltosumman hyvitystä, **päätös viimeistään pe 30.10.**
+### [x] T82 — 17 marraskuun OOMI-pyörää: käsin tehty linkki ilman negatiivisen huoltosumman hyvitystä — **päätetty 1.11.2026**
+
+> [!NOTE]
+> **Päätös 1.11.2026 (käyttäjä): linkit annetaan olla.** Avoimia linkkejä ei peruta eikä päivitetä, eikä maksettuja summia palauteta oma-aloitteisesti.
+> **Jos loppukäyttäjä pyytää asiakaspalvelulta rahojen palautusta, se palautetaan silloin.** Korjaavia CSV-ajoja ei tehdä.
+> Tapa ja `liab_settled_at` jäävät sellaisiksi kuin 1480 ne kirjoitti: yöajossa 1.11. kaikki ilman tapaa olleet saivat **tavan 1** ja
+> `liab_settled_at` = 01.11.2026 (todennettu B042911 ja B045711). Alla oleva lista jää dokumentaatioksi, jos asiakaspalvelu tarvitsee summat.
+> Juurisyy on jo korjattu: julkaisu C hoitaa saman tilanteen automaattisesti (1.11. ajo kirjoitti B042805:lle ja B046441:lle tavan 3,
+> koska hyvitys kattoi hinnan).
 
 ADR 0014 k. 27. Marraskuun käsin tehdyistä OOMI-linkeistä 17:ssä negatiivista huoltosummaa ei vähennetty (todennettu 26.10.). Esimerkiksi B042911
 maksoi 104 €, vaikka hyvitys (−478,09 €) olisi tehnyt lunastuksesta maksuttoman, ja B045711:n 151 €:n linkki (−548,21 €) on avoinna.
@@ -1956,8 +2619,44 @@ Pyöräkohtainen lista saadaan kyselyllä: marraskuun OOMI-pyörät, joilla `mai
 - Palautetaanko jo maksetut summat kokonaan tai osittain?
 - Mikä tapa ja `liab_settled_at` kirjataan? 1480 kirjoittaa 1.11. kaikille tavan 1, jos tapaa ei ole.
 
+**Lista ajettu 1.11.2026 klo 00:35 (Claude).** Kysely palautti **18** pyörää (ADR sanoi 17; mukana ovat myös B039455 ja B044413, joilla ei ole
+Paylink-tilausta lainkaan). `hyvitys` alla on ADR 0014 k. 24:n kaava `|maintenance_sum| × 1,255` — **laskettu, ei luettu linkin hinnasta**.
+
+*Maksetut (`completed`) — rahat ovat tulleet:*
+
+| Pyörä | Maksettu | Hyvitys (laskettu) | Olisi pitänyt olla | Tapa nyt | `paid_at` |
+|---|---|---|---|---|---|
+| B042911 | 104 € | 600,00 € | **0 €** | — | 16.10. |
+| B042274 | 193 € | 408,00 € | **0 €** | — | 27.10. |
+| B043983 | 156 € | 200,00 € | **0 €** | — | 16.10. |
+| B041708 | 148 € | 480,00 € | **0 €** | 1 | 22.09. |
+| B042371 | 187 € | 64,01 € | 122,99 € | 1 | 29.09. |
+| B038280 | 77 € | 22,50 € | 54,50 € | — | 07.10. |
+
+Yhteensä maksettu **865 €**, josta liikaa noin **801 €** (4 pyörää olisi ollut maksuttomia).
+
+*Avoimet linkit (`pending`) — maksua ei ole tullut:*
+
+| Pyörä | Linkki | Hyvitys (laskettu) | Olisi pitänyt olla |
+|---|---|---|---|
+| B045711 | 151 € | 688,00 € | **0 €** |
+| B041510 | 113 € | 360,00 € | **0 €** |
+| B041485 | 102 € | 324,00 € | **0 €** |
+| B044462 | 150 € | 244,00 € | **0 €** |
+| B038907 | 20 € | 188,00 € | **0 €** |
+| B039834 | 34 € | 144,00 € | **0 €** |
+| B044369 | 198 € | 111,00 € | 87,00 € |
+| B038829 | 139 € | 95,30 € | 43,70 € |
+| B041402 | 203 € | 2,62 € | 200,38 € |
+| B038330 | 153 € | 2,00 € | 151,00 € |
+
+Avoinna yhteensä **1 263 €**, josta 6 linkkiä pitäisi olla kokonaan maksuttomia. *Ilman linkkiä:* B039455 (tapa 5) ja B044413 (tapa 1).
+
+**Kiireellisyys:** 1480 kirjoittaa yössä 1.11. tavan 1 niille 12:lle, joilla tapaa ei ole, ja merkitsee pyörän lunastetuksi. Se ei estä
+hyvitystä eikä linkin perumista, mutta rekisteri näyttää sen jälkeen asian hoidetuksi. Avoimet linkit kannattaa perua tai nollata ensin.
+
 1479 ei käsittele näitä pyöriä, koska niillä on `link_sent` = T.
-**Valmis kun** päätös on kirjattu ja tarvittavat CSV:t on ajettu.
+~~**Valmis kun** päätös on kirjattu ja tarvittavat CSV:t on ajettu.~~ **Valmis 1.11.2026:** päätös kirjattu, CSV:itä ei tarvita.
 
 ### [ ] T83 — cf-gbb-tools: "Huoltohyvitys lunastushinnasta" -kenttä pyörärekisterityökaluun (erillinen istunto, ei takarajaa)
 

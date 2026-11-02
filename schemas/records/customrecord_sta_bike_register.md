@@ -16,6 +16,7 @@ All fields below are filterable in SuiteQL/REST except `refName`.
 | Field ID | Label | Type |
 |---|---|---|
 | `custrecord_sta_subsc_start_date` | SUBSCRIPTION START DATE | date |
+| `custrecord_gbb_employer_lease_start` | Nykyisen työnantajan vuokrakauden alku | date |
 | `custrecord_sta_subsc_end_date` | SUBSCRIPTION END DATE | date |
 | `custrecord_sta_subsc_org_end_date` | SUBSCRIPTION ORIGINAL END DATE | date |
 | `custrecord_gbb_exceptional_end_date` | EXCEPTIONAL END DATE | date |
