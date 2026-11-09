@@ -47,4 +47,4 @@ hetkellä osu mihinkään pyörään. Se on sattumaa, ei suojaa.
 
 **Override-parametri ohittaa tämän haun kokonaan.**
 `custscript_gbb_ext_override_sub_end_date` rakentaa oman hakunsa koodissa — myös OOMI-suodatin
-katoaa silloin. Verifioitu ansa, ks. CLAUDE.md § *The extension loop has no owner*.
+katoaa silloin. Verifioitu ansa, ks. `docs/sisarrepot.md` § *The extension loop has no owner*.

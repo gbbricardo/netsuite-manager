@@ -317,7 +317,7 @@ sellainen pyörä jää luuppiin ja sitä laskutetaan kuukausi lisää.
 
 Kirjastolla on 50 yksikkötestiä `netsuite-subscrption-cr-scripts/tests/`. **Näillä viidellä
 tiedostolla ei ole testiajuria lainkaan** — todentaminen tarkoittaa NetSuite-ajoa. Älä raportoi
-mitään näistä "testattuna" ilman ajoa (`CLAUDE.md` § *Working Commands*).
+mitään näistä "testattuna" ilman ajoa (`docs/sisarrepot.md` § *Working commands*).
 
 ### 6.1 Ennen/jälkeen-mittarit
 

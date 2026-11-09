@@ -153,7 +153,7 @@ Kaksi vaihtoehtoa, kummankin valinta on liiketoimintapäätös:
 
 - **(a) Nimipääte** — uusi rivi `SETTLE_METHOD_OVERRIDES`iin samaan tapaan kuin `vakuutus`.
   Halpa, mutta lisää kuormaa jo valmiiksi hauraaseen nimipohjaiseen reititykseen
-  (ks. CLAUDE.md § *Name-based routing*: monthly-reporting reitittää samoja CR-tyyppejä
+  (ks. `docs/sisarrepot.md` § *Name-based routing*: monthly-reporting reitittää samoja CR-tyyppejä
   `altname`in tekstillä, joten uusi pääte osuu molempiin polkuihin).
 - **(b) Oma kenttä CR-tietueelle** *(suositus)* — esim. `custrecord_cr_liab_settle_method_override`,
   jonka handler lukee ja käyttää sellaisenaan jos asetettu. Ei kosketa nimikonventiota, on

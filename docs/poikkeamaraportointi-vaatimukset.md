@@ -151,6 +151,7 @@ Säännöt: [ADR 0022](adr/0022-laskutuksen-paattaminen-tai-tauotus.md). Laskute
 |---|---|---|---|---|---|
 | SR1 | Aktiivinen item 30/31-rivi, alku > loppu, eikä loppu ole pyörän Done-tilaisen tyypin 2 CR:n `end_date_of_old_sub` | ADR 0022 k. 2 | V | A6 | 2026-09-25 handler-lunastus-ja-vali (6 riviä 23.10.) |
 | SR2 | Kaksi aktiivista saman pyörän ja nimikkeen riviä, kaudet päällekkäin | ADR 0022 k. 3 | V | A6 | 2026-10-26 konsernisiirto-tuplarivit |
+| SR3 | Raportoitavalla pyörällä ei ole seuraavan raportointipäivän kattavaa item 30 -riviä rekisterin omalle työnantajalle (kattavuus kuten `ri_creation`: ei `row_status`-suodatinta). Rajaus: **kohdepäivälle** ei ole Active-, Active/New- eikä Paused-riviä (`ri_creation.js:591-608` palaa niillä ennen Warning-haaraa) — ilman tätä 68 osumaa 4:n sijaan. Avoin: estääkö olemassa oleva Ended-rivi Warningin (RI9). | ADR 0020 k. 4, 7 | E: palkka-CSV | — | [2026-11-03 warning-rivien-ennakointi](../findings/2026-11-03-warning-rivien-ennakointi.md) |
 
 ### Muutospyynnöt (CR)
 

@@ -24,7 +24,7 @@ Liputus säilyy: RI 147156 / B040788, päättyi 5.7., raportointipäivä 1.10. H
 **Muutos (yksi funktio):** `applyStage1cToRow`, vain Ended-haara. Vertaa kuukausia, ei päiviä:
 1. Muodosta `end = getHelsinkiDateParts(new Date(item.endDate))` ja `rep = getHelsinkiDateParts(new Date(targetMs))`
    (tiedoston oma apufunktio, rivi ~220; `month` on 1-pohjainen). Älä käytä `getFullYear/getMonth/getDate`: ne lukevat ajoympäristön
-   aikavyöhykettä (~10 h Helsingistä, CLAUDE.md § Timezone). `gbb_lunastus_lib` ei vie kuukausivertailua, joten kirjastoa ei muuteta.
+   aikavyöhykettä (~10 h Helsingistä, `docs/sisarrepot.md` § Timezone). `gbb_lunastus_lib` ei vie kuukausivertailua, joten kirjastoa ei muuteta.
 2. Laske `endIdx = end.year*12 + end.month` ja `repIdx = rep.year*12 + rep.month`.
 3. `shouldFlag = true` vain jos `endIdx + 1 < repIdx`. Muuten ei lippua. `item.endDate` tyhjä: ei lippua kuten ennenkin.
 4. Älä koske Active/New- (konsernisiirto, tuoteomistaja 1.10.: jää ennalleen) eikä Paused-haaraan.

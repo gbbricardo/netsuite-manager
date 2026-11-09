@@ -5,10 +5,12 @@
 - **Omistavat repot:** `netsuite-subscrption-cr-scripts`, `netsuite-monthly-reporting`. Toteutus tehdään siellä, erillisissä istunnoissa.
 
 > [!IMPORTANT]
-> **Laajuus (ADR 0025 k. 6, päätetty 2.11.2026):** kentän nollaavat tyyppi **1** *Siirto TA*
-> (`handler_siirto_ta.js`) ja tyyppi **6** *Siirto TT* (`handler_siirto_tt.js`). Tyyppi **9**
-> *Siirto konserni* **ei** nollaa — konsernin sisällä työntekijän osalta mikään ei muutu, sama
-> jatkuvuustulkinta kuin verovapaussäännössä.
+> **Laajuus (ADR 0025 k. 6, päätetty 2.11.2026):** kentän nollaavat tyyppi **1** *Siirto TA* ja tyyppi
+> **6** *Siirto TT*. Tyyppi **9** *Siirto konserni* **ei** nollaa — konsernin sisällä työntekijän osalta
+> mikään ei muutu, sama jatkuvuustulkinta kuin verovapaussäännössä.
+>
+> **Kirjoittajia on yksi: `cr_bike_register_apply`** (ADR 0025 k. 4, tarkennettu 2.11.2026). Kaikki kolme
+> siirtotyyppiä kulkevat sen läpi, joten tyypin 9 rajaus on pakollinen `crType`-portti, ei valinnainen.
 
 ## Vaihe 1 — kenttä NetSuiteen — **tehty 2.11.2026 (käyttäjä)**
 
@@ -77,17 +79,45 @@ WHERE br.custrecord_gbb_employer_lease_start IS NOT NULL
 -- odotus: 0
 ```
 
-## Vaihe 3 — T95: siirtokäsittelijät kirjoittavat kentän (`netsuite-subscrption-cr-scripts`)
+## Vaihe 3 — T95: `cr_bike_register_apply` kirjoittaa kentän (`netsuite-subscrption-cr-scripts`)
 
-`handler_siirto_ta.js` (tyyppi 1) ja `handler_siirto_tt.js` (tyyppi 6) kirjoittavat pyörärekisteriin:
+Kirjoitus tehdään **yhteen paikkaan**, jaettuun kirjastoon `cr_bike_register_apply.js`:
 
 ```js
 custrecord_gbb_employer_lease_start = custrecord_cr_contract_official_end_date + 1
 ```
 
 Sama päivä kuin `ue_reporting_item_transfers.js:873` (tyyppi 1) ja `:940` (tyyppi 6) kirjoittavat
-siirtokuukauden riville — yksi sääntö, joka ei saa erota kirjoituskohtien välillä.
-`handler_konserni.js` (tyyppi 9) **ei** kirjoita kenttää.
+siirtokuukauden riville — yksi sääntö, yksi tiedosto.
+
+**Älä kirjoita kenttää `handler_siirto_ta.js`:ään.** Se ei kirjoita rekisteriä itse, vaan kutsuu
+`applyBikeRegisterIfDue()`-funktiota (`:132`), joka kirjoittaa vain jos `cr_start_date` on viimeistään ensi
+kuun 1. Muuten kirjoitus jää `cr_bike_register_updater`-ajolle kuukauden viimeisenä päivänä. Mitattuna
+**121 tyypin 1 siirtoa 133:sta kulkee tätä lykättyä polkua** (ADR 0025 k. 4), joten käsittelijään kirjoitettu
+kenttä osuisi väärään kuukauteen. Kirjastoon kirjoitettuna molemmat polut saavat sen ilmaiseksi.
+
+Muutoksen muoto:
+
+1. **`apply(crId, caller, resolved)`** rakentaa kenttäjoukon tyypin mukaan: tyypit 1 ja 9 saavat
+   `contract_employer` + `bill_to_cus` kuten nyt, tyyppi 6 saa `enduser` + `enduser_email` kutsujan
+   välittämästä `resolved`-objektista. `next_billto_customer`-heitto siirtyy tyyppiportin taakse —
+   tyyppi 6 ei sitä kenttää käytä.
+2. **Vuokrakauden alku lisätään kerran**, portilla `crType === '1' || crType === '6'`.
+3. **`handler_siirto_tt.js` reititetään kirjaston läpi**: sen oma `capture()` + `submitFields()` -pari
+   (`:59-64`) poistuu ja tilalle tulee
+   `crBikeRegisterApply.apply(crId, 'handler_siirto_tt', { customerId: customerId, email: empEmail })`.
+   Duplikaatti on siis olemassa jo ennen tätä muutosta; yhtenäistäminen poistaa sen.
+4. **Päiväsääntö eristetään puhtaaksi funktioksi** `resolveEmployerLeaseStart(officialEnd, registerStart)`,
+   joka palauttaa Daten tai `null` ja sisältää alla olevat reunaehdot. Se saa yksikkötestit ajurilla
+   `node --test tests/*.test.js`; `apply()` itse ei ole testattavissa, koska se käyttää `N/record`:ia.
+
+> [!WARNING]
+> Tyyppi 9 kulkee saman funktion läpi, joten **`crType`-portti on pakollinen**: ilman sitä konsernisiirto
+> nollaisi vuokrakauden. Malli on samassa funktiossa jo valmiina (`cr_bike_register_apply.js:50`).
+>
+> Lue päivä CR:n kentästä `custrecord_cr_contract_official_end_date`. `handler_siirto_ta` lukee jo
+> `custrecord_cr_end_date_of_old_sub` (`:42`) — **se on eri kenttä.** Väärän nappaaminen antaisi eri päivän
+> kuin siirtokuukauden RI-rivi, ja koko ADR:n pointti on, että näiden on oltava sama.
 
 Reunaehdot:
 
@@ -97,6 +127,10 @@ Reunaehdot:
 
 **Valmis kun:** uusi tyypin 1 ja tyypin 6 CR on käsitelty Doneksi, pyörän kenttä on `official_end_date` + 1,
 ja seuraavan kuukausiajon RI-rivi kantaa saman päivän. Tyypin 9 CR:n jälkeen kenttä on muuttumaton.
+
+Koska `apply()` on kolmen kutsujan jaettu funktio, **todennus vaatii NetSuite-ajon kaikilla kolmella
+tyypillä 1, 6 ja 9** — ei pelkästään tyypillä 1. Tyypin 1 osalta aja sekä heti kirjoittuva CR
+(`start_date` viimeistään ensi kuun 1.) että lykätty, jotta molemmat polut tulevat nähdyksi.
 
 ## Vaihe 4 — T97: kertatäydennys (477 + 16 pyörää)
 

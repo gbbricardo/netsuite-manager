@@ -90,7 +90,7 @@ Pyöräkohtaiset kysymykset ovat CSV:n sarakkeessa `kysymys_taloustiimille`. Tä
   joiden loppupäivä oli eilen. 1.12.2025 haun olisi pitänyt löytää nämä kolme, mutta tyypin 7
   CR:ää ei syntynyt. Todennäköinen syy on se, että jokin skriptin poistumisehdoista (esim. avoin
   lunastusmyyntitilaus) pysäytti käsittelyn hiljaa. Pyörä ei enää koskaan palaa hakuun
-  (CLAUDE.md § *The extension loop has no owner and exits silently*). **Päätelty, ei todennettu:**
+  (`docs/sisarrepot.md` § *The extension loop has no owner and exits silently*). **Päätelty, ei todennettu:**
   vuoden 2025 ajolokeja ei ole tarkistettu.
 - **B016555:** CR-6488 on Error-tilassa, koska Fortacon sopimusrivit päättyvät 31.07.2026.
   Error-tilaista CR:ää ei yritetä uudelleen, ja silmukka loppuu tähän ilman ilmoitusta.

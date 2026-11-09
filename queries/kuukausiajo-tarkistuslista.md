@@ -164,6 +164,29 @@ WHERE br.isinactive = 'F' AND br.custrecord_sta_bike_order_type = 3 AND br.custr
 ```
 **B010533 (T34):** tapa 2 (käsin 23.10.), `subsc_end_date` 30.11.2026 pidetään. RI 126605 (1.11.) jää **Active**, eikä rivi saa *Ended retrospectively* -lippua. Status-sync 2.0 kääntää pyörän tilaan 2 yöllä 1.11. **1.12.:** pyörä saa Ended-rivin (`ended_created`, raportointipäivä 1.12.), eikä Active-riviä synny.
 
+## 1.12.2026: erityistarkistukset
+
+**T99 — takautuvan siirtopaketin New-rivin vuokra.** 3.11.2026 tehty Serres-paketti (T94) tuotti joulukuulle
+RI-parit, joissa Ended-rivin vuokra on oikea mutta **New-rivi peri hinnan sopimuksen tynkärivistä**
+(188799 = 51,0754, 188801 = 8,0645, 188803 = 10,6242; oikeat 80,6454 / 80,6454 / 79,6813). `ri_update` vaihe 1b
+täyttää vain tyhjän kentän, joten väärä arvo ei korjaannu ajossa. **Odotus: 0 riviä.** Aja ennen palkka-CSV:tä:
+
+```sql
+SELECT br.name, ri.id, ri.custrecord_gbb_ri_lease_fee_vat0 AS ri_vuokra, br.custrecord_sta_curr_subs_rent AS rek_vuokra
+FROM customrecord_gbb_monthly_reporting_item ri JOIN customrecord_sta_bike_register br ON br.id = ri.custrecord_gbb_ri_bike
+WHERE ri.custrecord_gbb_ri_reporting_date = TO_DATE('<D>','YYYY-MM-DD') AND ri.custrecord_gbb_ri_reporting_status IN (1,2)
+  AND br.custrecord_sta_curr_subs_rent IS NOT NULL
+  AND ABS(ri.custrecord_gbb_ri_lease_fee_vat0 - br.custrecord_sta_curr_subs_rent) > 0.01
+```
+Kysely on yleinen eikä rajaa Serresiin: sama kuvio toistuu jokaisessa siirtopaketissa, jossa pyörällä on
+tynkärivi. Osumat ovat alilaskutettuja palkanpidätyksiä — korjaa RI-rivi rekisterin vuokraan ennen 1451:tä.
+
+**Serres (T94):** marraskuun rivit 183921, 183922 ja 184719 korjattiin käsin 1.11. **Älä aja `ri_update`a
+uudelleen marraskuun riveille** — `employerFieldCheck` kääntäisi ne takaisin Warningiksi.
+
+**B010533 (T34):** pyörä saa joulukuussa Ended-rivin (`ended_created`, raportointipäivä 1.12.), eikä Active-riviä
+synny.
+
 ## Havainto (ei tarkistus): Metsä Boardin konsernisiirto kesken lokakuun ajon
 
 Kahdeksan Metsä Board Oyj:n pyörää (B007427, B008050, B008338, B008794, B009475, B010178, B026174 ja B034821) siirtyi Metsä Fibre Oy:lle tyypin 13

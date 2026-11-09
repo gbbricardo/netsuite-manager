@@ -5,7 +5,7 @@
 - **Koskee:** `netsuite-monthly-reporting` (luku, palkka-CSV sarake 8), `netsuite-subscrption-cr-scripts` (kirjoitus), pyörärekisterin uusi kenttä
 - **Liittyy:** [ADR 0020](0020-kuukausiraportointiin-vaikuttavat-tiedot.md) k. 11 (siirtokuussa raportointi vaihtaa työnantajaa päivästä `official_end_date` + 1)
 - **Todisteet:** [löydös 2.11.2026](../../findings/2026-11-02-ri-vuokrakauden-alkupaiva-palautuu-siirron-jalkeen.md)
-- **Toteutus:** TASKS T95 (kenttä + handler), T96 (raportoinnin luku), T97 (täydennys)
+- **Toteutus:** TASKS T95 (kenttä + kirjoittaja), T96 (raportoinnin luku), T97 (täydennys)
 
 ## Konteksti
 
@@ -42,9 +42,34 @@ Asiakkaat ovat hämmentyneet: esim. **B034594** siirtyi työnantajalta toiselle 
    Kenttä valittiin CR:stä johtamisen sijaan, koska raportointi rakentaa rivit joka kuukausi rekisteristä
    ja lukee sen yhdellä haulla: kenttä tulee mukaan ilmaiseksi, eikä yksikään lukija tarvitse CR-hakutaulua.
 
-4. **Kirjoittajat ovat `handler_siirto_ta` ja `handler_siirto_tt`** (k. 6), arvo
-   `custrecord_cr_contract_official_end_date` + 1 — sama päivä,
-   jonka `ue_reporting_item_transfers.js:873` jo kirjoittaa siirtokuukauden riville. Yksi kirjoittaja, yksi sääntö.
+4. **Kirjoittaja on `cr_bike_register_apply` — siirtojen ainoa rekisterikirjoittaja** (tarkennettu
+   2.11.2026), arvo `custrecord_cr_contract_official_end_date` + 1 — sama päivä, jonka
+   `ue_reporting_item_transfers.js:873` (tyyppi 1) ja `:940` (tyyppi 6) jo kirjoittavat siirtokuukauden
+   riville. Yksi sääntö, yksi tiedosto.
+
+   `handler_siirto_ta` (tyyppi 1) ja `handler_konserni` (tyyppi 9) kutsuvat kirjastoa jo nyt.
+   `handler_siirto_tt` (tyyppi 6) **reititetään sen läpi**: se kirjoittaa rekisteriin tällä hetkellä itse
+   (`handler_siirto_tt.js:59-64`, oma `capture()` + `submitFields()` -pari), eli duplikaatti on olemassa jo
+   ennen tätä päätöstä. Yhtenäistäminen poistaa sen.
+
+   **Perustelu on kirjoitushetki, ei tyyli.** Kenttä on kirjoitettava samalla hetkellä kuin se suhde, jota se
+   kuvaa. Tyypin 1 rekisterikirjoitus on lähes aina lykätty: `apply()` kirjoittaa heti vain jos
+   `cr_start_date` on viimeistään ensi kuun 1., muuten työnantaja vaihtuu vasta
+   `cr_bike_register_updater`-ajossa kuukauden viimeisenä päivänä. Mitattu 2.11.2026 Done-tilaisista CR:istä
+   (`closed_date` asetettu):
+
+   | Tyyppi | Heti | Siirtyy kk-vaihteeseen | Lykättyjen osuus |
+   |---|---|---|---|
+   | 1 *Siirto TA* | 12 | 121 | **91 %** |
+   | 9 *Siirto konserni* | 98 | 198 | 67 % |
+   | 6 *Siirto TT* | 1 | 15 | — (ei lykkäyspolkua: updater kyselee vain tyypit 1 ja 9) |
+
+   Jos kenttä kirjoitettaisiin Done-hetkellä (dispatcherissa tai uudessa UE-skriptissä), se asettuisi
+   rekisteriin kuukausia ennen työnantajan vaihtumista. Esimerkki: CR suljetaan 26.2., `start_date` 1.4. →
+   maaliskuun ajo tuottaa rivin, jossa on **vanha työnantaja ja uusi vuokrakauden alku**. Sarake 8 menisi
+   väärin välikuukausilta, hiljaa ja ilman Warningia — sama vikaluokka, jonka tämä ADR korjaa, 121:ssä
+   siirrossa 133:sta.
+
    Jos CR:n `official_end_date` on tyhjä, kenttää ei kirjoiteta eikä CR mene Erroriin: rivi on silloin
    sama kuin ennenkin, ja asia hoidetaan käsin.
 
@@ -57,11 +82,15 @@ Asiakkaat ovat hämmentyneet: esim. **B034594** siirtyi työnantajalta toiselle 
 
 6. **Kentän nollaavat tyypit 1 ja 6, ei tyyppi 9** (käyttäjä 2.11.2026).
 
-   | Tyyppi | Mikä vaihtuu | Nollaako | Käsittelijä |
+   | Tyyppi | Mikä vaihtuu | Nollaako | Kutsuja → kirjoittaja (k. 4) |
    |---|---|---|---|
-   | 1 *Siirto TA* | työnantaja | **kyllä** | `handler_siirto_ta.js` |
-   | 6 *Siirto TT* | loppukäyttäjä | **kyllä** | `handler_siirto_tt.js` |
-   | 9 *Siirto konserni* | laskutettava asiakas konsernin sisällä | **ei** | — |
+   | 1 *Siirto TA* | työnantaja | **kyllä** | `handler_siirto_ta` / `cr_bike_register_updater` → `cr_bike_register_apply` |
+   | 6 *Siirto TT* | loppukäyttäjä | **kyllä** | `handler_siirto_tt` → `cr_bike_register_apply` |
+   | 9 *Siirto konserni* | laskutettava asiakas konsernin sisällä | **ei** | `handler_konserni` / `cr_bike_register_updater` → `cr_bike_register_apply` |
+
+   Koska kaikki kolme tyyppiä kulkevat saman funktion läpi, **tyypin 9 rajaus on pakollinen `crType`-portti,
+   ei valinnainen**: ilman sitä konsernisiirto nollaisi vuokrakauden. Malli on samassa funktiossa jo
+   valmiina (`cr_bike_register_apply.js:50`).
 
    Tyyppi 6 nollaa, koska uudelle työntekijälle vuokrakausi oikeasti alkaa siirrosta, ja koska
    `ue_reporting_item_transfers.js:940` kirjoittaa jo nyt siirtopäivän siirtokuukauden riville — ilman tätä
@@ -80,8 +109,9 @@ Asiakkaat ovat hämmentyneet: esim. **B034594** siirtyi työnantajalta toiselle 
 - **`subsc_start_date`:n ylikirjoitus siirrossa** (kuten `handler_siirto_pt.js:62` tekee tyypille 3).
   Hylätty k. 2:n perusteella: rikkoisi IC-lunastushinnat.
 - **Johtaminen tyypin 1 CR:stä raportoinnissa** (`official_end_date` + 1 viimeisimmästä Done-CR:stä).
-  Ei uutta kenttää ja muutos vain yhteen repoon, mutta 482 olemassa olevaa CR:ää on päivämäärättömiä,
-  joten kertatäydennys tarvitaan silti — ja jokainen lukija joutuisi pitämään CR-hakutaulua muistissa.
+  Ei uutta kenttää ja muutos vain yhteen repoon, mutta jokainen lukija joutuisi pitämään CR-hakutaulua
+  muistissa joka ajossa — yhdeksän lukukohtaa seitsemässä skriptissä. Se on hylkäyksen peruste.
+  (Aiempi sanamuoto nojasi myös 482 päivämäärättömään CR:ään; ks. § *Mikä ei ole peruste*.)
 - **Johtaminen sopimusriviltä.** Hylätty todennettuna: B034594:n sopimusrivit alkavat 01.12.2025,
   eivät 01.02.2024 — indeksi- ja hintakloonaukset siirtävät rivin alkupäivää.
 - **Johtaminen RI-historiasta** (pyörän ja työnantajan varhaisin rivi). Hylätty: historia on epätäydellinen
@@ -89,6 +119,22 @@ Asiakkaat ovat hämmentyneet: esim. **B034594** siirtyi työnantajalta toiselle 
 - **Toinen sarake CSV:hen.** Hylätty: CSV:n rakenteen muutos rikkoisi työnantajien palkkajärjestelmien tuonnit.
 - **Korjaus-CSV joka kuukausi** väliaikaisratkaisuna. Hylätty k. 7:n mukaan: käsityö, joka jo unohtui
   loka- ja marraskuussa.
+- **Kirjoitus dispatcherin success-polulla tai uudessa CR:n User Event -skriptissä.** Houkutteleva, koska se
+  olisi yksi paikka kaikille tyypeille. Hylätty mittauksella (k. 4): Done-hetken kirjoitus osuu väärään
+  kuukauteen 121:ssä tyypin 1 siirrossa 133:sta.
+- **Sama pätkä jokaiseen CR-käsittelijään.** Hylätty: kymmenen tiedostoa kirjoittaa pyörärekisteriä jo nyt,
+  ja sääntö kopioituisi niihin kaikkiin — hajautuksen pahin muoto.
+- **Jaettu sääntömoduuli + kaksi kutsupaikkaa** (`apply()` tyypille 1, `handler_siirto_tt` tyypille 6).
+  Toimii ja on pienin mahdollinen muutos, mutta jättää saman säännön kahteen eri muotoiseen
+  kirjoituspaikkaan. Hylätty 2.11.2026 (käyttäjä): symmetria ratkaisee.
+
+## Mikä ei ole peruste
+
+**482 päivämäärätöntä tyypin 1 CR:ää eivät ole suunnittelurajoite** (käyttäjä 2.11.2026). Ne ovat toisen
+kehittäjän massatuonti — purkkaviritys RI-raportointia varten, ei harkittu tietomalli. Ne kertovat, millaista
+dataa kantaan on päätynyt, eivät sitä, miten järjestelmä pitäisi rakentaa. Niitä ei käytetä argumenttina
+kehityksessä kumpaankaan suuntaan: historian hoitaa kertatäydennys (T97), ja uusi koodi kirjoittaa kentän
+oikein eteenpäin.
 
 ## Seuraukset
 
@@ -98,3 +144,10 @@ Asiakkaat ovat hämmentyneet: esim. **B034594** siirtyi työnantajalta toiselle 
   k. 5) ja lisäksi **16 pyörää** tyypin 6 Done-CR:istä, joilla `official_end_date` on asetettuna kaikilla —
   ne lasketaan suoraan CR:stä, ei RI-riveistä.
 - `schemas/records/customrecord_sta_bike_register.md` päivitetty 2.11.2026.
+- K. 4 tekee T95:stä refaktoroinnin, ei kahden rivin lisäystä: `cr_bike_register_apply.apply()` saa
+  tyyppikohtaisen kenttäjoukon, ja `next_billto_customer`-heitto siirtyy tyyppiportin taakse (tyyppi 6 ei
+  sitä kenttää käytä). Funktio on kolmen kutsujan jaettu, joten todennus vaatii NetSuite-ajon **kaikilla
+  kolmella tyypillä 1, 6 ja 9** — ei pelkkää tyypin 1 ajoa.
+- Päiväsääntö kannattaa eristää puhtaaksi funktioksi (`resolveEmployerLeaseStart(officialEnd, registerStart)`
+  → Date tai null, sisältää k. 5:n validoinnin). Repossa on ajuri `node --test tests/*.test.js`, joten
+  sääntö saa yksikkötestit; `apply()` itse ei ole testattavissa, koska se käyttää `N/record`:ia.
