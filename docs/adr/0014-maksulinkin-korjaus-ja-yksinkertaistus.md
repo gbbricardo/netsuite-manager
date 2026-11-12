@@ -9,6 +9,7 @@
 - **Toteutusmäärittely:** [`docs/maksulinkki-1479-muutosspeksi.md`](../maksulinkki-1479-muutosspeksi.md)
 - **Laajennettu 26.10.2026:** OOMI-pyörät maksulinkin piiriin (k. 20–28). Tarkentaa [ADR 0009](0009-kauden-lopun-lunastus.md) k. 6:ta
   ja [ADR 0012](0012-loppulunastushinta-ja-kattavuus.md) k. 1:tä.
+- **K. 22 kumottu 11.11.2026:** [ADR 0026](0026-oomi-pyoralla-ei-huoltohyvitysta.md). OOMI-pyörän hyvitys on aina 0.
 
 ## Konteksti
 

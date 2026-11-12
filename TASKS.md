@@ -26,7 +26,6 @@ arkistoon.
 | T100 | Warning-rivien ennakointi netsuite-reporting-välilehdelle (RI3, RI4, SR3) |
 | T101 | Todenna Serres-siirtopaketin hintakorjaus tuotannossa |
 | T70 | monthly-reportingin sääntödokumentit: ensisijainen lähde on netsuite-manager (erillinen istunto) |
-| T51 | Lunastusten raportointiskriptin määrittely |
 | T71 | 2A-paketin konsernisiirto ei passivoi korvattuja rivejä (cr-scripts, erillinen istunto) |
 | T73 | SR2 käsin jokaisen siirto- tai pakettiCR-ajon jälkeen (kunnes T71 on tuotannossa) |
 | T75 | cr-scripts: jälkiveloitus vain aktiivisista riveistä, hinnat sentin tarkkuudella (erillinen istunto) |
@@ -34,11 +33,16 @@ arkistoon.
 | T77 | CR 7467 (Notion 1527, pyörä 46553, 7–9/2026): hyvitys käsin |
 | T98 | B040064: peruttu 2C jätti rekisterin, sopimusrivit ja raportoinnin eri linjoille |
 | T91 | B027115: vuokrarivi päättyi 31.10.2026 ilman jatkoa, hallintamaksu jatkuu |
-| T61 | Extension 2.0: kirjoita jälkiveloitusskripti (1437) uudelleen, **tuotannossa viimeistään 31.10.** |
-| T52 | 1479:n loki käsin jokaisen ajon jälkeen (kunnes T51 on tuotannossa) |
+| T102 | Jälkiveloituksen kaksoislasku: koodi tuotannossa 10.11., jäljellä ajon tarkistus ja `MIN_USAGE`-mittaus, **ennen 10.12.** |
+| T103 | status-sync 2.0: lue CR-tila 3 (rss2, erillinen istunto), **ennen 10.12.** |
+| T104 | Maksulinkki: lue CR-tila 3 S5:ssä (erillinen istunto), **ennen seuraavaa linkkiajoa** |
+| T105 | `handler_konserni_alustus`: tuplajatko-CR, jos tyypin 13 ajo katkeaa (cr-scripts, matala kiire) |
+| T106 | cf-gbb-tools: tilaan 3 jäänyt CR ei hälytä eikä näy (erillinen istunto) |
+| T107 | netsuite-reporting-työkalusta puuttuu 24 määritellyistä 56 tarkistuksesta (cf-gbb-tools, erillinen istunto, T51:n jatko) |
+| T108 | Extension 2.0 (1437): ajastus päälle tai päätös siirrosta joulukuulle, **eräpäivä 30.11.** |
+| T110 | Kauppakirjat, jotka lähtivät nettohinnalla 5.–11.11.: uusintalähetys vain päätöksellä (146 kpl, ei eräpäivää, päättäjä ei tavoitettavissa) |
 | T83 | cf-gbb-tools: "Huoltohyvitys lunastushinnasta" -kenttä pyörärekisterityökaluun (erillinen istunto, ei takarajaa) |
 | T84 | B033466: varkauden lunastus peruttu (pyörä löytyi), seurantapisteet 29.10.–1.11. |
-| T69 | KL2 ei näe työnantajan laskulla maksettua keskenkauden lunastusta (cf-gbb-tools, erillinen istunto) |
 | B046508 | lunastushinta 0 — onko hinta oikeasti 0 vai puuttuuko se |
 | V7–V8 | OOMI-vuokrahintojen alihanke |
 | Dok | lokikellon aikaero dokumenteissa |
@@ -108,7 +112,7 @@ tarkistusluettelo [`docs/poikkeamaraportointi-vaatimukset.md`](docs/poikkeamarap
 korjattiin käsin ajon ja CSV:n välissä samana iltana. Kolme niistä (153877–153879) oli ollut kannassa
 Warning-tilassa **13.10. alkaen eli 19 vuorokautta**. Mikään ei näyttänyt niitä.
 
-**Nykytila:** `registry.ts` sisältää 31 tarkistusta (LU, KL, IC, EX, ML, KK). **RI-, SR-, CR-, HY- ja
+**Nykytila:** `registry.ts` sisältää 32 tarkistusta (LU, KL, IC, EX, ML, KK; 10.11. tiedostoista laskettu, 56 määritellystä). **RI-, SR-, CR-, HY- ja
 AV-perheet ovat vaatimuksissa mutta eivät koodissa.** Käyttöliittymää ei tarvita: `report.ts:87-92` antaa
 jokaiselle `ennakkovaroitus`-tarkistukselle määräajaksi seuraavan kuun 1. päivän ja nostaa ne listan kärkeen.
 
@@ -156,26 +160,6 @@ ADR 0020 k. 1 (23.10.2026): `netsuite-monthly-reporting/docs/rules/` (`RIVISAANN
 `WARNING_RESOLUTION_PLAYBOOK.md`) kirjoitettiin kehitystä varten. Lisää jokaisen alkuun merkintä: *kehityksen aikainen dokumentti, ensisijainen
 lähde on netsuite-manager (ADR 0020 ym.)*, ettei kukaan päivitä niitä luullen niitä ajantasaisiksi. Tehdään monthly-reporting-istunnossa.
 **Valmis kun** merkintä on kaikissa neljässä ja commitoitu.
-
-### [ ] T51 — Lunastusten raportointiskriptin määrittely
-
-> [!NOTE]
-> **9.10.2026:** Tuoteomistaja: raportointi toteutetaan **cf-gbb-tools-näkymänä** (sisäiset työkalut, live-data SuiteQL:llä, Cloudflare Access). Ei sähköpostidigestiä eikä SuiteScriptiä. Vaatimukset ovat edelleen `docs/poikkeamaraportointi-vaatimukset.md`:ssä.
-
-Erillinen skripti raportoi kaiken lunastuksiin liittyvän (ADR 0014 k. 18). Se korvaa 1479:n digestin. **Syötteenä on rekisterin
-ja muiden tietueiden tila, ei skriptien loki** (tuoteomistaja 7.10.), ja se voi sisältää T46:n. Ei määritelty: omistava repo, kanavat ja rytmi.
-
-**Lisävaatimukset 9.10. (T61, extension 2.0):** raportin on listattava (1) Active-tilaiset ei-OOMI-pyörät, joiden sopimus on päättynyt ja joille ei ole lähetetty
-maksulinkkiä eikä ole jälkiveloitusketjua (lokakuussa 16 pyörää), ja (2) pyörät, joiden lunastushinta on 0 € mutta tapaa 4 ei ole kirjattu.
-Extension ohittaa molemmat ryhmät, ja ne jäävät ihmisen ratkaistaviksi.
-Vaatimukset tähän mennessä: (1) Active, ei OOMI, sopimus päättynyt, ei linkkiä, ei tapaa eikä jälkiveloitusta (ADR 0014 k. 17b; 7.10. neljä pyörää, kaikki keskenkauden lunastuksia: B023198, B024587, B024908, B020053). (2) Jälkiveloituspyörät, joilla ei ole lainkaan loppulunastustilausta (7.10. 14 pyörää, ks. T53).
-(3) Status-sync 2.0:n jättämät ryhmät R1–R13 ja keskenkauden S1–S5: [`docs/poikkeamaraportointi-vaatimukset.md`](docs/poikkeamaraportointi-vaatimukset.md) ([ADR 0015](docs/adr/0015-status-sync-2-tarkennukset.md) k. 1).
-**Valmis kun** määrittely on hyväksytty.
-
-> [!NOTE]
-> **9.10.2026, grilling-istunto:** T51 laajennettu kaikille toimialueille (poikkeamaraportointi). Sisältö on kanavasta riippumaton,
-> ja sama sisältö toimii sekä cf-gbb-tools-näkymänä että sähköpostina (korvaa 9.10. aamun linjauksen *ei sähköpostia*). Raportti
-> vain ilmoittaa, ei korjaa. Ei omistajia. Periaatteet P1–P14 ja tarkistusluettelon luonnos: `docs/poikkeamaraportointi-vaatimukset.md`.
 
 ---
 
@@ -298,166 +282,108 @@ Vuokrarivi 71520 (item 30, 1.7.–31.10.2026) laskutettiin 7–10/2026 ja suljet
 
 ## Lunastus, maksulinkki ja jälkiveloitus
 
-### [ ] T61 — Extension 2.0: kirjoita jälkiveloitusskripti (1437) uudelleen, **tuotannossa viimeistään 31.10.**
+### [ ] T102 — Jälkiveloituksen kaksoislasku: korjaa `handler_jalki` ja `cr_scheduler` (cr-scripts, erillinen istunto), **ennen 10.12.**
 
-**Käyttäjän päätökset 9.10.2026:**
-- `customdeploy_gbb_sub_extension` on otettu pois ajastuksesta tarkoituksella.
-- **Vaihtoehto A:** skripti kirjoitetaan uudelleen. Käsin tehtävää varasuunnitelmaa (CSV) **ei** tehdä.
-- **Viat:**
-  1. Väärä ajankohta: ajo kuun 1. päivänä klo 01:00 ehtii ennen kuin maksut on kirjattu.
-  2. Valinta vaatii, että tallennettu haku (`subsc_end_date` = eilen) ja ajastus kohtaavat. Siksi skriptiä ei voi ajastaa
-     esimerkiksi kuun 7. arkipäivälle.
-- **Korjausperiaate:**
-  - Valinta on ajopäivästä riippumaton: päättymispäivä edellisessä kuussa, eikä vielä tyypin 7 CR:ää sille kuulle.
-  - Ajo on idempotentti, joten myöhästynyt ajo kirii kiinni.
-  - Säännöt ovat samat kuin maksulinkissä: tapa asetettu tai hinta 0 = ei pidennystä, kattavuus M1.
+**Löydös 10.11.2026:** [`findings/2026-11-10-jalkiveloitus-kaksoislasku-governance.md`](findings/2026-11-10-jalkiveloitus-kaksoislasku-governance.md).
+1199 katkesi 5.11. governance-rajaan (`Usage Limit Exceeded`) heti CR 7779:n laskun jälkeen. Seuraava ajo teki CR:n uudelleen, ja B023108:lle syntyi
+kaksi laskua (INVGBF1050845 ja INVGBF1050846). Kumpikaan vahti ei näe tyypin 7 laskuja.
+**Päätetty suunta 10.11.:** CR varataan tilaan 3 In Progress ennen handleria, ja scheduler saa governance-lattian.
+Jumiutunut In Progress -CR vaatii ihmisen tarkistuksen (tarkoituksella, tupla on pahempi).
+- [x] 10.11. Sisarrepotarkistukset: UE:t reagoivat vain siirtymään Doneen, dispatcher on ainoa tuotantopolku, ei handlerin itsehakuja.
+- [x] 10.11. Korjaus A (kirjoitettu, tarkistettu, **ei commitoitu eikä ladattu NetSuiteen**): status-vahti (vain Pending) ja varaus tilaan 3 (`cr_dispatcher.js`).
+- [x] 10.11. Korjaus B (kirjoitettu, tarkistettu, **ei commitoitu eikä ladattu**): `MIN_USAGE = 1000` (`cr_scheduler.js`). Kulutus per CR on arvio, mittaa ensimmäisessä ajossa.
+- [x] 10.11. cr-scripts-dokumentaatio päivitetty (CLAUDE.md, CHANGELOG, README, docs/scripts, fields-reference). Kirjoitettu diffistä, ei todennettu NetSuitessa.
+- [x] 10.11. Ladattu File Cabinetiin (`/SuiteScripts/gbb-cr-processor/`, tiedostot 183790 ja 183791, muokattu 10.11.). Todennettu vain koon ja päiväyksen perusteella: koot 5941 ja 4116 täsmäävät tavu tavulta repon uusiin versioihin, vanhan latauspuun koot ovat 4905 ja 3431. Sisältöä ei luettu, koska `ns_getFile` ei saa kansiota (ei Allowed Paths -listalla).
+- [x] 10.11. Käyttäjä takaa, ettei CR-tietueella ole työnkulkua. Lähteettömiä UE-skriptejä ei ole erikseen tarkistettu.
+- [x] 10.11. Commit `8bac4c1` ja push haaraan `fix/cr-in-progress-claim-governance-floor` (9 tiedostoa). Haara on pushattu, mutta **PR on luomatta ja `main` ei sisällä muutosta**.
+- [x] 10.11. PR #15 yhdistetty `main`iin (merge-commit `bcdafa5`). `main` vastaa nyt NetSuiteen ladattua koodia.
+- [ ] Sisarrepojen ja reunatapausten muutokset ovat omina tehtävinään: T103 (status-sync 2.0), T104 (maksulinkki), T105 (`handler_konserni_alustus`), T106 (cf-gbb-tools). Kunnes T103 ja T104 ovat tuotannossa: selvitä tilaan 3 jääneet CR:t ennen yöajoa 00:30.
+- [ ] Ajon jälkeen: lokissa rivi `Governance floor reached`, ja yksikään CR ei jää tilaan 3 onnistuneen ajon jälkeen.
+- [ ] Kysely: tilassa 3 yli tunnin olleet CR:t kuukausitarkistuslistalle (`queries/kuukausiajo-tarkistuslista.md`).
+- [ ] Valinnainen: memo-merkki `CR <id>` laskulle (`handler_jalki.js:149`), vain jos jumiutuneita tulee usein.
+- [x] 10.11. Samanpäiväiset tuplat B018026, B026535 ja B039531: **ei skriptivirhe, ei hyvitettävää.** Laskut ovat INVGBB-laskuja (ei INVGBF), luotu käsin tehdyistä myyntitilauksista 6–10 s välein ja kattavat eri kuukaudet (välikuukausien ennakot), kaikki Paid In Full. Lähde: NetSuite-agentti 10.11., laskutiedot tarkistettu SuiteQL:llä.
+- [x] 10.11. B005391 (INVGBF1050750, 116,21 €) ja B008847 (INVGBF1050814, 115,46 €): **aiheelliset jälkiveloituslaskut, ei hyvitettävää.** Paylink-lunastus oli lunastushinta miinus 80,00 € brutto (ADR 0012), joten laskut kattavat erotuksen. Kukaan ei ole maksanut kahdesti, laskut luotu kerran. Hyvitys jättäisi 80 € kattamatta.
 
-Mittakaava: lokakuussa päättyy 481 ei-OOMI-pyörää, joilla ei ole tapaa (465 sai linkin). Elo–lokakuussa jälkiveloitus-CR:iä syntyi 137, 127 ja 91.
-Vaatimukset: [`docs/extension-2-vaatimukset.md`](docs/extension-2-vaatimukset.md). Toteutus tehdään omistavassa repossa erillisessä istunnossa.
+### [ ] T103 — status-sync 2.0 (1480): lue CR-tila 3 (In Progress) kauden loppu -päättelyssä (netsuite-bike-redemption-status-sync-rss2, erillinen istunto)
 
-**Lisäpäätökset 9.10.** (vaatimusten § *Päätökset avoimiin kysymyksiin*):
-- CR:n nimi säilyy samana.
-- Myöhästynyt kuukausi kirii kiinni: yksi CR kattaa kaikki laskuttamattomat kuukaudet.
-- **Ajo kuun 10. päivä klo 03:00** (vastaa 7. arkipäivää ilman viikonpäiväsääntöä).
-- Error- ja Needs Review -tilainen CR estää uuden.
-- Ei tiedostolokia.
-- Pyörä, jolla ei ole linkkiä eikä aiempaa jälkiveloitusketjua, ohitetaan, ja ihminen ratkaisee.
-- Hinta 0 ilman tapaa 4 ohitetaan. Molemmat ohitusryhmät nostetaan T51:n raportointiin.
-- Kiinnikurominen ei tuota yllätyksiä: ennen lokakuuta päättyneitä Active-pyöriä ilman tapaa on vain 2 (molemmat ennen 2026, ei linkkiä eikä ketjua), joten ne ohitetaan.
-- Ensimmäinen ajo on **ti 10.11.**
-Tähän on yhdistetty osion *Auki, ei päivää* kohta "Jälkiveloitusketju kirjoitetaan uudelleen". T54:n oletus extension-ajosta 1.11. klo 03:00 raukeaa.
+**Tausta:** T102 (10.11.) otti CR-tilan 3 käyttöön. Tilaan 3 jäänyt (jumittunut) CR putoaa pois `gbb_mr_redemption_sync2.js:385`:n ehdosta `cr_2_10 IN (1, 2, 6)`. Silloin pyörä tulkitaan kauden loppu -pyöräksi, ja OOMI-haara voi merkitä sen lunastetuksi ilman maksua.
+- [ ] Lisää 3 listaan (harkitse myös 5, joka on jo samassa asemassa). Tarkista muut CR-tilaehdot samassa tiedostossa (`:143` on `status = 2`, ei vaikutusta).
+- [ ] Yksikkötesti tai kyselytarkistus, ja lataus tuotantoon ennen 10.12.
+Löydös: [`findings/2026-11-10-jalkiveloitus-kaksoislasku-governance.md`](findings/2026-11-10-jalkiveloitus-kaksoislasku-governance.md). Riippuvuuslähde: sisarrepotarkistus 10.11., luettu koodista, ei ajettu.
 
-> [!NOTE]
-> **12.10.2026:** sisarrepossa ei vielä toteutusta (viimeisin commit 15.9.). Vaatimukset yhtenäistetty 9.10. päätösten ja koodin mukaisiksi
-> (`docs/extension-2-vaatimukset.md` § *Yhtenäistetty 12.10.2026*). Tärkein korjaus: `official_end_date` = CR:n `end_date`, koska
-> `handler_jalki.js:153-154` kirjoittaa sen `subsc_end_date`:ksi (tuotannossa 339/339 näin). Muut korjaukset: ei alarajaa,
-> ehto 5 CR:n loppupäivällä ja tiloilla 1/2/5/6, linkki- ja ketjuehto 5b K2:lla. Nykydatalla 367 ehdokasta, joista 4 ohitettaisiin ilman linkkiä.
-> Hyväksymistestien tavoite on ma 19.10.
-> **13.10.: päätöksen 7 tulkinta hyväksytty** (ohitetaan, jos ei linkkiä eikä K2-rajattua Done-pidennys-CR:ää). Määrittely on valmis
-> rakennettavaksi extension-repon istunnossa. B010533 ei ole marraskuun ehdokas (`subsc_end_date` siirretty käsin 30.11.:een 12.10.).
-> **13.10. toteutettu ja tarkistettu.** Määrittely muuttui samana päivänä ([ADR 0019](docs/adr/0019-extension-2-ei-kiinnikurontaa.md)): ei kiinnikurontaa,
-> vaan virherivi `MISSED_MONTHS`, ja tilalle tulivat testausparametrit (Q15). Sisarrepo `netsuite-subscription-extension` master `0115cac`
-> (`mr_subscription_extension.js` + `gbb_ext2_paatos.js`). Paikalliset testit 68/68 ok.
-> - *Koodista todettu:* SQL, ohitussäännöt 1–14, CR:n kentät (`official_end_date` = `end_date`) ja lokitus vastaavat määrittelyä.
->   Ehdon 6 fragmentit tarkistetaan testissä merkki merkiltä 1480:tä vasten.
-> - *NetSuitesta todettu:* File Cabinetin tiedostot 372442 ja 505980 (13.10.) ovat tavuilleen samankokoiset kuin repossa, ja
->   hintakirjastot ovat 1479:n kansiossa 40451. Testideployment `customdeploy_gbb_sub_extension_test` on olemassa. Molemmat deploymentit ovat `NOTSCHEDULED`.
->   Dry run 13.10. lokakuun ikkunalla tuotti `ehdokkaita=0, ohitettu_ei_linkkia=2`, mikä täsmää omaan kyselyyn (B023198, B024908).
-> - **Aukko:** lokakuussa yksikään pyörä ei läpäise ehtoja 1–6. Siksi map-vaihetta (hinnoittelu, `record.create`, päivämääräkentät)
->   ei voi ajaa NetSuitessa ennen marraskuuta, ei myöskään `bike_id`-rajauksella. Ne on todennettu vain paikallisessa simulaatiossa (350 CR:ää).
->   Ehdotus: aja dry run testideploymentilla ma 2.11. (marraskuun ikkuna). Aja sen jälkeen yhden pyörän oikea ajo, esim. ma 9.11., pyörälle,
->   jonka maksamattomuus on tarkistettu, ja seuraa sen CR 1199:n läpi. Tuotantoajo on 10.11.
-> - **Ennen 10.11.:** tuotantodeploymentin ajastus Monthly, päivä 10, klo 03:00, parametrit tyhjinä. Neljän vanhan parametrin
->   poistoa ei voitu tarkistaa SuiteQL:llä, joten se tarkistetaan UI:sta.
+### [ ] T104 — Maksulinkki (1479): lue CR-tila 3 S5-jälkiveloitustunnistuksessa (netstuite-send-end-redemption-payment-link, erillinen istunto)
 
-**Valmis kun** uusi skripti on ajanut marraskuussa ja jokaisella lokakuussa päättyneellä maksamattomalla ei-OOMI-pyörällä on tyypin 7 CR, eikä
-yksikään pyörä, jolla on tapa tai hinta 0, ole saanut CR:ää.
+**Tausta:** `gbb_mr_send_end_redemption_paylink.js:159` tunnistaa jälkiveloituksen tyypin 7 pidennys-CR:stä ehdolla `status IN (1, 2)`. Tilaan 3 jumittunut pidennys-CR ei estä linkin lähetystä, joten linkki voi lähteä väärällä hinnalla (sama ongelmaluokka kuin T30–T38).
+- [ ] Muuta `IN (1, 2)` muotoon `IN (1, 2, 3)`. Tarkista, että `:165-167` (`cr_2_10`, `status <> 7`) ei muutu.
+- [ ] Lataus tuotantoon ennen seuraavaa linkkiajoa.
 
-> [!NOTE]
-> **Valmistelu tehty 4.11.2026 (Claude). Dry run ajettu 4.11. klo 11:10 Helsinkiä (käyttäjä) — tulos alla, täsmää ennusteeseen.**
->
-> **0. Dry runin tulos 4.11.2026 (`scriptnote` 1437, lokissa 4.11. klo 01:10), testideployment `customdeploy_gbb_sub_extension_test`:**
-> `mr_subscription_extension: summary (DRY RUN)` →
-> `selection: ikkuna=ennen 2026-11-01, ehdokkaita=167, ohitettu_avoin_cr=0, ohitettu_ei_linkkia=2, ohitettu_maksettu=0;`
-> `would_create=167, ohitettu_hinta0_ei_tapaa=0, ohitettu_katettu=0, NOT_PRICED=0, NO_EMPLOYER=0, MISSED_MONTHS=0, END_NOT_MONTH_END=0, virheet=0`
-> — **täsmälleen alla ennustettu rivi**, ei `EI_TASMAA`-päätettä, ei `luotu=`-laskuria.
-> 168 lokiriviä, kaikki AUDIT: 167 `WOULD_CREATE` + yhteenveto. **0 ERROR-riviä.**
-> **Mitään ei kirjoitettu:** tyypin 7 CR:iä on luotu 3.–4.11. neljä, kaikki ihmisen tekemiä (3 Serres-paketin *2A - jälkiveloitus*
-> ja 1 *CR7396 - Jälkiveloitus 2*), eikä yksikään ole ext2:n nimimallia *… - pidennys - jälkiveloitus*.
-> Pistokokeet hinnoittelusta: B018829 `hinta_netto=131.45, huoltohyvitys=0, maksettava_netto=131.45`, B020745 87,10 ja B026850 129,03 —
-> samat kuin rekisterin hinnat, huoltosumma 0 → ei hyvitystä (säännöt 9–10 oikein).
-> **Tämä on ensimmäinen kerta, kun kartoitusvaihe (hinnoittelu ja päätös) on ajettu NetSuitessa** — 13.10. lokakuun ikkunalla
-> ehdokkaita oli 0, joten vaihe jäi todentamatta. Kirjoitusten osuus (`record.create`, päivämääräkentät) on yhä ajamatta: se on 9.11.
->
-> **1. Todennettu ennen ajoa**
-> - **Testit 68/68 läpi nykyisillä kirjastoilla.** `test/run_tests.js` lataa oikeat sisartiedostot, ei kopioita:
->   `lib_gbb_redemption_price.js` ja `lib_gbb_helsinki_date.js` 1479:n reposta (`b2fb0a6`, **julkaisu C 27.10.**) ja
->   `gbb_mr_redemption_sync2.js` 1480:n reposta (`58a1bdd`, K2). Edellinen testiajo 13.10. oli vielä julkaisua C
->   edeltävää kirjastoa vasten, joten tämä on uusi tieto: **ext2 on yhteensopiva nykyisen hinnoittelukirjaston kanssa**
->   ja ehto 6:n SQL-fragmentit täsmäävät yhä 1480:een merkki merkiltä (testi vertaa ne).
-> - **File Cabinet vastaa repoa.** 372442 `mr_subscription_extension.js` 14 144 tavua ja 505980 `gbb_ext2_paatos.js`
->   22 083 tavua, molemmat 13.10. klo 15:26 — tavulleen samat kuin repon tiedostot, ja repo on muuttumaton 13.10. jälkeen.
-> - **Deploymentit:** `customdeploy_gbb_sub_extension` ja `customdeploy_gbb_sub_extension_test` molemmat `NOTSCHEDULED`,
->   `isdeployed` = T. Parametreja ei voi lukea SuiteQL:llä.
->
-> **2. Ennuste marraskuun ikkunalle (skriptin omat kyselyt tuotantodataa vasten 4.11., `kk_alku` = 2026-11-01)**
->
-> | Kohta | Arvo |
-> |---|---|
-> | Ehdot 1–4 läpäisevät (`perus`) | **169** |
-> | − `ohitettu_avoin_cr` (ehto 5) | **0** |
-> | − `ohitettu_ei_linkkia` (ehto 5b) | **2** |
-> | − `ohitettu_maksettu` (ehto 6) | **0** |
-> | **= `ehdokkaita`** | **167** |
-> | Kartoitus: `would_create` / `luotu` | **167** |
-> | `ohitettu_hinta0_ei_tapaa`, `ohitettu_katettu`, `NOT_PRICED`, `NO_EMPLOYER`, `MISSED_MONTHS`, `END_NOT_MONTH_END` | **0 kaikki** |
->
-> Kaikilla 167:llä `subsc_end_date` = **31.10.2026** (= `edKkLoppu`, ehdot 12–13 läpi), hinta > 0, työnantaja asetettu,
-> ja vain yhdellä on negatiivinen huoltosumma. Odotettu yhteenvetorivi:
-> `selection: ikkuna=ennen 2026-11-01, ehdokkaita=167, ohitettu_avoin_cr=0, ohitettu_ei_linkkia=2, ohitettu_maksettu=0; would_create=167, …, virheet=0`
-> **ilman `EI_TASMAA`-päätettä.** Vertailu: elo–lokakuussa CR:iä syntyi 137, 127 ja 91; 167 on isompi, koska lokakuussa ei ajettu lainkaan.
->
-> **3. Dry run (käyttäjä, UI) — aja tämä ensin**
-> 1. `customdeploy_gbb_sub_extension_test`: `custscript_gbb_ext_dry_run` = rasti päälle, `custscript_gbb_ext_bike_id` **tyhjä**.
-> 2. Save and Execute.
-> 3. Lue `scriptnote` (`scripttype = 1437`) ja vertaa yllä olevaan riviin. Dry runissa ei saa olla `luotu=`-laskuria eikä yhtään CR:ää.
->
-> **4. Yhden pyörän oikea ajo (ma 9.11.) — ehdotus `custscript_gbb_ext_bike_id` = `20745` (B020745)**
-> LVI-Aitta Oy, hinta 87,10 € netto, huoltosumma 0, `subsc_org_end_date` = `subsc_end_date` = 31.10.2026, linkki lähetetty,
-> ei aiempaa pidennys-CR:ää eikä tyypin 2/10 CR:ää. **Maksamattomuus todennettu:** Paylink-tilaus 351621 (1.10. erä) on yhä `pending`.
-> Vaihtoehdot samoilla ehdoilla: B018829, B021044, B023554, B026850.
->
-> **5. Ennen 10.11.** Tuotantodeployment `customdeploy_gbb_sub_extension`: Monthly, päivä 10, klo 03:00, molemmat parametrit tyhjinä,
-> ja neljän vanhan parametrin poisto tarkistettava UI:sta.
->
-> **Sivuhavainto, ei T61:n este (oma selvitys):** näiden viiden ehdokkaan 1.10. maksulinkki on **noin 80 € brutto pienempi**
-> kuin rekisterin nykyinen `end_redemption_price` × 1,255 (B020745: linkki 29,19 €, hinta 87,10 € netto → 109,31 €).
-> Syy **ei** ole vanha hyvityslogiikka: 1.10. voimassa ollut kirjasto palautti pidentämättömälle pyörälle hyvityksen 0
-> (`months === 0` → `source: 'no-extension'`). 1479:n loki 1.10. on jo pyyhitty (säilytys ~30 vrk), joten ero on selvitettävä
-> rekisterin hintakentän historiasta. Koskee koko 1.10. kohorttia, ei vain näitä viittä.
+### [ ] T105 — `handler_konserni_alustus.js:388` luo tuplan jatko-CR:n, jos tyypin 13 ajo katkeaa (cr-scripts, erillinen istunto, matala kiire)
 
-### [ ] T52 — 1479:n loki käsin jokaisen ajon jälkeen (kunnes T51 on tuotannossa)
+**Tausta:** `createOrReuseDownstreamCR` hakee uudelleenkäytettävän jatko-CR:n ehdolla `status = 1 AND closed_date IS NULL`. Tilaan 3 jäänyt jatko-CR ei löydy, ja uusi tyypin 13 CR luo toisen. Reunatapaus: tapahtuu vain, jos tyypin 13 ajo katkeaa. Löytyi 10.11. tarkistuksessa.
+- [ ] Päätä: lisätäänkö 3 hakuun vai hyväksytäänkö reunatapaus (jumittunut CR vaatii joka tapauksessa ihmisen tarkistuksen).
 
-> [!NOTE]
-> **Tilanne 9.10.2026:** 1479 ei ole ajanut 7.10. jälkeen (ks. T30). 7.10. tuli kaksi RUN ABORTEDia: `months_before` oli ensin tyhjä ja sitten 3.
-> **Käyttäjä 9.10.:** ajastus on päivittäin klo 8:00, `custscript_gbb_eredem_months_before` = 1 ja dry run on pois päältä. Seuraava ajo on la 10.10. klo 8:00. Lue sen `selection`- ja `run complete` -rivit.
+### [ ] T106 — cf-gbb-tools: tilaan 3 jäänyt CR ei hälytä eikä näy hakutyökalussa (cf-gbb-tools, erillinen istunto)
 
-> [!NOTE]
-> **Luettu 21.10.2026 (ajot 14.–21.10. Helsingin aikaa, 8 kpl):** kaikissa `dryRun=false`, `months_before=1`, `selected=1` ja
-> `run complete` = `SKIP_LINKED_SO=1 unhandledMapErrors=0`. ERROR-, ABORT-, `STAMP_FAILED`-, `EMAIL_FAILED`- ja `NOT_PRICED`-rivejä ei ole.
-> Linkkejä ei lähtenyt, koska marraskuun kohortin lähetyspäivä ei ole vielä tullut (`suodatettu lahetyspaiva=0`). Seuraava merkittävä ajo on kohorttiajo 31.10.
+**Tausta:** sisarrepotarkistus 10.11., luettu koodista:
+- `netsuite-alerts/queries.ts:228`: hälytys `IN (1, 5)` ei näe tilaa 3, joten jumittunut CR ei hälytä.
+- `subscription-change-requests/queries.ts:207` ja `bike-search.ts:202`: auki olevat CR:t `IN (1,5,6) OR closed_date >= …`, joten tila 3 ilman `closed_date`:a ei näy.
+- Tarkistukset `lu1`, `lu9`, `ml3`, `ml4`, `ex1`, `kl3`, `lu15` (`IN (1,2)` tai `= 1`): antavat väärän "CR puuttuu" -löydöksen tilaan 3 jääneelle CR:lle. `lu14` ja `kl2` (`<> 7`) eivät muutu.
+- [ ] Lisää 3 hälytykseen ja CR-hakuun. Päätä, korjataanko tarkistukset vai pidetäänkö jumittunut CR omana hälytyksenään (esim. tila 3 yli tunnin).
 
-> [!NOTE]
-> **Luettu 23.10.2026 (ajo 23.10. klo 8, lokissa 22.10. 22:02):** `dryRun=false`, `selected=1`, `run complete` = `SENT=1 unhandledMapErrors=0`.
-> **B031422 sai linkin** (T35): `hinta_netto=100.81 huoltosumma=0 hyvitys=0`, linkki 126,52 € brutto, eräpäivä 31.10., Paylink 358177/18438, Brevo ok, `eheys` tyhjä.
-> Rekisteri: status 1, `eredem_link_sent` = T, tapa tyhjä, päättyy 31.10.2026. ERROR- ja muita poikkeusrivejä 0.
+### [ ] T107 — netsuite-reporting-työkalun on sisällettävä kaikki määritellyt tarkistukset (cf-gbb-tools, erillinen istunto)
 
-> [!NOTE]
-> **Luettu 4.11.2026 (ke 4.11. klo 8 ajo, `months_before` = 2 ensimmäistä kertaa).** Tulosrivit T80:ssä. Loppucheckit:
->
-> 1. **Eheysjakauma.** 1 003 rivistä 981 tyhjää, **17 `HYVITYS_YLI_PORTAAN`** (13 `SETTLED_MAINT_BUDGET` + 4 `SENT`),
->    **3 `S9,S10`** ja **2 `S10`**, kaikki `SENT`. Pistokokeet laskevat oikein, esim. B002193 116,33 − 88,45 = 27,88 netto → 34,99 brutto
->    ja B004274 192,02 − 177,29 = 14,73 hyvitys → 149,52 brutto. Neljä `SENT`-riviä `HYVITYS_YLI_PORTAAN`illa ovat oikein:
->    hyvitys ylittää leveimmän portaan mutta jää alle hinnan, joten linkki lähtee erotuksesta.
->    **T80:n odotus “S9/S10 odotettavissa 139 pidennetyllä” oli väärin, eikä ero ole vika.** S9 ja S10 ovat ristiriitalippuja,
->    eivät “on pidennetty”-lippuja: `gbb_mr_send_end_redemption_paylink.js:581` nostaa S9:n vain, kun
->    `(extensionMonths > 0) !== hasProlongationRows`, ja `lib_gbb_redemption_price.js:188` S10:n vain, kun portaan
->    `prolongMonths` > myönnetyt kuukaudet. Huoltopidennetyllä pyörällä molemmat todistajat ovat samaa mieltä, joten lippua ei tule.
-> 2. **Tuplatilaukset: ei vielä tarkistettavissa, uusitaan to 5.11.** Lokin sisällä tuplia ei ole (1 003 riviä, 1 003 eri pyörää).
->    `customrecord_payment_requests` **laahaa yhden vuorokauden**: Paylink-tilaukset 362477+ eivät ole vielä taulussa
->    (suurin löytyvä 362291, sync luo rivit n. klo 09:30 Helsinkiä seuraavana päivänä — 30.10. erän 788 riviä syntyi 31.10.).
->    Kohortissa (päättyy 4.11.2026–7.1.2027, `link_sent` = T) **0 pyörää, jolla olisi kaksi loppulunastustilausta**;
->    kaksi kahden rivin pyörää eivät ole tuplia (B016051 kaksi vuokratilausta, B046778 käsiraha + 30.10. lunastus).
-> 3. **Rekisterikirjoitukset täsmäävät 14/14.** 13 pyörää tapa 3 (B038843, B039360, B040320, B041481, B041687, B043000,
->    B043341, B044478, B045146, B045479, B045699, B046021, B046156) ja B037136 tapa 4 (hinta 0, ITSEHANKINTA).
->    Kaikilla `liab_settled_at` = 04.11.2026, `paid_at` tyhjä, `link_sent` = F, status 1 ja päättyminen joulukuussa
->    (B043000 1.1.2027) — 1480 lunastaa ne päättymiskuun alussa.
-> 4. **Kohortin kokonaiskuva:** ikkunassa 20 pyörää ilman linkkiä ja tapaa (= 19 lähetyspäivää odottavaa + 1 rajattu tilaus),
->    15 tapa 3 ilman linkkiä (tämän päivän 13 + 1.11. kaksi).
+**Tausta:** T51 arkistoitiin 10.11.2026 (raportointi on netsuite-reporting-työkalu, erillistä raporttia ei tehdä), mutta työkalun on silti katettava koko määrittely
+[`docs/poikkeamaraportointi-vaatimukset.md`](docs/poikkeamaraportointi-vaatimukset.md).
+**Vertailu 10.11.2026** (tarkistus-ID:t vaatimustaulukoissa vs. `cf-gbb-tools/src/app/lib/tools/netsuite-reporting/checks/*.ts`, vain tiedostojen olemassaolo):
+määritelty 56, koodissa 32, **puuttuu 24**. Ei todennettu: vastaako olemassa olevien 32:n sisältö määrittelyä.
 
-A-julkaisu poistaa digestin. Lue jokaisen ajon jälkeen `scriptnote` (`scripttype = 1479`): `log.error`-rivit (`ERROR`, `STAMP_FAILED`, `EMAIL_FAILED`),
-`NOT_PRICED`, `SKIP_*`, sekä rivit, joilla `eheys` ei ole tyhjä. Lokin säilytys on noin 30 päivää. Rakenna kysely `queries/`-kansioon A:n ensimmäisen ajon jälkeen.
-**Valmis kun** T51:n tarkistus ML4 on tuotannossa (Q26, 9.10.2026).
+| Perhe | Puuttuu |
+|---|---|
+| LU | LU18 (voimassa kunnes T11) |
+| KL | KL4 |
+| EX | EX3 |
+| KK | KK1, KK5 |
+| VV | VV1 |
+| RI | RI1–RI9 (T100 kattaa RI3, RI4, RI9) |
+| SR | SR1–SR3 (T100 kattaa SR3, SR1/SR2) |
+| CR | CR1 |
+| HY | HY1–HY3 |
+| AV | AV1, AV2 |
+
+- [ ] Päätä jokaisesta puuttuvasta: toteutetaan, tai poistetaan määrittelystä perusteluineen (esim. KK1 ei ehkä ole SuiteQL:llä havaittavissa, LU18 raukeaa T11:n myötä).
+- [ ] Toteuta päätetyt. RI3, RI4, SR3, RI9, SR1/SR2 ja työnantajayhteenveto tehdään T100:ssa, älä tee kahdesti.
+- [ ] Tarkista olemassa olevien 32 sisältö ehtoihin nähden (otanta tai kaikki).
+- [ ] Lisää vertailu testiksi: jokainen määrittelyn ID on rekisterissä tai merkitty poistetuksi, ettei aukko avaudu uudelleen.
+**Valmis kun** jokainen määrittelyn tarkistus on rekisterissä tai poistettu määrittelystä, ja ID-vertailutesti menee läpi.
+
+### [ ] T108 — Extension 2.0 (1437): ota ajastus käyttöön tai päätä sen siirto joulukuulle, **eräpäivä 30.11.2026**
+
+Skripti ajaa kerran kuussa tuotantokirjoituksilla. Tuotantodeploymentin `customdeploy_gbb_sub_extension` ajastus **ei ole päällä** (käyttäjä 10.11.2026).
+Marraskuun kohortti ajettiin 4.11. (T61, arkistossa). Ajastus on päättämättä: Monthly, päivä 10, klo 03:00, tai ajastuksen siirto joulukuulle.
+- [ ] Päätä ajastus.
+- [ ] Aseta ajastus UI:ssa ja tarkista, että parametrit ovat tyhjät ja neljä vanhaa parametria on poistettu (SuiteQL ei näytä kumpaakaan).
+
+**Valmis kun** ajastus on päätetty ja asetettu, ja sen ajo näkyy `scriptnote`ssa (`scripttype = 1437`) summary-rivinä. **Eräpäivä 30.11.2026**, ettei joulukuun ajo jää väliin.
+
+### [ ] T110 — Kauppakirjat nettohinnalla 5.–11.11.2026: uusintalähetys vain päätöksellä (ei eräpäivää)
+
+Kauppakirjan PDF näytti `custrecord_sta_end_redemption_price`-kentän (netto) tekstillä "sis. ALV 25,5 %". Korjaus (netto × 1,255, `VAT_MULTIPLIER` `lib_bill_of_sale.js`:ssä, netsuite-send-bill-of-sale-pdf PR #1) ladattiin File Cabinetiin 11.11.2026. Syy: commit `89e781b` (5.11.) vaihtoi hinnan lähteen haun 793 Amountista nettokenttään. Esimerkki: B044432, netto 139,47 €, maksettu 175,00 €, oikea brutto 175,03 €.
+**Laajuus (verified in Brevo + NetSuite):** pohja 808, 5.–11.11. (Helsinki) lähti 256 kauppakirjaa, joista 146 selvitystapa 1 ja hinta > 0 (118 delivered, 22 hardBounce, 4 blocked, 2 softBounce). Päivittäin: 5.11. 7, 6.11. 113 (101 kpl klo 16:00–16:03), 7.11. 15, 9.11. 5, 10.11. 2, 11.11. 4. Muissa 110:ssä PDF näyttää 0,00 €. Testipyörä B017530 pois.
+**Vahvistettu liitteestä 11.11.2026 (käyttäjä):** B044432:n Brevo-viestin (lähti 9.11.) PDF näyttää "Sales price (incl. VAT 25.5%) 139,47 €", eli nettohinnan; oikea brutto 175,03 €. Yksittäinen tapaus: muiden PDF:ien summat ovat edelleen pääteltyjä.
+**Epävarmaa (inferred):** 5.11.:n 7 kirjaa on voinut lähteä ennen `89e781b`:n käyttöönottoa; 11.11.:n 4 kirjaa riippuu korjauksen latausajasta; ennen 5.11. lähteneiden (850 kpl) hintoja ei tarkistettu (oletus: oikein, koska vanha koodi luki haun 793).
+**Päätettävää (päättäjä ei nyt tavoitettavissa):**
+1. Lähetetäänkö uusi kauppakirja, ja kenelle (118 toimitettua vai 146)?
+2. Kerrotaanko asiakkaalle, että vanha kirja mitätöityy (pohjan 808 teksti ei sano sitä)?
+3. Miten 28 bounce/blocked -tapausta käsitellään (ei kirjaa asiakkaalla, osoite selvitettävä)?
+4. Rajapäivä (5.11.:n 7 kirjaa).
+**Suunnitelma päätöksen jälkeen (päätelty koodista):** (1) lista 146 pyörästä on tallennettu: [`findings/2026-11-11-kauppakirjat-nettohinnalla.csv`](findings/2026-11-11-kauppakirjat-nettohinnalla.csv) (pyörä, lähetysaika, netto, odotettu brutto, Brevo-tila; ei osoitteita; tilanne 11.11., tarkista ennen nollausta lippu ja hinta NetSuitesta; tuotettu pohjalta 808, selvitystapa 1, hinta > 0); (2) nollataan `custrecord_gbb_bill_of_sale_sent_to_user` vain listan pyöriltä, nollaustapa valitaan listan jälkeen (massapäivitys XEDIT, ei CSV-import-skriptejä); (3) testi `test_bike_id` + `dry_run`; (4) 5–10 pyörän erä, tarkistus Brevosta, sitten loput; (5) jälkitarkistus: lippu päällä ja yksi uusi viesti per pyörä. Ajonmuutokset kulkevat sibling-change-työnkulun kautta, jos koodiin kosketaan.
+- [ ] Päätös 1–4.
+- [x] Avaa yksi liite (B044432, lähti 9.11.) ja varmista, että siinä on 139,47 €. — 11.11.2026: varmistettu, liitteessä 139,47 € (netto) tekstillä "incl. VAT 25.5%".
+- [x] Varmista 5.11.:n kirjojen osalta (7 kpl, klo 08:01), oliko `89e781b` jo käytössä. — 11.11.2026: B005004:n liitteessä (Espoo 04.11.2026, omistus 05.11.) on **202,06 €**, ei nettoa 161,29 €. Viesti lähti siis vielä vanhalla koodilla (haun 793 Amount), eikä virhe koske sitä; 5.11.:n 7 kirjaa ovat todennäköisesti oikein (verifioitu vain B005004:stä). Huomio: 202,06 € poikkeaa odotetusta bruttosta 202,42 € (netto × 1,255) 36 senttiä: tarkista B005004:n lasku NetSuitesta (T110:n listan "gross_eur_expected" on laskettu kaavalla, ei laskusta).
+- [ ] Rajaa uusintalista: poista 5.11.:n 7 kirjaa (B005004, B005312, B028540, B015145, B030550, B001156, B011776), ellei jonkin liitteen summa osoittaudu nettohinnaksi.
+- [ ] Tuota lista ja tee uusintalähetys vain päätöksen jälkeen.
+
+**Valmis kun** päätös on tehty ja kirjattu tähän, ja joko uudet kauppakirjat on lähetetty (jokaisesta yksi uusi Brevo-viesti) tai on päätetty, ettei niitä lähetetä.
 
 ### [ ] T83 — cf-gbb-tools: "Huoltohyvitys lunastushinnasta" -kenttä pyörärekisterityökaluun (erillinen istunto, ei takarajaa)
 
@@ -465,6 +391,30 @@ A-julkaisu poistaa digestin. Lue jokaisen ajon jälkeen `scriptnote` (`scripttyp
 *Lunastushinta*-osion ylimmäksi riviksi, panelista riippumatta: KS § 11:n kaava (myös keskenkauden lunastukselle), OOMI-poikkeus,
 pelkkä brutto, porrastaulu kovakoodattuna 48 arvona. Kaikki statukset.
 **Valmis kun** muutos on tuotannossa, vitest kattaa ADR:n testilistan, ja hyvitys täsmää 1479:n `hyvitys`-lokikenttään vähintään kolmella `SENT`-pyörällä.
+
+### [ ] T111 — Idea: huoltohyvitys "käytetään" lunastuksessa ja näkyy Paylink-tilauksen rivinä (brainstorm, ei takarajaa)
+
+**Liiketoimintapäätös (12.11.2026):** lunastuksessa hyvitys kulutetaan NetSuitessa ja Paylink-tilaukseen lisätään hyvitysrivi,
+joka näyttää, paljonko alkuperäisestä summasta hyvitettiin. Negatiivinen `custrecord_sta_maintenance_sum` kasvaa hyvitetyn
+verran (enintään lunastushinta, ei koskaan positiiviseksi); positiivinen summa nostetaan laskun portaan ylärajaan.
+
+**Ehdotus (kaizen, ei uutta kenttää):** 1479 (`netstuite-send-end-redemption-payment-link`) kirjoittaa käytetyn hyvityksen
+olemassa olevaan huoltosummaan samassa kohdassa kuin `stampSent` / tapa 3. Uudelleenlaskenta antaa sen jälkeen 0, joten
+tuplahyvitys estyy ilman tilakenttää. Paylink-tilaukseen kaksi riviä: lunastus (alkuperäinen brutto) ja *Huoltohyvitys*
+(negatiivinen, = alkuperäinen brutto − maksettava brutto, jolloin summa täsmää sentilleen). Kaava on jo `lib_gbb_redemption_price.js`:ssä.
+
+**Löydetyt riskit (koodista, ei todennettu NetSuitessa):**
+- `sta_ue_bike_register_hook.js:1197` (Staria) lisää pidennysrivejä, kun summa muuttuu positiiviseksi, myös XEDITissä.
+  Kirjoitus on tehtävä `submitFields(..., { ignoreTriggers: true })`, kuten `sta_ss_monthly_maintenance_budget.js:44` tekee.
+- `sta_ss_monthly_maintenance_budget.js` vähentää kuukausibudjettia: jos se käsittelee lunastettuja pyöriä, käytetty hyvitys
+  syntyy uudelleen. Valintaehto tarkistamatta.
+- Ostolaskut (`sta_mr_vendor_bill_logic.js:330`) lisäävät inkrementtinä: kirjoitus säilyy.
+- Lukijat, joiden sääntö on käytävä läpi: 1480 status-sync, `gbb_ext2_paatos.js`, IC-laskuri, cf-gbb-tools (T83-paneeli näyttää käytön jälkeen 0).
+- Brevon `kayttamaton_huoltobudjetti` (ADR 0014 k24) on laskettava ennen kirjoitusta. KS § 11 "ei tallenneta rekisteriin" kumoutuu → uusi ADR.
+
+**Avoimet kysymykset:** 1) hyväksyykö Paylink negatiivisen rivin (vara: `infoBefore`-teksti)? 2) koskeeko myös keskenkauden
+lunastusta (ADR 0024 K9 = pelkkä näyttö)? 3) positiivisenkin hyvityksen katto = lunastushinta? 4) kuukausibudjettiskriptin valinta.
+**Seuraava askel:** brainstorm → `/grill-with-docs` (kenttäsemantiikka, ADR 0014/0024/0026).
 
 ### [ ] T84 — B033466: varkauden lunastus peruttu (pyörä löytyi), seurantapisteet 29.10.–1.11.
 
@@ -482,14 +432,6 @@ Ennen CR:ien perumista 1479 olisi ohittanut pyörän (`cr_2_10`) ja 1480 pitäny
 - [x] **1.11. ri_update:** RI 155084 (`WARNING_BIKE-33466_2026-11`) saa `lease_fee_vat0` = 80,64541833 vaiheessa 1b
   (`can_be_updated` = T, työnantaja 2264; päätelty koodista). **Todennettu 1.11.2026 SuiteQL:** status 1 (Active), `lease_fee_vat0 = 80.64541833`.
 - [ ] Talous: CRMGBF0004049 ja INVGBF1047148 ovat molemmat Open eikä niitä ole kohdistettu toisiinsa (28.10.). CRMGBB0002772 (−200) Open.
-
-### [ ] T69 — KL2 ei näe työnantajan laskulla maksettua keskenkauden lunastusta (cf-gbb-tools, erillinen istunto)
-
-Löydetty 22.10. T10:n siirrossa. KL2 (`cf-gbb-tools/src/app/lib/tools/netsuite-reporting/checks/kl2.ts`) hakee maksun vain `customrecord_payment_requests`:sta
-(`kesken kauden` ja `ns_status` = 3). Keskenkauden lunastus voidaan maksaa myös työnantajalle tehdyllä laskulla (esim. B046429, INVGBB1009935,
-2M-IT Oy, 1 172 €, maksettu 10.06.2026, `custbody_sta_bike_id` = pyörä). Silloin pyörällä on `paid_at`, mutta KL2 ei listaa sitä.
-**Tehtävä cf-gbb-toolsissa:** lisää KL2:een toinen maksulähde (maksettu `CustInvc`, jolla `custbody_sta_bike_id` = pyörä ja keskenkauden lunastuksen nimike),
-tai lue pyörän `custrecord_gbb_redemption_paid_at`. Tarkista nimikkeen id ennen toteutusta. **Valmis kun** KL2 listaa B046429:n (tai sen CR on tehty).
 
 ---
 

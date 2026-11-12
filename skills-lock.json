@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "kaizen": {
+      "source": "neolabhq/context-engineering-kit",
+      "sourceType": "github",
+      "skillPath": "skills/kaizen/SKILL.md",
+      "computedHash": "3f744d5c1178409aa6b50828131854b10c34ccb4c61f2f226c7ae48d039b0ea8"
+    },
+    "netsuite-owasp-secure-coding": {
+      "source": "oracle/netsuite-suitecloud-sdk",
+      "sourceType": "github",
+      "skillPath": "packages/agent-skills/netsuite-owasp-secure-coding/SKILL.md",
+      "computedHash": "fde5209a0fe472510d420d31c3e03fc336728b78863c1c9d8109a07366801e08"
+    },
+    "netsuite-sdf-safe-guide": {
+      "source": "oracle/netsuite-suitecloud-sdk",
+      "sourceType": "github",
+      "skillPath": "packages/agent-skills/netsuite-sdf-safe-guide/SKILL.md",
+      "computedHash": "d7508b539db4a430196b5d60098016a96f63572e8cf34197616e8e8d661f3b5a"
+    }
+  }
+}

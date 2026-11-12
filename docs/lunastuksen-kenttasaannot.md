@@ -884,7 +884,8 @@ Päätökset: [ADR 0012](adr/0012-loppulunastushinta-ja-kattavuus.md) (grilling 
 Koskee vain **kauden lopun lunastusta** muilla kuin OOMI-pyörillä. Keskenkauden lunastus: § 10.
 **Huoltohyvityksen kaava koskee 27.10.2026 alkaen myös keskenkauden lunastusta** ([ADR 0024](adr/0024-huoltohyvitys-keskenkauden-lunastuksessa-ja-lookup-kentta.md));
 se näytetään cf-gbb-toolsin pyörärekisterityökalussa, eikä sitä automatisoida.
-OOMI: § 9 *OOMI-pyörä*.
+OOMI: § 9 *OOMI-pyörä*. **OOMI-pyörän huoltohyvitys on aina 0** kauden lopussa ja kesken kauden
+([ADR 0026](adr/0026-oomi-pyoralla-ei-huoltohyvitysta.md), 11.11.2026; kumoaa ADR 0014 k. 22:n negatiivisen summan hyvityksen).
 
 ### Hintaan vaikuttavat kentät
 

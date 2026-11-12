@@ -6,6 +6,7 @@
 - **Laajentaa:** [ADR 0012](0012-loppulunastushinta-ja-kattavuus.md) k. 1 (huoltohyvitys) keskenkauden lunastukseen ([ADR 0010](0010-keskenkauden-lunastus.md))
 - **Kenttätaso:** [kenttäsäännöt § 11](../lunastuksen-kenttasaannot.md#11-loppulunastushinnan-määräytyminen-ja-kattavuus)
 - **Toteutus:** TASKS T83
+- **OOMI-pyörät rajattu pois 11.11.2026:** [ADR 0026](0026-oomi-pyoralla-ei-huoltohyvitysta.md). OOMI-pyörän hyvitys on aina 0.
 
 ## Konteksti
 

@@ -1,0 +1,213 @@
+{
+  "communities": {
+    "0": [
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_byemp",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_bymonth",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_fmt",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_ns",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_num",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_odottaa",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_ohitetut",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_parse",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_part",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_pitkat",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_r",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_read",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_ri",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_snap",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_sum",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_tape",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_tapeby",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_tarkistus",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_vahvistettu_brutto",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_vahvistettu_netto",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_osat_ja_ri_w"
+    ],
+    "1": [
+      "ref_node_crypto",
+      "ref_node_path",
+      "ref_node_vm",
+      "tools_audit_maintenance_settlement",
+      "tools_audit_maintenance_settlement_bikes",
+      "tools_audit_maintenance_settlement_client",
+      "tools_audit_maintenance_settlement_config",
+      "tools_audit_maintenance_settlement_examplebike",
+      "tools_audit_maintenance_settlement_price",
+      "tools_audit_maintenance_settlement_result",
+      "tools_audit_maintenance_settlement_rows",
+      "tools_netsuite_auth",
+      "tools_netsuite_auth_base64url",
+      "tools_netsuite_auth_createclient",
+      "tools_netsuite_auth_createclient_request",
+      "tools_netsuite_auth_default_dev_vars",
+      "tools_netsuite_auth_getaccesstoken",
+      "tools_netsuite_auth_host",
+      "tools_netsuite_auth_loadconfig",
+      "tools_run_query"
+    ],
+    "2": [
+      "tools_brevo_client",
+      "tools_brevo_client_createbrevoclient",
+      "tools_brevo_client_createbrevoclient_get",
+      "tools_brevo_client_createbrevoclient_paginate",
+      "tools_brevo_client_daysago",
+      "tools_brevo_client_default_dev_vars",
+      "tools_brevo_client_isodate",
+      "tools_brevo_client_loadapikey",
+      "tools_brevo_client_splitwindows",
+      "tools_brevo_email_check",
+      "tools_brevo_email_check_fail",
+      "tools_brevo_email_check_failure_events",
+      "tools_brevo_email_check_htmltotext",
+      "tools_brevo_email_check_main",
+      "tools_brevo_email_check_parseargs",
+      "tools_brevo_email_check_printtext",
+      "tools_brevo_email_check_verdict"
+    ],
+    "3": [
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_bikes",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_init",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_long",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_num",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_odottaa",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_parse",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_part",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_r",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_read",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_snap",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_tape",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_tapeby",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_vahvistettu_brutto",
+      "projects_2026_10_oomi_vuokrahinnat_tools_tee_csv_w"
+    ],
+    "4": [
+      "tools_export_schemas",
+      "tools_export_schemas_client",
+      "tools_export_schemas_config",
+      "tools_export_schemas_exportlists",
+      "tools_export_schemas_exportrecords",
+      "tools_export_schemas_exportscripts",
+      "tools_export_schemas_jsontype",
+      "tools_export_schemas_list_prefixes",
+      "tools_export_schemas_recordmarkdown",
+      "tools_export_schemas_records",
+      "tools_export_schemas_requested",
+      "tools_export_schemas_root",
+      "tools_export_schemas_schemas",
+      "tools_export_schemas_sections"
+    ],
+    "5": [
+      "projects_2026_10_oomi_vuokrahinnat_tools_laske",
+      "projects_2026_10_oomi_vuokrahinnat_tools_laske_h",
+      "projects_2026_10_oomi_vuokrahinnat_tools_laske_head",
+      "projects_2026_10_oomi_vuokrahinnat_tools_laske_lines",
+      "projects_2026_10_oomi_vuokrahinnat_tools_laske_out",
+      "projects_2026_10_oomi_vuokrahinnat_tools_laske_per",
+      "projects_2026_10_oomi_vuokrahinnat_tools_laske_r",
+      "projects_2026_10_oomi_vuokrahinnat_tools_laske_ri_fee_korjatuille",
+      "projects_2026_10_oomi_vuokrahinnat_tools_laske_tot",
+      "ref_node_fs"
+    ]
+  },
+  "cohesion": {
+    "0": 0.09523809523809523,
+    "1": 0.15263157894736842,
+    "2": 0.22794117647058823,
+    "3": 0.14285714285714285,
+    "4": 0.16483516483516483,
+    "5": 0.2
+  },
+  "gods": [
+    {
+      "id": "tools_brevo_email_check_main",
+      "label": "main()",
+      "degree": 9
+    },
+    {
+      "id": "tools_netsuite_auth_getaccesstoken",
+      "label": "getAccessToken()",
+      "degree": 6
+    },
+    {
+      "id": "tools_netsuite_auth_createclient",
+      "label": "createClient()",
+      "degree": 6
+    },
+    {
+      "id": "tools_brevo_client_createbrevoclient",
+      "label": "createBrevoClient()",
+      "degree": 5
+    },
+    {
+      "id": "tools_brevo_client_isodate",
+      "label": "isoDate()",
+      "degree": 5
+    },
+    {
+      "id": "tools_brevo_client_daysago",
+      "label": "daysAgo()",
+      "degree": 4
+    },
+    {
+      "id": "tools_netsuite_auth_loadconfig",
+      "label": "loadConfig()",
+      "degree": 4
+    },
+    {
+      "id": "tools_brevo_email_check_parseargs",
+      "label": "parseArgs()",
+      "degree": 3
+    },
+    {
+      "id": "tools_brevo_email_check_fail",
+      "label": "fail()",
+      "degree": 3
+    },
+    {
+      "id": "tools_export_schemas_recordmarkdown",
+      "label": "recordMarkdown()",
+      "degree": 3
+    }
+  ],
+  "surprises": [
+    {
+      "source": "main()",
+      "target": "createBrevoClient()",
+      "source_files": [
+        "tools/brevo-email-check.mjs",
+        "tools/brevo-client.mjs"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    },
+    {
+      "source": "main()",
+      "target": "isoDate()",
+      "source_files": [
+        "tools/brevo-email-check.mjs",
+        "tools/brevo-client.mjs"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    },
+    {
+      "source": "main()",
+      "target": "daysAgo()",
+      "source_files": [
+        "tools/brevo-email-check.mjs",
+        "tools/brevo-client.mjs"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}

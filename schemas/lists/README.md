@@ -1,7 +1,14 @@
 # Custom list values
 
-**Exported from live NetSuite:** 2026-09-17
-Regenerate with `node tools/export-schemas.mjs lists`.
+**Exported from live NetSuite:** 2026-09-17. **Re-checked by hand against live SuiteQL 9.11.2026**
+(all 14 lists below): two values had been added, `customlist_cr_type_list` 14 and
+`customlist_gbb_liab_settle_method` 8; everything else matched.
+
+> [!WARNING]
+> **Do not regenerate with `node tools/export-schemas.mjs lists`.** It is broken for this account
+> (`SELECT … FROM CustomList` fails with `Unknown identifier "ID"`, run 9.11.2026), and it would in
+> any case overwrite the hand-written *Handled by* / *Written by* columns and notes in this file.
+> Update the values by hand after querying `CUSTOMLIST_<SCRIPTID>` with `SELECT id, name, isinactive`.
 
 Every ID below is **hard-coded into the sibling projects' scripts** — none of it is configuration,
 none of it is read from a parameter. If an ID changes or a value is removed, scripts read a
@@ -26,6 +33,7 @@ All values listed are active; none of these lists currently has an inactive valu
 | 10 | Reklamaatio/peruutus | **no handler in any repo** |
 | 11 | Hyvitys | `handler_hyvitys` · monthly-reporting validity check |
 | 13 | Siirto konserni - alustus | `handler_konserni_alustus` · monthly-reporting transfers |
+| 14 | Siirto TA - alustus | *Added after the 17.09. export (seen in live NetSuite 9.11.2026). Handler not yet checked* |
 
 > Type **10 (Reklamaatio/peruutus)** exists in NetSuite but is not routed by the CR dispatcher and
 > is not documented in any sibling repo. Either it is handled manually or it is a gap.
@@ -84,8 +92,13 @@ ID `3` drives monthly-reporting's Oomi separation and its Oomi end-date exemptio
 | 5 | bike_returned | status 3 default (name contains `2D`). *Corrected 24.09.2026: `2C` is method 1, not 5 (`handler_lunastus.js`, cf-gbb-tools `reference.ts`).* |
 | 6 | bike_sold_to_competitor | name suffix ` - 2B` / ` - 2B uusi TA` + status 2 |
 | 7 | bike_stolen_or_destroyed | name contains `vakuutus` + status 2 |
+| 8 | historical_unknown | Not set by `handler_lunastus`. Added after the 17.09. export (seen in live NetSuite 9.11.2026): marks bikes whose end was settled before the redemption fields existed. The writer is not verified here; see the status-sync 2.0 build guide |
 
-Both this field and `custrecord_gbb_liab_settled_at` are **write-once**, guarded independently.
+Writer rules differ by writer. `handler_lunastus` (type-2 CR) **always overwrites** this field and
+`custrecord_gbb_liab_settled_at` with the CR's created date (ADR 0008 rule 1, ADR 0010 k. 4, H5/H6;
+the old values go to the CR's automation log). Before 9.10.2026 the handler wrote only into an empty
+field, so older CRs keep the write-once result. Status-sync 2.0 never overwrites. *Corrected 9.11.2026
+from "both are write-once" after reading `handler_lunastus.js:356-415`.*
 
 ## `customlist_gbb_redemption_status` — [GBB] Redemption status
 

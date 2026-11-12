@@ -405,7 +405,9 @@ on tehty pyörille, jotka eivät ole ilmaisia. Lisäksi 69 jälkiveloituspyörä
 **OOMI-pyörät maksulinkin piiriin (päätetty 26.10.2026, [ADR 0014](adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k. 20–28):**
 - Marraskuun 220 käsin linkitettyä OOMI-pyörää leimattiin `link_sent` = T 26.10.
 - 1479:n OOMI-rajaus poistetaan (T79, takaraja pe 30.10.). Ensimmäinen OOMI-pyörä on B046669.
-- OOMI-pyörän hyvitys on vain negatiivinen huoltosumma.
+- ~~OOMI-pyörän hyvitys on vain negatiivinen huoltosumma.~~ **Kumottu 11.11.2026** ([ADR 0026](adr/0026-oomi-pyoralla-ei-huoltohyvitysta.md)):
+  OOMI-pyörän lunastushinnasta ei hyvitetä mitään. Väliaikainen sääntö 26.10.–11.11. vähensi negatiivisen huoltosumman
+  ja kuittasi osan tavalla 3; ne jäävät ennalleen. Uusi sääntö koskee vain käyttöönoton jälkeen lähteviä pyyntöjä. 1479:ssä tuotannossa 11.11.2026 (T109, PR #4).
 - `months_before` vaihdetaan 1 → 2 ma 2.11. (T80, T81).
 - Avoinna: 17 marraskuun käsin tehtyä linkkiä ilman hyvitystä (T82).
 

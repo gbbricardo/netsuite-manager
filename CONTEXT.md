@@ -183,7 +183,7 @@ porras, jonka yläraja kattaa huoltosumman.
 Käyttämätön huoltobudjetti, joka vähennetään loppulunastushinnasta: huoltoportaan yläraja miinus
 huoltosumma. Hyvitys on siksi aina pienempi kuin yhden portaan väli. Jos huoltosumma on
 negatiivinen, koko negatiivinen summa hyvitetään ilman ylärajaa.
-OOMI-pyörä on poikkeus: sen negatiivista summaa ei hyvitetä.
+OOMI-pyörä on poikkeus: sen lunastushinnasta ei hyvitetä mitään, ei kauden lopussa eikä kesken kauden.
 
 Hyvitys määräytyy pelkästä huoltosummasta. Sopimuksen pidennys ei vaikuta siihen, koska pidennys
 sisältää myös jälkiveloituskuukaudet.

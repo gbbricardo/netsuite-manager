@@ -10,7 +10,8 @@
   kuukausi = Done-tilainen pidennys-CR, `liab_settled_at` = rajan ylittäneen CR:n sulkemispäivä (sama kuin laskun
   luontipäivä), hyvityksiä ei huomioida.
 - **Laajennettu:** [ADR 0014](0014-maksulinkin-korjaus-ja-yksinkertaistus.md) (26.10.2026). OOMI-pyörät saavat linkin 1479:ltä, ja
-  niiden huoltohyvitys on vain negatiivinen huoltosumma (k. 1).
+  niiden huoltohyvitys on vain negatiivinen huoltosumma (k. 1). **Kumottu 11.11.2026** ([ADR 0026](0026-oomi-pyoralla-ei-huoltohyvitysta.md)):
+  OOMI-pyörän hyvitys on aina 0.
 - **Laajennettu:** [ADR 0024](0024-huoltohyvitys-keskenkauden-lunastuksessa-ja-lookup-kentta.md) (27.10.2026). K. 1:n huoltohyvitys
   koskee myös keskenkauden lunastusta, ja se näytetään cf-gbb-toolsin pyörärekisterityökalussa.
 - **Kenttätaso:** [kenttäsäännöt § 11](../lunastuksen-kenttasaannot.md#11-loppulunastushinnan-määräytyminen-ja-kattavuus)

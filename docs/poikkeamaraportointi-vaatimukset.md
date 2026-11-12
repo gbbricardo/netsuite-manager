@@ -1,6 +1,6 @@
 # Poikkeamaraportointi — vaatimukset
 
-**Päivitetty:** 2026-10-09 · **Tila:** hyväksytty (tuoteomistaja, grilling-istunto 9.–12.10.2026, Q1–Q28), [ADR 0017](adr/0017-poikkeamaraportointi.md) · **Seuranta:** TASKS T51, puuttuvat säännöt T65
+**Päivitetty:** 2026-10-09 · **Tila:** hyväksytty (tuoteomistaja, grilling-istunto 9.–12.10.2026, Q1–Q28), [ADR 0017](adr/0017-poikkeamaraportointi.md) · **Seuranta:** T51 arkistoitu 10.11.2026 (raportointi on netsuite-reporting-työkalu, ei erillistä raporttia), toteutus T100, T69, T106, puuttuvat säännöt T65
 **Peruste:** [ADR 0015](adr/0015-status-sync-2-tarkennukset.md) k. 1 (status-sync 2.0 ei raportoi),
 [ADR 0014](adr/0014-maksulinkin-korjaus-ja-yksinkertaistus.md) k. 10 (1479 ei raportoi),
 [ADR 0013](adr/0013-kauppakirjan-lahetys.md) k. 13 (kauppakirjaraportti)
@@ -81,7 +81,7 @@ rakennetaan `queries/`-kirjastoon toteutusvaiheessa (`suiteql-rakentaja`).
 | ID | Ehto | Sääntö | Laji | Aiempi | Tausta |
 |---|---|---|---|---|---|
 | KL1 | Tyypin 2 CR Needs Review -tilassa | ADR 0010 k. 7 | E: luontikuun loppu | S1 | — |
-| KL2 | Keskenkauden maksu (Paylink-tuote *kesken kauden*) ilman tyypin 2 CR:ää, päättymiskuu ei alkanut | ADR 0010 k. 2 | V | S2 | 2026-09-24 |
+| KL2 | Keskenkauden maksu ilman tyypin 2 CR:ää, päättymiskuu ei alkanut. Haara 1: maksettu Paylink-tuote *kesken kauden*. Haara 2: maksu vain rekisterissä (status 1, `paid_at` asetettu, ei maksettua Paylink-tilausta miltään tuotteelta, ei tapaa, `link_sent` ei T), esim. työnantajan lasku. Haaran 2 osuman `values` = `end_date` ja `paid_at`; haaran 1 `values` ennallaan (kuittaukset eivät raukea) | ADR 0010 k. 2 | V | S2 | 2026-09-24, haara 2 T69 |
 | KL3 | Tyypin 10 CR Pending yli 30 päivää | ADR 0010 k. 9 | V | S3 | — |
 | KL4 | Tyypin 2 CR:n `cr_created_date` ≠ CR:n todellinen luontipäivä (Helsinki), eli käsin kopioitu CR | ADR 0010 | V | — | p2-cr-luontipaivat |
 

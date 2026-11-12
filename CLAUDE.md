@@ -18,75 +18,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > listed in it. It carries the current metrics, what is verified in production, and the next tasks.
 > Update it when you change any of those.
 
-### Open items — raise these with the user
+### Open items — pointers
 
-| # | What | Why it matters |
-|---|---|---|
-| 1 | **33 CRs are still Pending** after the first scheduled runs (15 type 2, 16 type 11, 1 type 1, 1 type 7). Governance caps each batch, so the backlog drains over several runs. Re-check the gate quadrant below once it is empty. | Both schedules are back ON as of 22.09.2026. The gate has been verified on a batch of 43, but not on the whole backlog. |
-| 2 | **Resolved 22.10.2026: the 1.10. run was the first full-population run of `ri_creation` and `ri_update`.** No `⚠ TEST SCOPE` line, `scanned=46626 created=33862 mapErrors=0`, `c_flagged=285` (202 of them wrong, fixed by T28). These scripts still have no dry-run mode, and the library throws on unrecognised dates: a throw loses that bike's row silently. The 1.11. run is the first one on `gbb_lunastus_lib` 1.2.0 and the T28/T29 code. | Every monthly run: work through [`queries/kuukausiajo-tarkistuslista.md`](queries/kuukausiajo-tarkistuslista.md) before the payroll CSV (1451). It holds the coverage checks, D8 withholding, the `scriptnote` lines and the 1.10. baseline. The execution log will not otherwise show a lost row. |
-| 3 | **Status-sync part A loses late payments permanently** (23.09.2026). Its ±5-day window is keyed on the payment/invoice date, not on when the payment became visible. 24 paid Active bikes have no settle method and will never end. Correction CSV: `findings/2026-09-23-status-sync-maksuikkuna-hukkaa-myohaiset-maksut.md`. **The fix is not a patch.** The script is rewritten as status-sync 2.0 ([ADR 0007](docs/adr/0007-status-sync-2-tasmaytysajo.md), `docs/status-sync-2-tasmaytysajo.md`): a nightly Map/Reduce reconciling payment, status and `ic_redemption_dt` (finance's saved search 797). Approved 23.09.: **September runs on CSV imports, cut-over 1.10. in one go, October is the test month.** The script id changes: **status-sync 2.0 is script 1480, `Scheduled` nightly 00:30 Helsinki, dry run off 9.10.2026, first live run 10.10.** **S1 ran 23.09. 17:21, 27/27 correct**; 5 more bikes surfaced from the Paylink backlog afterwards (S1b needed; re-run the extraction query on 30.09.). CSV imports do **not** fire `ue_gbb_redemption_decided_at`, so `decided_at` stays empty on imported rows. **Re-specified 7.10.2026 ([ADR 0015](docs/adr/0015-status-sync-2-tarkennukset.md)):** the old script 1440 has been unscheduled since 6.10., so nothing records payments, turns statuses or writes IC dates until 2.0 is live. 2.0 is purely functional, with no reporting (that goes to `docs/poikkeamaraportointi-vaatimukset.md`). It ignores both exceptional end-date fields. `paid_at` is written as a payment fact. Settle method 2 is counted from Done *pidennys* CRs. The build guide is `docs/status-sync-2-tasmaytysajo.md`, task **T54, deadline 28.10.** (finance IC run 29.10., extension 1.11.). | The CSV must run before the 4 Pending 2C CRs are processed, or `handler_lunastus` writes the CR's creation date instead of the payment date (§5). A *Paid In Full* invoice can be a fully credited one: never widen the window without the credit check. |
-| 4 | **End-of-term redemption rules confirmed 24.09.2026** ([ADR 0009](docs/adr/0009-kauden-lopun-lunastus.md), `docs/lunastuksen-kenttasaannot.md` § 9). End-of-term = no type 2/10 CR in Pending/Done; deadline is the end of the end month; **OOMI bikes are Redeemed in their end month without payment** (method 1, `liab_settled_at` = tunnistuspäivä, `paid_at` empty — Oomi covers unpaid fees); extension ends automatically once paid type-7 invoices (net rent + admin fee) cover `end_redemption_price`; `redemption_decided_at` has no meaning at end of term. Resolves ADR 0008 D7/D8. Open: **S4** CSV (34 stuck OOMI bikes, `imports/2026-09-24-oomi-kauden-loppu/`) must run before S3 on 30.09.; K1–K3 go into status-sync 2.0; **K4**: 16 S1 bikes got method 1 before their end month; clearing CSV `imports/2026-09-24-s1-ennenaikainen-tapa/` **ran 24.09., 16/16 verified**; re-check 28.09. (B029495 may regain method 1 from old part A's ±5-day window). | Without S4 those 34 bikes stay Active forever — the sweep never sees a bike with no settle method. The OOMI `paid_at ≠ liab_settled_at` pattern is correct, not a §5 violation. |
-| 5 | **Mid-term redemption rules confirmed 24.09.2026** ([ADR 0010](docs/adr/0010-keskenkauden-lunastus.md), `docs/lunastuksen-kenttasaannot.md` § 10, requirements `docs/keskenkauden-lunastus-vaatimukset.md`). The type-2 CR alone is decision *and* evidence (no payment wait); no CR → no mid-term redemption, missing CRs are created **by hand** in October (19 bikes, `findings/2026-09-24-keskenkauden-maksu-ilman-cr.md`); `decided_at` = `cr_created_date`, written by the handler, history via CSV; rows cut at `end_date_of_old_sub`, money fixed by a type-11 CR (the only credit path — Staria `sta_mr_mid_life_redemption` was **Scheduled every 2 h** and is **NOTSCHEDULED since 9.10.2026**, both deployments); empty official end / created date or a later end date → Needs Review (owners finance + customer service, deadline end of creation month). **Exceptional end-date fields are abandoned**: päättymisajankohta becomes `subsc_end_date` only in October; `oomi_exceptional_end_date` stays Fleet-CSV visibility only. Open: **D9** — 15 Fleet-ended Active bikes with no settle method. | The CSV `imports/2026-09-25-poikkeuspaivat-subsc/` was **cancelled on 21.10.2026**, so do not run it. The registers' `subsc_end_date` values are correct, and the IC run already followed them. The library may drop the `COALESCE` without a CSV first. B044906 was corrected by hand to 31.08.2026 on 21.10. (ADR 0010 § 8). |
-| 6 | **The end-redemption Payment Link script went live 1.10.2026 and misprices late-redemption bikes** (`netstuite-send-end-redemption-payment-link`, script **1479**, `findings/2026-10-02-maksulinkki-ensimmainen-ajo.md`). The first production run sent 748 real Paylink links with 0 errors, and 215 were paid the same day. But the maintenance refund is anchored on `MONTHS_BETWEEN(subsc_end_date, subsc_org_end_date)`, and `handler_jalki` moves `subsc_end_date` once for every jälkiveloitus month. Result: **6 links undercharged by €80–160** (≈ €720; B006488 already paid €3.45), **4 bikes settled free as method 3** (≈ €598, now status 2), B046508 settled as method 4 while its price-0 question was still open, and 69 jälkiveloitus bikes listed `NOT_PRICED` in every daily digest. The fix belongs in the owning repo; the owner decides first. Every affected bike is a task in TASKS T30–T38 (`findings/2026-10-02-maksulinkki-tutkittavat.csv`), and the deadline is the next cohort run on **31.10.2026**. | Every month, the bikes that `handler_jalki` extends come back into the window (`not_before` filters on the *moving* `subsc_end_date`). Until the anchor is fixed, each new settlement 3/4 or link on a bike with a Done *pidennys – jälkiveloitus* CR is suspect. |
+Tasks and deadlines are in `TASKS.md`, the live status in `docs/lunastus-tilanne.md`. The 22.09.–7.10. open-items table, the gate-quadrant
+queries and the phase-3 plan are archived verbatim in [`archive/CLAUDE-avoimet-asiat-2026-11-10.md`](archive/CLAUDE-avoimet-asiat-2026-11-10.md)
+(history: re-verify before relying). Rules that outlive the tasks:
 
-**Resolved 22.09.2026 — both schedules are ON.**
-
-| What | Result |
-|---|---|
-| **CR scheduling re-enabled** | 43 type-2 CRs processed, **0 errors**, 0 Needs Review. Gate verified as a batch (see quadrant below). Types 1, 7 and 11 drained too. |
-| **Calendar sweep switched `Testing` → `Scheduled`** and ran | `171 candidates, 20 status changes written, 151 still waiting, 0 errors` |
-
-**The gate quadrant — this is how to read a CR run.** Not the headcount; the cross-tabulation:
-
-| Bike status after | End date | 22.09. result |
-|---|---|---|
-| 1 Active (deferred) | in the future | **14** |
-| 2 Redeemed | now or past | **28** |
-| 3 Returned | now or past | **1** |
-| **2 or 3** | **in the future** | **0 — this cell must stay empty** |
-
-```sql
-SELECT br.custrecord_sta_bike_status,
-       CASE WHEN br.custrecord_sta_subsc_end_date >= TRUNC(CURRENT_DATE,'MM') + INTERVAL '1' MONTH
-            THEN 'end_future' ELSE 'end_now_or_past' END, COUNT(*)
-FROM customrecord_subscrption_change_request cr
-JOIN customrecord_sta_bike_register br ON cr.custrecord_cr_bike_registry = br.id
-WHERE cr.custrecord_cr_type = 2 AND cr.custrecord_cr_status = 2 AND cr.lastmodified >= TO_DATE('2026-09-21','YYYY-MM-DD')
-GROUP BY 1, 2
-```
-
-Verification queries for item 2:
-
-```sql
--- sweep candidates: should GROW by roughly the number of Type 2 CRs processed
-SELECT COUNT(*) FROM customrecord_sta_bike_register
-WHERE custrecord_sta_bike_status = 1 AND custrecord_gbb_liab_settle_method IS NOT NULL;
-
--- liab_settled_at must be the CR's created date, never the run date
-SELECT br.id, br.custrecord_gbb_liab_settled_at, cr.custrecord_cr_created_date
-FROM customrecord_sta_bike_register br
-JOIN customrecord_subscrption_change_request cr ON cr.custrecord_cr_bike_registry = br.id
-WHERE cr.custrecord_cr_type = 2 AND cr.custrecord_cr_status = 2
-  AND br.custrecord_gbb_liab_settled_at <> cr.custrecord_cr_created_date
-```
-
-Every one of the 28 should log `status DEFERRED (would be 2; tunnistuspäivä … is still in the
-future)`. **Any bike flipped to status 2 on processing means the gate is not holding — say so and
-stop before more CRs run.**
-
-Baseline 21.09.2026 evening: sweep candidates **117**, premature redemptions **0** (§3 month
-anchor), ended bikes with no evidence **0**, §5 violations **53**, `historical_unknown` on Active
-bikes **0**, bikes with no status **140**.
-
-> [!NOTE]
-> **The sweep was `Scheduled` 22.09.–6.10.2026 and is `NOT SCHEDULED` since 6.10.2026 (replaced by status-sync 2.0, 1480)** (`customscript_gbb_bike_redemption_status` /
-> `customdeploy_gbb_redemption_sync`, script internal id **1440**). It was on `Testing` until then,
-> which meant its recurrence never fired and the transition *lunastus sovittu* → *lunastettu*
-> happened only by hand.
->
-> A deployment's `status` still does **not** tell you whether scheduling is on —
-> `scriptdeployment.recurrence` is `NOT_EXPOSED` to SuiteQL. Confirm a schedule by the presence of
-> runs in `scriptnote`, not by the status field.
+- **Monthly runs:** work through [`queries/kuukausiajo-tarkistuslista.md`](queries/kuukausiajo-tarkistuslista.md) before the payroll CSV (1451). `ri_creation`/`ri_update` have no dry-run, and a throw on an unrecognised date loses that bike's row silently.
+- **Status-sync 2.0 (script 1480, nightly 00:30 Helsinki)** replaced the old sweep 1440 on 6.10. ([ADR 0007](docs/adr/0007-status-sync-2-tasmaytysajo.md), [ADR 0015](docs/adr/0015-status-sync-2-tarkennukset.md), `docs/status-sync-2-tasmaytysajo.md`). A *Paid In Full* invoice can be a fully credited one: never widen the payment window without the credit check. CSV imports do not fire `ue_gbb_redemption_decided_at`.
+- **End-of-term redemption** ([ADR 0009](docs/adr/0009-kauden-lopun-lunastus.md), `docs/lunastuksen-kenttasaannot.md` § 9): OOMI bikes are Redeemed in their end month without payment (`paid_at` empty is correct). The extension ends once paid type-7 invoices cover `end_redemption_price`.
+- **Mid-term redemption** ([ADR 0010](docs/adr/0010-keskenkauden-lunastus.md), § 10): the type-2 CR alone is decision and evidence. The exceptional end-date fields are abandoned; the registers' `subsc_end_date` is the truth.
+- **Payment Link 1479 anchors the maintenance refund on `MONTHS_BETWEEN(subsc_end_date, subsc_org_end_date)`**, and `handler_jalki` moves `subsc_end_date` once per jälkiveloitus month. Any settlement method 3/4 or link on a bike with a Done *pidennys – jälkiveloitus* CR is suspect until that is fixed (`findings/2026-10-02-maksulinkki-ensimmainen-ajo.md`, T30–T38).
+- **The gate quadrant is how you read a CR run:** the cell *bike status 2 or 3 with an end date in the future* must stay empty. Query in the archive file. Any bike flipped to status 2 early means the gate is not holding: stop before more CRs run.
+- **A deployment's `status` does not tell whether scheduling is on** (`scriptdeployment.recurrence` is `NOT_EXPOSED`). Confirm a schedule by runs in `scriptnote`.
+- **`custrecord_gbb_date_to_non_active` is filled with a delay of hours** by script 1458 (*Bike status date backfill*, daily about 02:01 log time, reads System Notes). An empty value right after a sweep is normal.
+- **Reporting is the `netsuite-reporting` tool in `cf-gbb-tools`** (business decision 10.11.2026). No separate sent or investigated report is made. The checks are defined in [`docs/poikkeamaraportointi-vaatimukset.md`](docs/poikkeamaraportointi-vaatimukset.md); coverage of every defined check is T107.
 
 > [!TIP]
 > **Read script execution logs from SuiteQL table `scriptnote`** (`scriptexecutionlog` fails with
@@ -99,13 +45,6 @@ bikes **0**, bikes with no status **140**.
 > are logged under the previous day. On 22.09.2026 the sweep logged `tunnistuspäivä=2026-09-22`
 > while its log rows were dated 21.09. — that is `tanaanHelsinki()` doing its job, not a defect.
 
-**Resolved 21.09.2026 — do not re-open.** `custrecord_gbb_date_to_non_active` was empty on 664
-ended bikes right after the calendar sweep; by the same evening all 664 carried 21.09.2026, which
-is exactly their tunnistuspäivä. A process fills the field with a delay of hours, and fills it correctly.
-**Identified 23.09.2026:** it is `customscript1458` *Bike status date backfill* (internal id 1458),
-`netsuite-bike-redemption-status-sync/gbb-bike-status-history/gbb_ss_bike_status_history_backfill.js`.
-It runs daily at about 02:01 log time and reads the status-change date from System Notes
-(`findings/2026-09-23-b038677-redeemed-ja-ended-ilman-cr.md`).
 
 ### Decision: in a mid-term redemption the CR beats the payment (ADR 0008, 23.09.2026)
 
@@ -126,22 +65,36 @@ true 4). The operational anchor is the **first day of the end month**, not the e
 whose lease ends mid-month is legitimately Redeemed before its own end date. If a redemption metric
 suddenly looks catastrophic, check the query against §3 before believing it.
 
-### Next piece of work: phase 3
+### CR statuses
 
-> [!IMPORTANT]
-> **Order decided 21.09.2026: phase 3 first, both schedules only after it.** Neither the calendar
-> sweep nor CR scheduling goes back on before phase 3 is in production and tested. The sweep writes
-> status 2; CR Done fires the five `RELEASED` UE scripts, which create RI rows carrying
-> `[To-add: Data from bike register]`, and `ri_update.js:717-720` later demotes such a row to
-> Warning purely because the bike's status is 2/3 — a Warning row is withheld from the payroll CSV,
-> i.e. a missed deduction. The rows cannot be removed by deleting the CR. The full chain, the
-> evidence and the deadline are in `docs/lunastus-tilanne.md` § *Ajojärjestys*.
+`customrecord_subscrption_change_request.custrecord_cr_status`: -1 New, 1 Pending, 2 Done, **3 In Progress**, 5 Error, 6 Needs Review, 7 Cancelled
+([`schemas/lists/README.md`](schemas/lists/README.md)). The CR scheduler (script 1199) selects only `status = 1 AND closed_date IS NULL`, and since 10.11.2026
+the dispatcher sets 3 before the handler runs (T102). A CR left in 3 is never re-picked and needs a human check before it is reset to Pending:
+the handler may already have created an invoice. Any query that means "open CR" must decide whether 3 belongs in it (T103–T106 list the readers that do not yet).
 
-The redemption rules are in production for phases 0–2 and **phase 3 has no blockers left** as of
-21.09.2026. It is the change that makes monthly reporting stop reading `custrecord_sta_bike_status`.
-The target file, the exact condition, the anchor trap and the four other scripts that read the
-status are all written up in `docs/lunastus-tilanne.md` § *Seuraavat taskit*. Read that before
-touching `netsuite-monthly-reporting`.
+
+## Working agreement
+
+- **Discuss until the user says go.** While a topic is being discussed, propose, weigh options and refine wording, but edit nothing. A request such as "record X" or "do Y" counts as go for the files it names, and only for those. Never create a new file without separate permission.
+- **Do not multiply Markdown files.** An investigation, finding, change or decision does not get its own file by default. Answer in the conversation, or add to the file that already holds the topic (`TASKS.md`, `docs/lunastus-tilanne.md`, the relevant ADR). A new file needs the user's explicit approval.
+- **The main session supervises; it does not build.** It writes no code and changes no scripts. It spawns subagents for that work, briefs them (scope, model, effort, prompt), and is accountable for everything they do. A subagent may change only the repository it is assigned, in practice one sibling repo, never this one unless told so.
+
+## Sibling change workflow
+
+Every code change to a sibling repo follows this order. The main session orchestrates and reports; it writes no code.
+
+1. **Propose and discuss.** The main session proposes the change; nothing is edited. Load the `kaizen` skill before proposing. Every proposal starts with the option that removes or merges an existing path (field, CR type, script, exception rule). A new addition is allowed only once justified, and the proposal names the new branches it creates: which other readers, queries, repos and ADRs it touches. Once the user agrees it is warranted, the user runs `/grill-me` (small, isolated change) or `/grill-with-docs` (touches business rules, field semantics, CR types or an ADR). Both are user-invoked only; the main session says which and why. `/grill-with-docs` writes ADRs and glossary entries: that is the user's approval for those files.
+2. **The user defines the change** (specification with acceptance criteria). The main session does not start the pipeline before that.
+3. **Run `.claude/workflows/sibling-change.js`** (`mode: "change"`): version-control agent prepares a clean default branch and a new branch, the development agent (ponytail plugin) implements, the review agent (netsuite-suitecloud plugin for SuiteScript) reviews independently against the specification and runs the tests, up to 3 rounds. The documentation agent then updates the repo's docs (review, up to 2 rounds), and the version-control agent commits, pushes and opens the PR. The loop ends when the reviewer returns no findings, no unmet criterion and passing tests. After the round limit the main session stops and asks the user.
+4. **The main session reports** what was done, what the review found and fixed, and what changed during the loop (the workflow result carries every round).
+5. **The user merges the PR**, then the main session runs the workflow with `mode: "sync"`: the version-control agent puts the local default branch on origin and lists the files to upload. **Upload to the File Cabinet only after that**, so no other branch's files are uploaded.
+
+Rules for the agents:
+- Each agent changes only the one sibling repo it is assigned. It reads this repo for reference but never edits it.
+- Sibling repos hold no outdated documentation and no ADRs that are missing from this repo. The documentation agent lists stale or foreign documents (`staleCandidates`); the user decides what is deleted.
+- Models and effort are chosen per call (`args.tune`), not fixed: the best result for the fewest tokens.
+- A skill an agent could not load must be reported, not skipped silently (`skillsUsed` in the result).
+- Fields and behaviour not verified in NetSuite are marked as inferred in code and docs.
 
 ## What This Repository Is
 
@@ -160,9 +113,8 @@ Its job is to answer questions that no single sibling repo can answer on its own
 4. **Gap and improvement tracking** — missing guards, silent-failure paths, undocumented coupling.
 
 > [!IMPORTANT]
-> **Do not edit scripts in the sibling repositories from this project.** Work here is read-only
-> analysis over them. Findings are written up *here*; fixes are made in the owning repo, in a
-> separate session, following that repo's own conventions.
+> **Sibling repositories are changed only by delegated subagents** (see *Working agreement*), never edited directly from this project. Work here is
+> read-only analysis over them. Findings are written up *here*; fixes are made in the owning repo, following that repo's own conventions.
 
 ## The Eight Orchestrated Repositories
 
@@ -220,6 +172,14 @@ label. CTEs, window functions (`LAG`, `ROW_NUMBER`), `LISTAGG` and `REGEXP_LIKE`
 full probe-verified matrix is [`queries/suiteql-tuki.md`](queries/suiteql-tuki.md); verified
 reusable queries live in [`queries/`](queries/README.md).
 
+### Checking whether Brevo sent an email to a customer
+
+`node tools/brevo-email-check.mjs <email> [--subject …] [--content] [--text]` answers "was a
+transactional email sent to this address, what did it say, when, and was it delivered?" It is
+read-only (GET only). Needs `BREVO_API_KEY` (env var or `../cf-gbb-tools/.dev.vars`). Read
+[`docs/brevo-sahkopostitarkistus.md`](docs/brevo-sahkopostitarkistus.md) first: *delivered* is not
+*read*, an empty result does not prove nothing was sent, and the content endpoints have a 300/h quota.
+
 > [!NOTE]
 > The six project agents under `.claude/agents/` (`suiteql-rakentaja`, `lunastusauditoija`,
 > `ri-auditoija`, `sopimusriviauditoija`, `muutospyyntoauditoija`, `tarkastaja`) were **removed on
@@ -235,7 +195,7 @@ when the cache was first built.
 
 Per-repo docs disagree with each other and occasionally with themselves. When they conflict:
 **live NetSuite > repo source code > that repo's `CLAUDE.md` / `README.md` > dated plans** in
-`docs/ideas/`, `docs/superpowers/` and `archive/`. Treat every "deployed" claim as unverified until it
+`archive/` and superseded ADRs in `docs/adr/`. Treat every "deployed" claim as unverified until it
 has been queried. Which file each repo names as its own authority is in
 [`docs/sisarrepot.md`](docs/sisarrepot.md) § *Documentation trust order*.
 
@@ -249,3 +209,15 @@ has been queried. Which file each repo names as its own authority is in
 - Finnish is the business-domain language (Siirto TA, Välikuukaudet, Jälkiveloitus, Hyvitys,
   pyörärekisteri, lunastus). Keep the Finnish CR-type names when referring to them — the handler
   files are named after them.
+
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+Rules:
+- When graphify-out/graph.json exists, run `graphify query "<question>"` before your first grep, search or source-file read for a codebase question, and put this rule in every subagent prompt that explores code. Read raw files only for lines the graph or an earlier read already located. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+- A committed graphify-out/graph.json is rewritten whole on every build, so a large diff to it in a pull request is expected. Do not flag it as churn or suggest skipping the graph rebuild or its hooks.
