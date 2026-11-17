@@ -7,6 +7,11 @@
 Tämä dokumentti kertoo **missä mennään**. Suunnitelma kertoo mitä tehdään ja säännöt miksi.
 
 > [!IMPORTANT]
+> **17.11.2026: huoltohyvitys kulutetaan lunastuslinkin lähetyksessä** ([ADR 0027](adr/0027-huoltohyvityksen-kaytto-lunastusmaksupyynnossa.md), T111).
+> 1479 muuttaa nyt `custrecord_sta_maintenance_sum`-kenttää ja kirjoittaa uuden `custrecord_gbb_eredem_payable_net`-kentän;
+> 1437 ja 1480 lukevat maksettavan summan siitä. Tila ja seuranta: § *Maksulinkki* alla.
+
+> [!IMPORTANT]
 > **12.10.2026: status-sync 2.0 on tuotannossa** ([ADR 0015](adr/0015-status-sync-2-tarkennukset.md),
 > [rakennusohje](status-sync-2-tasmaytysajo.md)). Script `customscript_gbb_mr_redemption_sync2` = **1480**. Ajo joka yö
 > klo 00:30 Helsingin aikaa, ja se korvaa vanhan 1440:n (osa A ja kalenterisweep, *Not Scheduled* 6.10. alkaen).
@@ -410,6 +415,19 @@ on tehty pyörille, jotka eivät ole ilmaisia. Lisäksi 69 jälkiveloituspyörä
   ja kuittasi osan tavalla 3; ne jäävät ennalleen. Uusi sääntö koskee vain käyttöönoton jälkeen lähteviä pyyntöjä. 1479:ssä tuotannossa 11.11.2026 (T109, PR #4).
 - `months_before` vaihdetaan 1 → 2 ma 2.11. (T80, T81).
 - Avoinna: 17 marraskuun käsin tehtyä linkkiä ilman hyvitystä (T82).
+
+**Huoltohyvitys näkyy ja kulutetaan (T111, tuotannossa 17.11.2026, [ADR 0027](adr/0027-huoltohyvityksen-kaytto-lunastusmaksupyynnossa.md)):**
+- **A (16.11., PR #8):** Paylink-tilauksella kaksi riviä, *Työsuhdepyörän loppulunastus* (alkuperäinen brutto) ja negatiivinen
+  *Hyvitys*, kun hyvitys > 0. Negatiivinen rivi todennettu tuotannossa testitilauksella 55232 (poistettu).
+- **B vaihe 1 (17.11.):** uusi kenttä `custrecord_gbb_eredem_payable_net`. Hinnoittelukirjasto ottaa `payableNetOverride`-arvon
+  (PR #9); 1437 (extension PR #3) ja 1480 (status-sync PR #6) välittävät kentän, joten jatkokaudet ja tapa 2 lasketaan
+  lähetyshetken maksettavasta summasta.
+- **B vaihe 2 (17.11., PR #10 + #11):** 1479 kirjoittaa linkin lähetyksessä ja tavalla 3 ensin `link_sent`/kuittauksen ja sen perään
+  erikseen huoltosumman (+ käytetty hyvitys) ja maksettavan summan (= hinta − käytetty). Epäonnistunut kirjoitus →
+  `CREDIT_WRITE_FAILED` lokiin, korjataan käsin. Tapa 4 ja OOMI eivät kirjoita.
+- **Todennettu 17.11.:** File Cabinetin tiedostot vastaavat repojen masteria (diff ilman rivinvaihtoja). Ensimmäistä kulutusajoa
+  ei vielä ole; jälkitarkistukset T111 ja T112 (S10-pyörät, lunastuksen jälkeen saapuvat huoltolaskut, kilpatilanne).
+- **Jatko:** keskenkauden lunastuksen työkalu (T113).
 
 ## Avoimet päätökset
 

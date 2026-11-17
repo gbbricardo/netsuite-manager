@@ -412,9 +412,57 @@ tuplahyvitys estyy ilman tilakenttää. Paylink-tilaukseen kaksi riviä: lunastu
 - Lukijat, joiden sääntö on käytävä läpi: 1480 status-sync, `gbb_ext2_paatos.js`, IC-laskuri, cf-gbb-tools (T83-paneeli näyttää käytön jälkeen 0).
 - Brevon `kayttamaton_huoltobudjetti` (ADR 0014 k24) on laskettava ennen kirjoitusta. KS § 11 "ei tallenneta rekisteriin" kumoutuu → uusi ADR.
 
-**Avoimet kysymykset:** 1) hyväksyykö Paylink negatiivisen rivin (vara: `infoBefore`-teksti)? 2) koskeeko myös keskenkauden
+**Testi 16.11.2026 (todennettu tuotannossa): Paylink hyväksyy negatiivisen rivin.** Tilaus 55232 (id 366989) luotiin API:lla
+1479:n payload-muodolla: *Loppulunastus* 30000 snt + *Huoltohyvitys* −5000 snt, `fi_standard` → HTTP 201. Paylink jakoi rivit itse
+(239,04 + 60,96 / −39,84 − 10,16), yhteensä 250,00, sis. ALV 50,80. Maksusivu ja PDF näyttävät rivit ja ALV-yhteenvedon oikein,
+`info_before` näkyy rivien yläpuolella. Hyvitysrivi lasketaan bruttojen erotuksena, jolloin summa täsmää sentilleen. PDF:n
+"Yks. hinta" on veroton (Paylinkin oma, ei säädettävissä).
+- [x] **Testitilaus 55232 poistettu 17.11.2026** (käyttäjä; Paylink estää poiston 24 h maksusivulla käynnin jälkeen).
+- [ ] **Paytrail-varapolku (päätelty, 17.11.):** `Paylink/paytrail_settlement_import.ss2.js:108` yhdistää rivien nimet →
+  kahden rivin tilaus saa tuotenimen "Työsuhdepyörän loppulunastus, Hyvitys", jota `paylink_ns_processor.ue.js:316` ei tunnista
+  → Error. Vain kun maksu ei tule Paylink-synkin kautta. Seuraa; korjaa, jos tapaus syntyy.
+- [ ] **Vaihe A toteutettu 16.11.2026** (PR #8, merge `19cc3a0`, ladattu File Cabinettiin 16.11.). **Jälkitarkistus ensimmäisen
+  maksetun kahden rivin tilauksen jälkeen:** sen `customrecord_payment_requests`-rivillä `product_name` = *Työsuhdepyörän
+  loppulunastus* (paylink-order-tracking lukee `items[0].title`; S4 ja prosessorin reititys riippuvat siitä), `amount_total` =
+  maksettu brutto ja `ns_status` käsitelty. Rivijärjestyksen säilyminen Paylinkissä on päätelty, ei todennettu.
+
+**Avoimet kysymykset:** ~~1) negatiivinen rivi~~ ratkaistu 16.11. (kyllä); 2) koskeeko myös keskenkauden
 lunastusta (ADR 0024 K9 = pelkkä näyttö)? 3) positiivisenkin hyvityksen katto = lunastushinta? 4) kuukausibudjettiskriptin valinta.
-**Seuraava askel:** brainstorm → `/grill-with-docs` (kenttäsemantiikka, ADR 0014/0024/0026).
+**Seuraava askel (päätös 16.11.):** vaiheistetaan. **A ensin:** 1479 lähettää kaksi riviä (lunastus + hyvitys), ei kirjoitusta
+NetSuiteen, määrittely `/grill-me`. B (hyvityksen kulutus huoltosummaan) myöhemmin `/grill-with-docs` (ADR 0014/0024/0026).
+**B määritelty 17.11.2026: [ADR 0027](docs/adr/0027-huoltohyvityksen-kaytto-lunastusmaksupyynnossa.md).** Avoimet kysymykset 2–4
+ratkaistu siinä (2: vain kauden loppu, T113; 3: min(hyvitys, hinta); 4: kuukausibudjettiskripti vain OOMI). Seuraavaksi uusi kenttä
+NetSuiteen ja kolmen repon toteutus järjestyksessä lukijat → 1479.
+**B tuotannossa 17.11.2026:** kenttä luotu; vaihe 1 (kirjasto PR #9, 1437 PR #3, 1480 PR #6) ja vaihe 2 (1479 PR #10 + #11,
+merge `9af19de`) ladattu, koot täsmäävät (1479: 45 471 t). Kulutus alkaa 1479:n seuraavasta ajosta.
+- [ ] **Ensimmäisen ajon jälkeen:** `scriptnote` (1479) → `CREDIT_WRITE_FAILED`-rivit; lokirivin `kulutus_*`-kentät; T112 (S10).
+
+### [ ] T112 — S10-pyörät: tarkista ja korjaa Staria-hookin pidennykset T111 B:n käyttöönoton jälkeen (ei eräpäivää, alkaa B:n latauksesta)
+
+T111 B (päätös 17.11.2026, vaihtoehto c) kirjoittaa positiivisen huoltosumman portaan ylärajaan myös S10-pyörille.
+Staria-hook `sta_ue_bike_register_hook.js:1213–1260` luo pidennysrivit ja IC-laskun, kun summa muuttuu > 0 ja portaan kuukaudet
+ylittävät tehdyt pidennykset (päätelty koodista; `ignoreTriggers`-esto todentamatta). Käyttöönoton jälkeen: hae pyörät, joille
+1479 kirjasi `S10` ja kirjoitti summan, ja tarkista niiden uudet pidennysrivit (`isprolongation = 'T'`) ja IC-laskut; korjaa
+käsin aiheettomat. Kirjaa ensimmäisellä kerralla, laukaisiko kirjoitus hookin lainkaan.
+
+**Laajennus 17.11.2026 (koodikantatarkistus, päätös a = hyväksytään ja seurataan):**
+- **Lunastuksen jälkeen saapuva huoltolasku.** `sta_mr_vendor_bill_logic.js:328` lisää laskun huoltosummaan ilman tilarajausta
+  (todennettu koodista). Kun 1479 on nostanut negatiivisen summan nollaan, myöhäinen lasku tekee summasta positiivisen ja hook voi
+  luoda pidennyksen lunastetulle pyörälle (ennen T111:tä summa olisi jäänyt negatiiviseksi). Tarkista samalla kertaa: ostolaskut
+  (`custbody_sta_bike_id`) pyörille, joilla `eredem_link_sent = 'T'`, luotu linkin jälkeen → uudet pidennysrivit/IC-laskut.
+  Mittakaava: 15 laskua / 13 linkitettyä pyörää 2.10.–17.11. (yläraja, ajoitusta linkkiin ei eroteltu).
+- **Kilpatilanne (päätelty):** 1479 ja ostolaskuskripti lukevat summan ja kirjoittavat absoluuttisen arvon; limittäin ajettuna
+  laskun summa tai kulutus häviää. `eredem_payable_net` pysyy oikeana. Tarkista lokista, ajetaanko ne päällekkäin.
+- Korjaus lähteessä (ostolaskuskripti ohittaa linkitetyt pyörät, repo `netsuite-staria-suitescripts`) harkitaan vasta, jos
+  tapauksia kertyy.
+
+### [ ] T113 — Asiakaspalvelun työkalu keskenkauden lunastuksen maksulinkille hyvitysrivillä (idea, ei eräpäivää)
+
+T111 B rajattiin kauden lopun lunastukseen (1479), päätös 17.11.2026. Keskenkauden lunastuksessa hyvitys on nyt pelkkä näyttö
+cf-gbb-toolsissa (ADR 0024 K9). Tavoite: asiakaspalvelu lähettää keskenkauden lunastuksen maksulinkin työkalusta niin, että
+Paylink-tilauksella on *Hyvitys*-rivi (kuten T111 A) ja käytetty huoltohyvitys kulutetaan huoltosummasta samalla kaavalla kuin
+T111 B:ssä. Todennäköinen paikka cf-gbb-tools (ADR 0024:n näyttö on jo siellä). Kumoaa ADR 0024 K9:n "ei automatisoida" → vaatii
+`/grill-with-docs`. Aloitetaan vasta, kun T111 B on tuotannossa ja T112 tarkistettu.
 
 ### [ ] T84 — B033466: varkauden lunastus peruttu (pyörä löytyi), seurantapisteet 29.10.–1.11.
 
