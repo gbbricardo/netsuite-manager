@@ -886,6 +886,8 @@ Koskee vain **kauden lopun lunastusta** muilla kuin OOMI-pyörillä. Keskenkaude
 se näytetään cf-gbb-toolsin pyörärekisterityökalussa, eikä sitä automatisoida.
 OOMI: § 9 *OOMI-pyörä*. **OOMI-pyörän huoltohyvitys on aina 0** kauden lopussa ja kesken kauden
 ([ADR 0026](adr/0026-oomi-pyoralla-ei-huoltohyvitysta.md), 11.11.2026; kumoaa ADR 0014 k. 22:n negatiivisen summan hyvityksen).
+**Käytetty huoltohyvitys kulutetaan huoltosummasta ja maksettava netto tallennetaan `custrecord_gbb_eredem_payable_net`-kenttään
+lähetyshetkellä** ([ADR 0027](adr/0027-huoltohyvityksen-kaytto-lunastusmaksupyynnossa.md), 17.11.2026; ei vielä toteutettu, T111 B).
 
 ### Hintaan vaikuttavat kentät
 

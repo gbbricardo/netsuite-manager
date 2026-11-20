@@ -188,13 +188,23 @@ OOMI-pyörä on poikkeus: sen lunastushinnasta ei hyvitetä mitään, ei kauden 
 Hyvitys määräytyy pelkästä huoltosummasta. Sopimuksen pidennys ei vaikuta siihen, koska pidennys
 sisältää myös jälkiveloituskuukaudet.
 
-_Vältä_: hyvitys (yksinään se tarkoittaa hyvitysmuutospyyntöä)
+_Vältä_: hyvitys (yksinään se tarkoittaa hyvitysmuutospyyntöä). Poikkeus: lunastusmaksupyynnön
+rivi näkyy maksajalle nimellä *Hyvitys*; sisäisessä kielessä se on huoltohyvitys.
+
+### Käytetty huoltohyvitys
+
+Se osa huoltohyvityksestä, joka vähennettiin lunastusmaksupyynnössä. Se kulutetaan huoltobudjetista,
+jotta samaa budjettia ei voi enää käyttää huoltoon. Vain vähennetty määrä kulutetaan: jos
+negatiivinen huoltosumma on suurempi kuin loppulunastushinta, ylijäävä osa jää asiakkaan
+käytettäväksi huoltobudjettina.
 
 ### Maksettava loppulunastussumma
 
 Loppulunastushinta miinus huoltohyvitys. Summa lasketaan kerran, lunastusmaksupyynnön
 lähetyshetkellä, sen hetkisistä tiedoista. Sitä ei kiinnitetä eikä lasketa uudelleen, jos tiedot
 myöhemmin muuttuvat. Sama summa on vertailukohta, kun todetaan ovatko velvoitteet hoidettu.
+Summa tallennetaan pyöräkortille lähetyshetkellä, koska käytetyn huoltohyvityksen kulutus hävittää
+tiedon, josta se laskettiin.
 
 ### Lunastusmaksupyyntö
 
